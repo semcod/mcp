@@ -67,6 +67,26 @@ Wystarczy dodać plik i restart `mcp-gateway`.
 - `GET /jobs/{job_id}` — status zadania
 - `GET /audit/tail?limit=N` — JSONL audit log
 
+### Prompt contract dla `mcp-skills/refactor`
+
+Gateway parsuje z promptu (lub z `extra_body`) pola:
+
+- `Repo`
+- `Repo URL` (opcjonalnie)
+- `Source` (opcjonalnie)
+- `Branch`
+- `Execute` (`true/false`)
+- `Push` (`true/false`)
+- `Test`
+- `Remote`
+- `Zadanie`
+
+Przy `Execute: true` gateway tworzy commit artefaktów planu (`.mcp/refactor-plan.json`, `.mcp/refactor-summary.md`) i uruchamia test command.
+Przy `Push: true` wykonuje push tylko gdy:
+
+1. tenant ma `features.push: true`,
+2. testy zwrócą `ok: true`.
+
 ## OpenWebUI
 
 Konfiguracja środowiskowa kontenera:
@@ -93,3 +113,21 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 - Wszystkie wywołania API gateway wymagają `Authorization: Bearer <key>`.
 - Audit log w wolumenie `audit-storage` (JSONL).
 - Walidacja patchy w `mcp-git-proxy` (path traversal blokowany w `worktree/write`).
+
+## Status produktu (maj 2026)
+
+### Co działa przez OpenWebUI (`http://localhost:3000`)
+
+- Wywołanie `mcp-skills/refactor` i `mcp-skills/analyze` przez OpenAI-compatible API.
+- Sync repo (`Repo URL` lub `Source`) do `mcp-git-proxy`.
+- Analiza repo przez `mcp-skills` (metrics/patterns/recommendations).
+- Opcjonalny commit + test + push przez prompt (`Execute`/`Push`).
+- Multi-tenant auth + audit.
+
+### Co jeszcze wymaga pracy do pełnego „auto-refactor + GitHub update”
+
+1. Automatyczna modyfikacja kodu źródłowego (obecnie commitowane są artefakty planu `.mcp/*`).
+2. Iteracyjny loop patchowania z rollbackiem checkpointów i polityką retry.
+3. Wsparcie PR workflow (branch naming, otwarcie PR przez GitHub API, template opisu).
+4. Dodatkowe guard-raile produkcyjne (approval gates, repo allowlist, limits na zakres zmian).
+5. Trwała kolejka i storage jobów (`Redis/Postgres`) zamiast in-memory `JOBS`.

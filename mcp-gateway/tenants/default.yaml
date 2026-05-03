@@ -9,6 +9,6 @@ quotas:
 features:
   refactor: true
   analyze: true
-  push: false
+  push: true
 audit:
   enabled: true

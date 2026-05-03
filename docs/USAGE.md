@@ -67,10 +67,10 @@ OpenWebUI w naszym compose jest już skonfigurowany przez env (`OPENAI_API_BASE_
    Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
    ```
 
-4. Otrzymasz odpowiedź JSON z `job_id`, statusem `checkpoint`, aktualnym `diff`.
+4. Otrzymasz odpowiedź JSON z `job_id`, statusem `checkpoint`, analizą i planem.
 5. Diff możesz obejrzeć w `mcp-webui` na http://localhost:8092/diff?repo_id=team/code2schema-demo
 
-> Uwaga: w MVP `mcp-gateway` zwraca payload dispatcher z checkpoint+diff. Pełny LLM-loop (patch+test+commit) jest w pipeline; w międzyczasie używaj scenariuszy 3 i 4 dla pełnego flow.
+> Uwaga (stan obecny): gateway wykonuje **sync + analyze + zapis artefaktów planu** (`.mcp/refactor-plan.json`, `.mcp/refactor-summary.md`) i opcjonalnie `commit/push`, ale nie wykonuje jeszcze automatycznych zmian kodu źródłowego modułów.
 
 ---
 
@@ -248,6 +248,54 @@ Playbook `ansible/e2e-docker-stack.yml` wykonuje:
 - prompt `mcp-skills/refactor` z polami `Repo/Source/Branch/Zadanie`,
 - prompt `mcp-skills/analyze`,
 - asercję, że routing używa `team/code2schema-demo` i `/host-semcod/code2schema`.
+
+---
+
+## Scenariusz 8 — OpenWebUI: refactor + commit + push
+
+**Cel:** wywołać refaktoryzację z OpenWebUI i automatycznie wykonać commit oraz (opcjonalnie) push.
+
+W wiadomości do modelu `mcp-skills/refactor` podaj:
+
+```text
+Repo: team/code2schema-demo
+Source: /host-semcod/code2schema
+Branch: main
+Execute: true
+Push: false
+Test: python3 -m compileall -q .
+Remote: origin
+Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
+```
+
+Lub (dla zdalnego repo):
+
+```text
+Repo: team/code2schema-demo
+Repo URL: https://github.com/<org>/<repo>.git
+Branch: main
+Execute: true
+Push: true
+Remote: origin
+Test: python3 -m compileall -q .
+Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
+```
+
+### Jak czytać wynik JSON
+
+- `analysis` — metryki/wzorce/rekomendacje z `mcp-skills`.
+- `plan_preview` — podsumowanie i artefakty planu.
+- `execution.committed=true` — commit utworzony przez `mcp-git-proxy`.
+- `execution.tests.ok=true` — test command przeszedł.
+- `execution.pushed=true` — push wykonany (gdy `Push: true` i feature `push` jest włączony dla tenant).
+
+### Co jest jeszcze do zrobienia, aby mieć „pełny auto-refactor kodu”
+
+1. Generowanie i aplikacja patchy kodu (nie tylko artefaktów `.mcp/*`).
+2. Iteracyjna pętla: patch -> test -> rollback/checkpoint restore -> kolejna próba.
+3. Strategia branch/PR (np. `draft/*`) i automatyczne otwieranie PR na GitHub.
+4. Lepsze guard-raile: limity scope zmian, allowlist ścieżek, reguły bezpieczeństwa push.
+5. Trwały storage jobów (Redis/Postgres) zamiast in-memory `JOBS`.
 
 ---
 

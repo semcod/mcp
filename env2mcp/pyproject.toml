@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "env2mcp"
+version = "0.1.1"
+description = "Environment configuration manager for MCP projects"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["mcp", "environment", "config", "github", "dotenv"]
+authors = [
+    { name = "MCP Team" },
+    {name = "Tom Sapletta",email = "tom@sapletta.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = []
+
+[project.license]
+text = "Apache-2.0"
+
+[project.scripts]
+env2mcp = "env2mcp.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/semcod/mcp"
+
+[tool.hatch.build.targets.wheel]
+packages = ["env2mcp"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pfix]
+# Self-healing Python configuration
+model = "openrouter/qwen/qwen3-coder-next"
+auto_apply = true
+auto_install_deps = true
+auto_restart = false
+max_retries = 3
+create_backups = false
+git_auto_commit = false
+
+[tool.pfix.runtime_todo]
+enabled = true
+todo_file = "TODO.md"
+min_severity = "low"
+deduplicate = true
+
+[tool.costs]
+# AI Cost tracking configuration
+badge = true
+update_readme = true
+readme_path = "README.md"
+default_model = "openrouter/qwen/qwen3-coder-next"
+analysis_mode = "byok"
+full_history = true
+max_commits = 500
+
+# Cost thresholds for badge colors (USD)
+badge_color_thresholds = { low = 1.0, medium = 5.0, high = 10.0, critical = 50.0 }

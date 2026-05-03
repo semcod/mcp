@@ -99,6 +99,10 @@ class CheckpointRestoreRequest(BaseModel):
     checkpoint_id: str
 
 
+class SyncPullRequest(BaseModel):
+    branch: str = "main"
+
+
 app = FastAPI(title="mcp-git-proxy", version="0.1.0")
 manager = GitProxyManager(
     base_dir=os.getenv("GIT_PROXY_REPO_ROOT", "/git-repos"),

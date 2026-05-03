@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>GitHub Configuration</h1>
+        <p class="text-muted">Configure GitHub integration to clone and sync repositories</p>
+    </div>
+</div>
+
+<!-- GitHub Auth Status -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Authentication Status</h5>
+            </div>
+            <div class="card-body">
+                {% if github_configured %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> GitHub configured
+                        {% if github_user %}
+                            <br><small>User: <strong>{{ github_user }}</strong></small>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> GitHub not configured
+                    </div>
+                {% endif %}
+
+                <form method="post" action="/github/configure">
+                    <div class="mb-3">
+                        <label for="token" class="form-label">GitHub Personal Access Token</label>
+                        <input type="password" class="form-control" id="token" name="token"
+                               placeholder="ghp_xxx or github_pat_xxx"
+                               value="{{ github_token_hint if github_token_hint else '' }}">
+                        <div class="form-text">
+                            Create token at <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a>
+                            with <code>repo</code> scope.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    {% if github_configured %}
+                        <button type="submit" name="action" value="clear" class="btn btn-outline-danger ms-2">Clear</button>
+                    {% endif %}
+                </form>
+
+                <hr>
+                <p class="text-muted small mb-1">Or use GitHub CLI:</p>
+                <pre class="bg-dark text-light p-2 rounded"><code>env2mcp github login</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Setup</h5>
+            </div>
+            <div class="card-body">
+                <ol class="list-group list-group-numbered">
+                    <li class="list-group-item">
+                        Install GitHub CLI:
+                        <a href="https://cli.github.com/" target="_blank">cli.github.com</a>
+                    </li>
+                    <li class="list-group-item">
+                        Run in terminal:
+                        <code>env2mcp setup-github</code>
+                    </li>
+                    <li class="list-group-item">
+                        Token will be saved to <code>.env</code> automatically
+                    </li>
+                </ol>
+
+                <div class="mt-3">
+                    <a href="https://github.com/settings/tokens" target="_blank" class="btn btn-outline-secondary btn-sm">
+                        Create GitHub Token
+                    </a>
+                    <a href="https://cli.github.com/" target="_blank" class="btn btn-outline-secondary btn-sm ms-2">
+                        Install gh CLI
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clone Repository -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Clone Repository from GitHub</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/github/clone">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="repo_url" class="form-label">Repository URL</label>
+                            <input type="text" class="form-control" id="repo_url" name="repo_url"
+                                   placeholder="owner/repo or https://github.com/owner/repo"
+                                   required>
+                            <div class="form-text">
+                                Examples: <code>semcod/mcp</code>, <code>microsoft/vscode</code>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="repo_id" class="form-label">Local Repo ID</label>
+                            <input type="text" class="form-control" id="repo_id" name="repo_id"
+                                   placeholder="my-project"
+                                   required>
+                            <div class="form-text">Unique identifier for this repo</div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="branch" class="form-label">Branch</label>
+                            <input type="text" class="form-control" id="branch" name="branch"
+                                   value="main">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">Clone</button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if clone_result %}
+                    <div class="mt-3">
+                        {% if clone_result.success %}
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i>
+                                Repository cloned successfully!
+                                <br>
+                                <code>{{ clone_result.repo_id }}</code> →
+                                <a href="/repos">View in Repos</a>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-x-circle"></i>
+                                Clone failed: {{ clone_result.error }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sync Existing Repo -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Sync Repository</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/github/sync">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="sync_repo_id" class="form-label">Repository ID</label>
+                            <select class="form-select" id="sync_repo_id" name="repo_id" required>
+                                <option value="">Select repository...</option>
+                                {% for repo in repos %}
+                                    <option value="{{ repo.id }}">{{ repo.id }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="sync_branch" class="form-label">Branch</label>
+                            <input type="text" class="form-control" id="sync_branch" name="branch"
+                                   value="main">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-arrow-repeat"></i> Pull Updates
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if sync_result %}
+                    <div class="mt-3">
+                        {% if sync_result.success %}
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i>
+                                Repository synced: {{ sync_result.message }}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-x-circle"></i>
+                                Sync failed: {{ sync_result.error }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Repositories -->
+{% if my_repos %}
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Your GitHub Repositories</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Repository</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for repo in my_repos %}
+                                <tr>
+                                    <td>
+                                        <code>{{ repo.name }}</code>
+                                        <br>
+                                        <small class="text-muted">{{ repo.url }}</small>
+                                    </td>
+                                    <td>{{ repo.description or '-' }}</td>
+                                    <td>
+                                        <form method="post" action="/github/clone" class="d-inline">
+                                            <input type="hidden" name="repo_url" value="{{ repo.url }}">
+                                            <input type="hidden" name="repo_id" value="{{ repo.name }}">
+                                            <input type="hidden" name="branch" value="main">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                Clone
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Documentation -->
+<div class="row mt-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Environment Variables</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>GITHUB_PAT</code></td>
+                            <td>GitHub Personal Access Token</td>
+                            <td>
+                                {% if github_configured %}
+                                    <span class="badge bg-success">Set</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Not set</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><code>GITHUB_USER</code></td>
+                            <td>GitHub username</td>
+                            <td>
+                                {% if github_user %}
+                                    <span class="badge bg-success">{{ github_user }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Optional</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
