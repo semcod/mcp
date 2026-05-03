@@ -188,7 +188,104 @@ Zadanie: Wdróż Etap 1 planu refaktoryzacji.
 
 ---
 
-## Przykład 7: Testy automatyczne
+## Przykład 7: Auto-recovery przy błędzie autoryzacji GitHub
+
+Gdy template `{{show last pushed repo from github}}` zwróci błąd 401, gateway **automatycznie** próbuje odświeżyć token.
+
+### Flow auto-recovery
+
+```
+Użytkownik: Repo: {{show last pushed repo from github}}
+           ↓
+Gateway: Błąd 401 z gh2mcp
+           ↓
+Auto: Wywołanie gh2mcp /sync/token (force_gh_cli=true)
+           ↓
+Auto: Zapis tokenu do .env przez env2mcp
+           ↓
+Auto: Ponowne wywołanie /repo/last-pushed
+           ↓
+Sukces: repo_id = semcod/mcp
+```
+
+### Ręczna naprawa (gdy auto-recovery nie zadziała)
+
+Jeśli automatyczna naprawa nie pomoże, gateway zwraca komunikat z 3 opcjami:
+
+```text
+❌ GitHub odrzucił żądanie (auth error): HTTP 401: Requires authentication
+
+🔧 Spróbowano automatycznie odświeżyć token przez gh2mcp, ale to nie pomogło.
+
+Wybierz jedną z opcji:
+1) W czacie podaj token bezpośrednio:
+   Zapisz token github do .env: ghp_xxx...
+2) Zaloguj się przez gh CLI na hoście, potem odśwież w czacie:
+   gh auth login → Pobierz token github
+3) Z terminala:
+   env2mcp env set GITHUB_PAT ghp_xxx → make reload-gateway
+```
+
+**Dokumentacja:** [📖 USAGE.md — Auto-recovery](http://localhost:8093/docs/USAGE.md)  
+**Wykonaj:** [💬 Otwórz OpenWebUI](http://localhost:3000/)
+
+---
+
+## Przykład 8: Tryb asynchroniczny (Redis/RQ)
+
+Długie operacje (analyze/refactor) mogą być wykonywane w tle.
+
+### Włączenie async
+
+Wymaga:
+- `MCP_ASYNC_ENABLED=true`
+- działające `redis` i `mcp-gateway-worker`
+
+### API — async request
+
+```bash
+curl -sS http://localhost:9000/v1/chat/completions \
+  -H 'Authorization: Bearer sk-mcp-default-dev-key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "mcp-skills/refactor",
+    "messages": [{"role": "user", "content": "Repo: team/demo\nBranch: main\nExecute: false\nZadanie: Zaproponuj refaktoryzację."}],
+    "async_mode": true
+  }'
+```
+
+Odpowiedź:
+```json
+{
+  "job_id": "job-abc123",
+  "status": "queued",
+  "message": "Zadanie zakolejkowane. Sprawdź status: GET /jobs/job-abc123"
+}
+```
+
+### Sprawdzenie statusu
+
+```bash
+curl -sS -H 'Authorization: Bearer sk-mcp-default-dev-key' \
+  http://localhost:9000/jobs/job-abc123
+```
+
+### Streaming statusu (SSE)
+
+```bash
+curl -N -H 'Authorization: Bearer sk-mcp-default-dev-key' \
+  http://localhost:9000/jobs/job-abc123/stream
+```
+
+Typowe fazy:
+- `queued` → `analyzing` → `refactoring` → `testing` → `done` / `failed`
+
+**Dokumentacja:** [📖 USAGE.md — Tryb asynchroniczny](http://localhost:8093/docs/USAGE.md)  
+**Wykonaj:** [💬 Otwórz OpenWebUI](http://localhost:3000/)
+
+---
+
+## Przykład 9: Testy automatyczne
 
 ### Testy jednostkowe (pytest)
 
@@ -205,9 +302,13 @@ Co jest testowane:
 | `_is_org_set_command` / `_is_org_list_command` | detekcja komend org |
 | `_extract_org_from_text` | wyciąganie org z tekstu i `Repo URL` |
 | `_resolve_repo_id_template` | rozwiązywanie `{{...}}` przez gh2mcp |
+| `_is_github_auth_error` | detekcja błędów auth (401, bad credentials) |
+| `_github_auth_recovery_message` | komunikat recovery z 3 opcjami |
+| `auto-recovery flow` | retry po błędzie auth z sync token |
 | `effective_repo_url` | priorytet `Repo URL` nad `repo_url` z template |
 | `_render_chat_content` | Markdown render dla analyze/refactor/system |
 | `GitHubTokenSyncService` | sync, org set/list, last pushed repo |
+| `SSE stream` | /jobs/{id}/stream endpoint |
 
 ### Testy E2E Ansible
 

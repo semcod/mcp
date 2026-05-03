@@ -1,9 +1,28 @@
 from __future__ import annotations
 
 import asyncio
+import json
+
 import pytest
+from fastapi.testclient import TestClient
 
 import server as gateway
+
+
+def _extract_sse_data(raw_text: str) -> list[str]:
+    payloads: list[str] = []
+    for line in raw_text.splitlines():
+        if line.startswith("data: "):
+            payloads.append(line[len("data: "):])
+    return payloads
+
+
+def _authorized_client() -> TestClient:
+    gateway.app.dependency_overrides[gateway.authenticate] = lambda: {
+        "tenant_id": "default",
+        "features": {"analyze": True, "refactor": True, "push": True},
+    }
+    return TestClient(gateway.app)
 
 
 @pytest.mark.parametrize(
@@ -205,6 +224,114 @@ def test_resolve_repo_id_template_unsupported():
 
 
 # ---------------------------------------------------------------------------
+# GitHub auth error detection + auto-recovery
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "error,expected",
+    [
+        ("HTTP 401: Requires authentication (https://api.github.com/graphql)", True),
+        ("Bad credentials", True),
+        ("gh CLI has no token (run: gh auth login)", True),
+        ("Could not resolve to a User with the login of 'foo'", True),
+        ("No repositories found for owner", False),
+        ("connection refused", False),
+        (None, False),
+        ("", False),
+    ],
+)
+def test_is_github_auth_error(error, expected):
+    assert gateway._is_github_auth_error(error) is expected
+
+
+def test_github_auth_recovery_message_has_three_options():
+    msg = gateway._github_auth_recovery_message("HTTP 401: Requires authentication")
+    assert "HTTP 401" in msg
+    assert "Zapisz token github do .env" in msg
+    assert "gh auth login" in msg
+    assert "env2mcp env set GITHUB_PAT" in msg
+    assert "spróbuj ponownie" in msg.lower()
+
+
+def test_resolve_repo_id_template_auto_recovers_on_auth_error(monkeypatch):
+    """First call: 401 auth error. Sync succeeds. Retry: success."""
+
+    call_log: list[str] = []
+
+    async def fake_last_pushed(owner=None, limit=100):
+        call_log.append("last_pushed")
+        if call_log.count("last_pushed") == 1:
+            return {"success": False, "error": "HTTP 401: Requires authentication", "repo": None}
+        return {
+            "success": True,
+            "owner": "semcod",
+            "repo": "semcod/mcp",
+            "repo_url": "https://github.com/semcod/mcp",
+            "pushed_at": "2026-05-03T13:23:16Z",
+            "source": "gh_cli",
+        }
+
+    async def fake_sync():
+        call_log.append("sync")
+        return {"success": True, "source": "gh_cli"}
+
+    monkeypatch.setattr(gateway, "_last_pushed_repo_via_gh2mcp", fake_last_pushed)
+    monkeypatch.setattr(gateway, "_sync_github_token_via_gh2mcp", fake_sync)
+
+    repo_id, meta = asyncio.run(
+        gateway._resolve_repo_id_template("{{show last pushed repo from github owner=semcod}}")
+    )
+    assert repo_id == "semcod/mcp"
+    assert meta["repo_url"] == "https://github.com/semcod/mcp"
+    assert call_log == ["last_pushed", "sync", "last_pushed"]
+
+
+def test_resolve_repo_id_template_auth_error_with_failed_recovery_raises_helpful_message(monkeypatch):
+    """Auth error + sync fails → ValueError with three-option recovery message."""
+
+    async def fake_last_pushed(owner=None, limit=100):
+        return {"success": False, "error": "HTTP 401: Requires authentication", "repo": None}
+
+    async def fake_sync():
+        return {"success": False, "error": "gh CLI has no token"}
+
+    monkeypatch.setattr(gateway, "_last_pushed_repo_via_gh2mcp", fake_last_pushed)
+    monkeypatch.setattr(gateway, "_sync_github_token_via_gh2mcp", fake_sync)
+
+    with pytest.raises(ValueError) as exc_info:
+        asyncio.run(
+            gateway._resolve_repo_id_template("{{show last pushed repo from github owner=semcod}}")
+        )
+
+    msg = str(exc_info.value)
+    assert "HTTP 401" in msg
+    assert "Zapisz token github do .env" in msg
+    assert "env2mcp env set GITHUB_PAT" in msg
+
+
+def test_resolve_repo_id_template_non_auth_error_does_not_trigger_recovery(monkeypatch):
+    """Non-auth error → no sync attempt, original error message."""
+
+    sync_calls = []
+
+    async def fake_last_pushed(owner=None, limit=100):
+        return {"success": False, "error": "No repositories found for owner", "repo": None}
+
+    async def fake_sync():
+        sync_calls.append(1)
+        return {"success": True}
+
+    monkeypatch.setattr(gateway, "_last_pushed_repo_via_gh2mcp", fake_last_pushed)
+    monkeypatch.setattr(gateway, "_sync_github_token_via_gh2mcp", fake_sync)
+
+    with pytest.raises(ValueError) as exc_info:
+        asyncio.run(gateway._resolve_repo_id_template("{{show last pushed repo from github}}"))
+
+    assert "No repositories found for owner" in str(exc_info.value)
+    assert sync_calls == []  # recovery not triggered for non-auth errors
+
+
+# ---------------------------------------------------------------------------
 # effective_repo_url logic (mirrors chat_completions handler)
 # ---------------------------------------------------------------------------
 
@@ -329,3 +456,98 @@ def test_render_chat_content_queued_human_readable():
     assert "Zadanie zakolejkowane" in content
     assert "`abc123`" in content
     assert "GET /jobs/abc123" in content
+
+
+def test_stream_job_not_found_returns_404(monkeypatch):
+    monkeypatch.setattr(gateway, "_load_job", lambda _job_id: None)
+
+    client = _authorized_client()
+    try:
+        response = client.get(
+            "/jobs/missing/stream",
+            headers={"Authorization": "Bearer sk-mcp-default-dev-key"},
+        )
+        assert response.status_code == 404
+    finally:
+        gateway.app.dependency_overrides.clear()
+
+
+def test_stream_job_emits_status_updates_and_done(monkeypatch):
+    states = [
+        {"status": "queued", "phase": "queued", "updated_at": 1.0},
+        {"status": "analyzing", "phase": "analyzing", "updated_at": 2.0},
+        {
+            "status": "done",
+            "phase": "done",
+            "updated_at": 3.0,
+            "result": {"skill": "analyze", "repo_id": "semcod/mcp"},
+        },
+    ]
+    calls = {"count": 0}
+
+    def fake_load_job(_job_id: str):
+        idx = calls["count"]
+        calls["count"] += 1
+        if idx < len(states):
+            return states[idx]
+        return states[-1]
+
+    monkeypatch.setattr(gateway, "_load_job", fake_load_job)
+    monkeypatch.setattr(gateway, "JOB_POLL_INTERVAL_SECONDS", 0.0)
+
+    client = _authorized_client()
+    try:
+        response = client.get(
+            "/jobs/job-123/stream",
+            headers={"Authorization": "Bearer sk-mcp-default-dev-key"},
+        )
+
+        assert response.status_code == 200
+        payloads = _extract_sse_data(response.text)
+        assert payloads[-1] == "[DONE]"
+
+        events = [json.loads(item) for item in payloads[:-1]]
+        assert [event["status"] for event in events] == ["analyzing", "done"]
+        assert events[-1]["result"]["repo_id"] == "semcod/mcp"
+    finally:
+        gateway.app.dependency_overrides.clear()
+
+
+def test_stream_job_emits_failure_with_error(monkeypatch):
+    states = [
+        {"status": "queued", "phase": "queued", "updated_at": 10.0},
+        {
+            "status": "failed",
+            "phase": "failed",
+            "updated_at": 11.0,
+            "error": "run tests failed",
+        },
+    ]
+    calls = {"count": 0}
+
+    def fake_load_job(_job_id: str):
+        idx = calls["count"]
+        calls["count"] += 1
+        if idx < len(states):
+            return states[idx]
+        return states[-1]
+
+    monkeypatch.setattr(gateway, "_load_job", fake_load_job)
+    monkeypatch.setattr(gateway, "JOB_POLL_INTERVAL_SECONDS", 0.0)
+
+    client = _authorized_client()
+    try:
+        response = client.get(
+            "/jobs/job-err/stream",
+            headers={"Authorization": "Bearer sk-mcp-default-dev-key"},
+        )
+
+        assert response.status_code == 200
+        payloads = _extract_sse_data(response.text)
+        assert payloads[-1] == "[DONE]"
+
+        events = [json.loads(item) for item in payloads[:-1]]
+        assert events[-1]["status"] == "failed"
+        assert events[-1]["error"] == "run tests failed"
+    finally:
+        gateway.app.dependency_overrides.clear()

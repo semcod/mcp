@@ -558,6 +558,27 @@ Typowe fazy:
 - `testing`
 - `done` / `failed`
 
+### Auto-recovery przy błędach autoryzacji GitHub
+
+Jeśli template `{{show last pushed repo from github}}` zwróci błąd 401 lub `Requires authentication`, gateway **automatycznie**:
+
+1. Wywołuje `gh2mcp /sync/token` (`force_gh_cli=true`) — pobiera świeży token z `gh auth token`.
+2. Zapisuje token do `.env` przez `env2mcp` (`EnvConfig`).
+3. Ponawia oryginalne wywołanie `/repo/last-pushed`.
+
+Jeśli auto-recovery nie zadziała (np. brak `gh auth login`), gateway zwraca **przyjazny komunikat z 3 opcjami**:
+
+```
+1) W czacie podaj token bezpośrednio:
+   Zapisz token github do .env: ghp_xxx...
+2) Zaloguj się przez gh CLI na hoście, potem odśwież w czacie:
+   gh auth login → Pobierz token github
+3) Z terminala:
+   env2mcp env set GITHUB_PAT ghp_xxx → make reload-gateway
+```
+
+Recovery jest wykonywane wyłącznie dla błędów autoryzacji (`401`, `Bad credentials`, `gh auth login`, `Requires authentication`, `no token`). Inne błędy (np. `No repositories found`) są zwracane natychmiast bez retry.
+
 ### Pola `Repo` i `Repo URL` — kolejność priorytetów
 
 | Pole | Znaczenie |

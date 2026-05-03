@@ -6,7 +6,7 @@ import server
 
 
 def main() -> None:
-    redis_client = server._get_redis_client()
+    redis_client = server._get_rq_redis_client()
     if redis_client is None:
         raise RuntimeError("Redis is unavailable. Check REDIS_URL and Redis service health.")
 

@@ -457,6 +457,40 @@ async def _last_pushed_repo_via_gh2mcp(owner: str | None = None, limit: int = 10
     }
 
 
+_GH_AUTH_ERROR_HINTS = (
+    "401",
+    "requires authentication",
+    "gh auth login",
+    "no token",
+    "bad credentials",
+    "could not resolve to a user",
+)
+
+
+def _is_github_auth_error(error_text: str | None) -> bool:
+    if not error_text:
+        return False
+    needle = error_text.lower()
+    return any(hint in needle for hint in _GH_AUTH_ERROR_HINTS)
+
+
+def _github_auth_recovery_message(original_error: str) -> str:
+    return (
+        "❌ GitHub odrzucił żądanie (auth error): "
+        f"{original_error.strip()}\n\n"
+        "🔧 Spróbowano automatycznie odświeżyć token przez gh2mcp (`gh auth token`) i zapisać "
+        "do `.env` przez env2mcp, ale to nie pomogło.\n\n"
+        "Wybierz jedną z opcji:\n"
+        "1) **W czacie podaj token bezpośrednio:**\n"
+        "   `Zapisz token github do .env: ghp_xxx...`\n"
+        "2) **Zaloguj się przez gh CLI na hoście, potem odśwież w czacie:**\n"
+        "   `gh auth login` → `Pobierz token github`\n"
+        "3) **Z terminala:**\n"
+        "   `env2mcp env set GITHUB_PAT ghp_xxx` → `make reload-gateway`\n\n"
+        "Po zapisaniu tokenu spróbuj ponownie ten sam prompt."
+    )
+
+
 async def _resolve_repo_id_template(repo_value: str) -> tuple[str, dict[str, Any] | None]:
     expression = _extract_repo_template_expression(repo_value)
     if not expression:
@@ -465,6 +499,26 @@ async def _resolve_repo_id_template(repo_value: str) -> tuple[str, dict[str, Any
     if _is_last_pushed_repo_template(expression):
         owner = _extract_owner_from_repo_template(expression)
         resolved = await _last_pushed_repo_via_gh2mcp(owner=owner, limit=100)
+
+        # Auto-recovery: detect GitHub auth errors and try to refresh token via gh2mcp.
+        if (
+            (not resolved.get("success") or not resolved.get("repo"))
+            and _is_github_auth_error(resolved.get("error"))
+        ):
+            try:
+                sync = await _sync_github_token_via_gh2mcp()
+            except Exception as exc:  # noqa: BLE001
+                sync = {"success": False, "error": str(exc)}
+
+            if sync.get("success"):
+                # Retry once with fresh token.
+                resolved = await _last_pushed_repo_via_gh2mcp(owner=owner, limit=100)
+
+            if not resolved.get("success") or not resolved.get("repo"):
+                raise ValueError(
+                    _github_auth_recovery_message(resolved.get("error") or "unknown error")
+                )
+
         if not resolved.get("success") or not resolved.get("repo"):
             raise ValueError(
                 "Repo template resolution failed for last pushed GitHub repository: "
@@ -1058,7 +1112,8 @@ class ChatCompletionRequest(BaseModel):
 
 # In-memory job store (MVP; Redis/Postgres in stage 5)
 JOBS: dict[str, dict] = {}
-_REDIS_CLIENT: Any | None = None
+_REDIS_STATE_CLIENT: Any | None = None
+_REDIS_RQ_CLIENT: Any | None = None
 _RQ_QUEUE: Any | None = None
 
 
@@ -1066,18 +1121,33 @@ def _job_storage_key(job_id: str) -> str:
     return f"mcp:job:{job_id}"
 
 
-def _get_redis_client() -> Any | None:
-    global _REDIS_CLIENT
+def _get_state_redis_client() -> Any | None:
+    global _REDIS_STATE_CLIENT
     if not RQ_AVAILABLE:
         return None
-    if _REDIS_CLIENT is not None:
-        return _REDIS_CLIENT
+    if _REDIS_STATE_CLIENT is not None:
+        return _REDIS_STATE_CLIENT
     try:
-        _REDIS_CLIENT = Redis.from_url(REDIS_URL, decode_responses=True)
-        _REDIS_CLIENT.ping()
-        return _REDIS_CLIENT
+        _REDIS_STATE_CLIENT = Redis.from_url(REDIS_URL, decode_responses=True)
+        _REDIS_STATE_CLIENT.ping()
+        return _REDIS_STATE_CLIENT
     except Exception:
-        _REDIS_CLIENT = None
+        _REDIS_STATE_CLIENT = None
+        return None
+
+
+def _get_rq_redis_client() -> Any | None:
+    global _REDIS_RQ_CLIENT
+    if not RQ_AVAILABLE:
+        return None
+    if _REDIS_RQ_CLIENT is not None:
+        return _REDIS_RQ_CLIENT
+    try:
+        _REDIS_RQ_CLIENT = Redis.from_url(REDIS_URL, decode_responses=False)
+        _REDIS_RQ_CLIENT.ping()
+        return _REDIS_RQ_CLIENT
+    except Exception:
+        _REDIS_RQ_CLIENT = None
         return None
 
 
@@ -1089,7 +1159,7 @@ def _get_queue() -> Any | None:
         return None
     if _RQ_QUEUE is not None:
         return _RQ_QUEUE
-    redis_client = _get_redis_client()
+    redis_client = _get_rq_redis_client()
     if redis_client is None:
         return None
     _RQ_QUEUE = Queue(name=RQ_QUEUE_NAME, connection=redis_client, default_timeout=900)
@@ -1098,7 +1168,7 @@ def _get_queue() -> Any | None:
 
 def _save_job(job_id: str, payload: dict[str, Any]) -> None:
     JOBS[job_id] = payload
-    redis_client = _get_redis_client()
+    redis_client = _get_state_redis_client()
     if redis_client is None:
         return
     try:
@@ -1112,7 +1182,7 @@ def _save_job(job_id: str, payload: dict[str, Any]) -> None:
 
 
 def _load_job(job_id: str) -> dict[str, Any] | None:
-    redis_client = _get_redis_client()
+    redis_client = _get_state_redis_client()
     if redis_client is not None:
         try:
             raw = redis_client.get(_job_storage_key(job_id))
