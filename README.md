@@ -4,10 +4,10 @@
 ## AI Cost Tracking
 
 ![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$0.45-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-2.1h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$0.60-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-2.1h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $0.4500 (3 commits)
-- 👤 **Human dev:** ~$207 (2.1h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $0.6000 (4 commits)
+- 👤 **Human dev:** ~$210 (2.1h @ $100/h, 30min dedup)
 
 Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -75,10 +75,9 @@ nano .env
 docker-compose up -d
 
 # Uruchom agenta z analizą repozytorium
-docker-compose run --rm llm-agent python agent.py \
-  --repo my-org/my-repo \
-  --paths src/module1 src/module2 \
-  --dry-run
+docker-compose run --rm llm-agent python agent_git2mcp.py \
+  --repo team/my-repo \
+  --repo-url https://github.com/team/my-repo.git
 ```
 
 ## Struktura Projektu
@@ -196,10 +195,9 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 # LLM_PROVIDER=openai
 # OPENAI_API_KEY=sk-...
 
-docker-compose run --rm llm-agent python agent.py \
-  --repo my-org/my-repo \
-  --llm openai \
-  --dry-run
+docker-compose run --rm llm-agent python agent_git2mcp.py \
+  --repo team/my-repo \
+  --source-path /host-repos/my-project
 ```
 
 ### Użycie z lokalnym Ollama
@@ -212,9 +210,9 @@ docker-compose --profile ollama up -d ollama
 # LLM_PROVIDER=ollama
 # OLLAMA_HOST=http://ollama:11434
 
-docker-compose run --rm llm-agent python agent.py \
+docker-compose run --rm llm-agent python agent_git2mcp.py \
   --repo my-project \
-  --llm ollama
+  --source-path /host-repos/my-project
 ```
 
 ### Użycie z lokalnym OpenRouter Lite
@@ -225,9 +223,10 @@ docker-compose run --rm llm-agent python agent.py \
 # OPENROUTER_API_KEY=...
 # LLM_MODEL=openrouter/x-ai/grok-code-fast-1
 
-docker-compose run --rm llm-agent python agent.py \
+docker-compose run --rm llm-agent python agent_git2mcp.py \
   --repo my-project \
-  --llm openrouter-lite
+  --source-path /host-repos/my-project \
+  --execute
 ```
 
 ## Workflow Autonomicznej Refaktoryzacji
