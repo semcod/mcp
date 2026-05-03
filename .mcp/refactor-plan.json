@@ -1,0 +1,230 @@
+{
+  "repo_id": "semcod/mcp",
+  "tenant": "default",
+  "branch": "draft/semcod-mcp-f459b498",
+  "base_branch": "main",
+  "repo_url": "https://github.com/semcod/mcp",
+  "source_path": null,
+  "user_request": "Wdr�? Etap 1 planu refaktoryzacji.",
+  "generated_at": 1777820387,
+  "analysis": {
+    "sync": {
+      "repo_id": "semcod/mcp",
+      "target_path": "/skills-cache/semcod/mcp",
+      "synced_ref": "4a81206429328f02b589ee3afc7737d7bc726368",
+      "transfer_mode": "fragments",
+      "fragment_count": 8,
+      "files_synced": 156,
+      "files_updated": 0,
+      "files_unchanged": 156,
+      "files_deleted": 0
+    },
+    "metrics": {
+      "repo_id": "semcod/mcp",
+      "file_count": 38,
+      "total_lines": 7141,
+      "total_imports": 221,
+      "total_functions": 204,
+      "total_classes": 50,
+      "avg_lines_per_file": 187,
+      "largest_files": [
+        {
+          "path": "mcp-gateway/server.py",
+          "lines": 1162,
+          "imports": 16,
+          "functions": 31,
+          "classes": 2
+        },
+        {
+          "path": "mcp-skills/server.py",
+          "lines": 753,
+          "imports": 19,
+          "functions": 4,
+          "classes": 6
+        },
+        {
+          "path": "mcp-webui/server.py",
+          "lines": 621,
+          "imports": 10,
+          "functions": 5,
+          "classes": 0
+        },
+        {
+          "path": "llm-agent/agent_standalone.py",
+          "lines": 540,
+          "imports": 10,
+          "functions": 11,
+          "classes": 3
+        },
+        {
+          "path": "mcp-git-proxy/server.py",
+          "lines": 443,
+          "imports": 13,
+          "functions": 22,
+          "classes": 19
+        },
+        {
+          "path": "git2mcp/git2mcp/proxy.py",
+          "lines": 437,
+          "imports": 11,
+          "functions": 21,
+          "classes": 1
+        },
+        {
+          "path": "llm-agent/agent.py",
+          "lines": 375,
+          "imports": 13,
+          "functions": 4,
+          "classes": 2
+        },
+        {
+          "path": "llm-agent/agent_git2mcp.py",
+          "lines": 361,
+          "imports": 14,
+          "functions": 8,
+          "classes": 3
+        },
+        {
+          "path": "env2mcp/env2mcp/github_cli.py",
+          "lines": 330,
+          "imports": 7,
+          "functions": 11,
+          "classes": 1
+        },
+        {
+          "path": "git2mcp/tests/test_git2mcp.py",
+          "lines": 326,
+          "imports": 7,
+          "functions": 6,
+          "classes": 0
+        }
+      ]
+    },
+    "patterns": {
+      "repo_id": "semcod/mcp",
+      "patterns_detected": {
+        "large_files_count": 4,
+        "high_complexity_count": 10,
+        "large_files": [
+          {
+            "path": "mcp-gateway/server.py",
+            "lines": 1162
+          },
+          {
+            "path": "llm-agent/agent_standalone.py",
+            "lines": 540
+          },
+          {
+            "path": "mcp-skills/server.py",
+            "lines": 753
+          },
+          {
+            "path": "mcp-webui/server.py",
+            "lines": 621
+          }
+        ],
+        "high_complexity": [
+          {
+            "path": "mcp-git-proxy/server.py",
+            "indicator": "443 lines"
+          },
+          {
+            "path": "mcp-gateway/server.py",
+            "indicator": "1162 lines"
+          },
+          {
+            "path": "llm-agent/agent_standalone.py",
+            "indicator": "540 lines"
+          },
+          {
+            "path": "llm-agent/agent_git2mcp.py",
+            "indicator": "361 lines"
+          },
+          {
+            "path": "llm-agent/agent.py",
+            "indicator": "375 lines"
+          }
+        ],
+        "common_imports": [
+          [
+            "import os",
+            19
+          ],
+          [
+            "from __future__ import annotations",
+            19
+          ],
+          [
+            "from pathlib import Path",
+            15
+          ],
+          [
+            "import json",
+            14
+          ],
+          [
+            "import sys",
+            13
+          ],
+          [
+            "import asyncio",
+            12
+          ],
+          [
+            "import argparse",
+            10
+          ],
+          [
+            "import httpx",
+            9
+          ],
+          [
+            "import subprocess",
+            6
+          ],
+          [
+            "from typing import Dict, List",
+            6
+          ]
+        ]
+      }
+    },
+    "recommendations": {
+      "repo_id": "semcod/mcp",
+      "goal": "maintainability",
+      "summary": {
+        "total_recommendations": 3,
+        "high_priority": 3,
+        "medium_priority": 0
+      },
+      "recommendations": [
+        {
+          "type": "split_file",
+          "priority": "high",
+          "target": "mcp-gateway/server.py",
+          "reason": "File has 1162 lines - consider splitting into smaller modules",
+          "suggested_action": "Extract classes/functions into separate files"
+        },
+        {
+          "type": "split_file",
+          "priority": "high",
+          "target": "mcp-skills/server.py",
+          "reason": "File has 753 lines - consider splitting into smaller modules",
+          "suggested_action": "Extract classes/functions into separate files"
+        },
+        {
+          "type": "split_file",
+          "priority": "high",
+          "target": "mcp-webui/server.py",
+          "reason": "File has 621 lines - consider splitting into smaller modules",
+          "suggested_action": "Extract classes/functions into separate files"
+        }
+      ],
+      "metrics_summary": {
+        "total_files": 38,
+        "total_lines": 7141,
+        "avg_lines_per_file": 187
+      }
+    }
+  }
+}
