@@ -228,6 +228,46 @@ test_git2mcp_workflow() {
       -d '{"repo_id":"test/sample-project","ref":"HEAD"}' > /tmp/gitproxy-export.json
     python3 -c "import json; d=json.load(open('/tmp/gitproxy-export.json')); assert len(d.get('archive_b64','')) > 20"
     echo -e "  ${GREEN}✓${NC} mcp-git-proxy package export returns non-empty archive"
+
+    # Push path E2E: local bare remote + --push workflow
+    BARE_REMOTE="$PROJECT_ROOT/repos/test/push-remote.git"
+    SEED_WORKTREE="$PROJECT_ROOT/repos/test/push-seed"
+    VERIFY_CLONE="$PROJECT_ROOT/repos/test/push-verify"
+    rm -rf "$BARE_REMOTE" "$SEED_WORKTREE" "$VERIFY_CLONE"
+
+    git init --bare "$BARE_REMOTE" > /dev/null
+    mkdir -p "$SEED_WORKTREE"
+    git init "$SEED_WORKTREE" > /dev/null
+    cat > "$SEED_WORKTREE/app.py" << 'EOF'
+def add(a: int, b: int) -> int:
+    return a + b
+EOF
+    (cd "$SEED_WORKTREE" && git add . && git -c user.name='seed' -c user.email='seed@example.com' commit -m 'seed commit' > /dev/null)
+    (cd "$SEED_WORKTREE" && git branch -M main && git remote add origin "$BARE_REMOTE" && git push -u origin main > /dev/null)
+
+    docker-compose run --rm llm-agent python agent_git2mcp.py \
+      --repo test/push-project \
+      --repo-url /host-repos/test/push-remote.git \
+      --branch main \
+      --execute \
+      --push \
+      --test-command "python3 -m compileall -q ." > /tmp/git2mcp-push.log
+
+    if grep -q '"pushed": true' /tmp/git2mcp-push.log; then
+        echo -e "  ${GREEN}✓${NC} git2mcp push workflow reports pushed=true"
+    else
+        echo -e "  ${RED}✗ git2mcp push workflow did not report push${NC}"
+        cat /tmp/git2mcp-push.log
+        return 1
+    fi
+
+    git clone "$BARE_REMOTE" "$VERIFY_CLONE" > /dev/null
+    if [ -f "$VERIFY_CLONE/.mcp/refactor-plan.json" ]; then
+        echo -e "  ${GREEN}✓${NC} pushed commit is present in bare remote"
+    else
+        echo -e "  ${RED}✗ pushed commit artifact missing in remote${NC}"
+        return 1
+    fi
 }
 
 # Test 6: Python-level e2e tests (pytest)
