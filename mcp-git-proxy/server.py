@@ -38,7 +38,7 @@ class PushRequest(BaseModel):
 
 
 class RunTestsRequest(BaseModel):
-    command: str = "python -m compileall -q ."
+    command: str = "python3 -m compileall -q ."
 
 
 class ImportPackageRequest(BaseModel):

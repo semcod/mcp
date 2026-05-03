@@ -4,9 +4,9 @@
     "sync": {
       "repo_id": "test/sample-project",
       "path": "/git-repos/test/sample-project",
-      "head": "b714101193b9736a516c7a22f139e8ba351dee8f"
+      "head": "d69a4b75f47991601529f5500f15c29f725edc13"
     },
-    "package_ref": "b714101193b9736a516c7a22f139e8ba351dee8f",
+    "package_ref": "d69a4b75f47991601529f5500f15c29f725edc13",
     "cache_path": "/skills-cache/test/sample-project"
   },
   "analysis": {
@@ -139,16 +139,16 @@
   "execution": {
     "commit": {
       "repo_id": "test/sample-project",
-      "commit": "62b4d1823bd36e58866626914bb23675029f992e",
+      "commit": "3df95a81e856537b9dc59b25518fb1a193c6ac9c",
       "message": "chore(mcp): add autonomous refactoring plan artifacts"
     },
     "tests": {
       "repo_id": "test/sample-project",
-      "command": "python -m compileall -q .",
-      "returncode": 1,
-      "stdout": "*** Error compiling './module_1.py'...\n  File \"./module_1.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n*** Error compiling './module_2.py'...\n  File \"./module_2.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n*** Error compiling './module_3.py'...\n  File \"./module_3.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n*** Error compiling './module_4.py'...\n  File \"./module_4.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n*** Error compiling './module_5.py'...\n  File \"./module_5.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n",
+      "command": "python3 -m compileall -q .",
+      "returncode": 0,
+      "stdout": "",
       "stderr": "",
-      "ok": false
+      "ok": true
     },
     "pushed": false
   }

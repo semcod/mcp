@@ -151,6 +151,19 @@ EOF
 
     echo -e "  ${GREEN}✓${NC} Test repository created at repos/test/sample-project"
     find "$TEST_REPO" -name "*.py" | wc -l | xargs echo -e "  ${GREEN}✓${NC} Created files:"
+
+    TEST_REPO_2="$PROJECT_ROOT/repos/test/another-project"
+    mkdir -p "$TEST_REPO_2"
+    cat > "$TEST_REPO_2/app.py" << 'EOF'
+"""Another sample project for E2E tests"""
+from typing import Dict
+
+
+def build_payload(value: int) -> Dict[str, int]:
+    return {"value": value}
+EOF
+
+    echo -e "  ${GREEN}✓${NC} Second test repository created at repos/test/another-project"
 }
 
 # Test 5: End-to-end git2mcp workflow
@@ -172,7 +185,14 @@ test_git2mcp_workflow() {
       --source-path /host-repos/test/sample-project \
       --branch main \
       --execute \
-      --test-command "python -m compileall -q ." > /tmp/git2mcp-test.log
+      --test-command "python3 -m compileall -q ." > /tmp/git2mcp-test.log
+
+    docker-compose run --rm llm-agent python agent_git2mcp.py \
+      --repo test/another-project \
+      --source-path /host-repos/test/another-project \
+      --branch main \
+      --execute \
+      --test-command "python3 -m compileall -q ." > /tmp/git2mcp-test-2.log
 
     if grep -q '"status": "analysis_complete"' /tmp/git2mcp-test.log; then
         echo -e "  ${GREEN}✓${NC} git2mcp workflow finished with analysis_complete"
@@ -181,19 +201,47 @@ test_git2mcp_workflow() {
         cat /tmp/git2mcp-test.log
         return 1
     fi
+
+    if grep -q '"status": "analysis_complete"' /tmp/git2mcp-test-2.log; then
+        echo -e "  ${GREEN}✓${NC} second git2mcp workflow finished with analysis_complete"
+    else
+        echo -e "  ${RED}✗ second git2mcp workflow did not complete successfully${NC}"
+        cat /tmp/git2mcp-test-2.log
+        return 1
+    fi
+
+    python3 -c "import json; d=json.load(open('$PROJECT_ROOT/output/test_sample-project_analysis.json')); assert d['status']=='analysis_complete'; assert d.get('execution',{}).get('tests',{}).get('ok') is True"
+    python3 -c "import json; d=json.load(open('$PROJECT_ROOT/output/test_another-project_analysis.json')); assert d['status']=='analysis_complete'; assert d.get('execution',{}).get('tests',{}).get('ok') is True"
+    echo -e "  ${GREEN}✓${NC} output JSON validates execution.tests.ok for both repos"
+
+    curl -fsS http://localhost:8081/health > /tmp/gitproxy-health.json
+    python3 -c "import json; d=json.load(open('/tmp/gitproxy-health.json')); assert d.get('status')=='ok'"
+    echo -e "  ${GREEN}✓${NC} mcp-git-proxy health endpoint is OK"
+
+    curl -fsS http://localhost:8081/repos > /tmp/gitproxy-repos.json
+    grep -q 'test/sample-project' /tmp/gitproxy-repos.json
+    grep -q 'test/another-project' /tmp/gitproxy-repos.json
+    echo -e "  ${GREEN}✓${NC} mcp-git-proxy repo registry includes both repos"
+
+    curl -fsS -X POST http://localhost:8081/packages/export \
+      -H "Content-Type: application/json" \
+      -d '{"repo_id":"test/sample-project","ref":"HEAD"}' > /tmp/gitproxy-export.json
+    python3 -c "import json; d=json.load(open('/tmp/gitproxy-export.json')); assert len(d.get('archive_b64','')) > 20"
+    echo -e "  ${GREEN}✓${NC} mcp-git-proxy package export returns non-empty archive"
 }
 
-# Test 6: Linting
-# test_linting() {
-#     echo -e "${BLUE}Test 6: Code linting${NC}"
-#
-#     if command -v pylint &> /dev/null; then
-#         pylint "$PROJECT_ROOT/mcp-skills/server.py" --errors-only || true
-#         pylint "$PROJECT_ROOT/llm-agent/agent.py" --errors-only || true
-#     else
-#         echo -e "  ${YELLOW}⚠${NC} pylint not installed, skipping"
-#     fi
-# }
+# Test 6: Python-level e2e tests (pytest)
+test_pytest_e2e() {
+    echo -e "${BLUE}Test 6: pytest e2e suite${NC}"
+
+    cd "$PROJECT_ROOT"
+    if python3 -m pytest -q git2mcp/tests/test_git2mcp.py; then
+        echo -e "  ${GREEN}✓${NC} pytest e2e test passed"
+    else
+        echo -e "  ${RED}✗ pytest e2e test failed${NC}"
+        return 1
+    fi
+}
 
 # Główna funkcja
 main() {
@@ -202,6 +250,7 @@ main() {
     test_docker
     test_repo_setup
     test_git2mcp_workflow
+    test_pytest_e2e
 
     echo ""
     echo "=========================================="

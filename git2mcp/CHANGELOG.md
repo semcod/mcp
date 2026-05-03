@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-05-03
+
+### Docs
+- Update README.md
+
+### Other
+- Update git2mcp/git2mcp/proxy.py
+- Update git2mcp/pyproject.toml
+- Update git2mcp/tests/test_git2mcp.py
+- Update llm-agent/agent_git2mcp.py
+- Update mcp-git-proxy/server.py
+- Update output/test_another-project_analysis.json
+- Update output/test_sample-project_analysis.json
+- Update repos/test/another-project/app.py
+- Update scripts/test.sh
+
 ## [0.1.4] - 2026-05-03
 
 ### Docs

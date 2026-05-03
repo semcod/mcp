@@ -4,10 +4,10 @@
 ## AI Cost Tracking
 
 ![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$0.75-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-2.1h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$0.90-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-2.2h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $0.7500 (5 commits)
-- 👤 **Human dev:** ~$210 (2.1h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $0.9000 (6 commits)
+- 👤 **Human dev:** ~$216 (2.2h @ $100/h, 30min dedup)
 
 Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -286,6 +286,9 @@ xdg-open http://localhost:8085
 ```bash
 # Uruchom wszystkie testy
 ./scripts/test.sh
+
+# Uruchom tylko testy e2e API/proxy
+python3 -m pytest -q git2mcp/tests/test_git2mcp.py
 
 # Sprawdź strukturę
 ls -la repos/ output/

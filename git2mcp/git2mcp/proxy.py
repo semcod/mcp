@@ -46,18 +46,7 @@ class GitProxyManager:
         branch: str = "main",
     ) -> dict:
         repo_path = self._repo_path(repo_id)
-        if repo_path.exists() and (repo_path / ".git").exists():
-            repo = Repo(repo_path)
-            repo.git.fetch("--all")
-            try:
-                repo.git.checkout(branch)
-            except Exception:
-                pass
-            try:
-                repo.git.pull("origin", branch)
-            except Exception:
-                pass
-        elif source_path:
+        if source_path:
             source = Path(source_path)
             if not source.exists():
                 raise FileNotFoundError(f"Source path does not exist: {source_path}")
@@ -78,6 +67,17 @@ class GitProxyManager:
 
             try:
                 repo.git.checkout(branch)
+            except Exception:
+                pass
+        elif repo_path.exists() and (repo_path / ".git").exists():
+            repo = Repo(repo_path)
+            repo.git.fetch("--all")
+            try:
+                repo.git.checkout(branch)
+            except Exception:
+                pass
+            try:
+                repo.git.pull("origin", branch)
             except Exception:
                 pass
         elif repo_url:

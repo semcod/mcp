@@ -332,7 +332,7 @@ async def main() -> None:
     parser.add_argument("--branch", default="main")
     parser.add_argument("--execute", action="store_true", help="Create commit via git2mcp")
     parser.add_argument("--push", action="store_true", help="Push commit after passing tests")
-    parser.add_argument("--test-command", default="python -m compileall -q .")
+    parser.add_argument("--test-command", default="python3 -m compileall -q .")
     parser.add_argument("--cache-base", default="/skills-cache")
 
     args = parser.parse_args()
