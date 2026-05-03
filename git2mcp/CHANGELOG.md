@@ -19,6 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-05-03
+
+### Docs
+- Update CHANGELOG.md
+- Update README.md
+- Update docs/USAGE.md
+- Update git2mcp/README.md
+
+### Other
+- Update Makefile
+- Update mcp-git-proxy/server.py
+
 ## [0.1.8] - 2026-05-03
 
 ### Docs

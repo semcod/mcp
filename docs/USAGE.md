@@ -1,10 +1,11 @@
 # MCP Skills — Scenariusze użycia
 
-Ten dokument pokazuje 5 konkretnych przepływów end-to-end. Wszystkie używają OpenRouter (`LLM_MODEL=openrouter/x-ai/grok-code-fast-1`), bez Ollama.
+Ten dokument pokazuje konkretnych przepływów end-to-end. Wszystkie używają OpenRouter (`LLM_MODEL=openrouter/x-ai/grok-code-fast-1`), bez Ollama.
 
 Powiązane dokumenty:
 - `docs/PRODUCT.md` — architektura i deployment
 - `git2mcp/examples/README.md` — przykłady CLI
+- `env2mcp/README.md` — zarządzanie konfiguracją
 - OpenWebUI docs:
   - https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/starting-with-openai-compatible/
   - https://docs.openwebui.com/getting-started/quick-start/connect-a-provider/
@@ -74,7 +75,72 @@ OpenWebUI w naszym compose jest już skonfigurowany przez env (`OPENAI_API_BASE_
 
 ---
 
-## Scenariusz 2 — QA / developer w `mcp-webui`
+## Scenariusz 2 — konfiguracja GitHub i zarządzanie repo
+
+**Cel:** skonfigurować GitHub (token lub gh CLI), sklonować repo i synchronizować je.
+
+### 2.1 Konfiguracja GitHub (shell)
+
+```bash
+# Instalacja env2mcp i konfiguracja GitHub
+make setup-github
+
+# Lub ręcznie
+pip install -e ./env2mcp
+env2mcp setup-github
+```
+
+Komenda sprawdzi czy masz `gh` CLI:
+- Jeśli tak → zaloguje i pobierze token automatycznie
+- Jeśli nie → poprosi o wprowadzenie Personal Access Token
+
+Token zostanie zapisany w `.env` jako `GITHUB_PAT`.
+
+Alternatywnie - bezpośrednio w shell:
+
+```bash
+env2mcp github login              # Interaktywna autentykacja
+env2mcp github status            # Sprawdź status
+env2mcp github repos --limit 5   # Lista Twoich repo
+env2mcp env show                 # Pokaż wszystkie zmienne
+```
+
+### 2.2 Zarządzanie repo przez MCP WebUI
+
+1. Otwórz http://localhost:8092/github
+2. W sekcji **GitHub Configuration**:
+   - Wprowadź token (jeśli nie skonfigurowany przez CLI)
+   - Kliknij **Save Configuration**
+3. W sekcji **Clone Repository**:
+   - Repository URL: `owner/repo` (np. `semcod/mcp`)
+   - Local Repo ID: unikalna nazwa (np. `mcp-main`)
+   - Branch: `main`
+   - Kliknij **Clone**
+4. W sekcji **Sync Repository**:
+   - Wybierz repo z listy
+   - Kliknij **Pull Updates** aby pobrać najnowsze zmiany
+
+### 2.3 Zarządzanie repo przez API
+
+```bash
+# Klonowanie repo
+curl -X POST http://localhost:8081/repos/sync \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "repo_id": "my-project",
+    "repo_url": "https://TOKEN@github.com/owner/repo.git",
+    "branch": "main"
+  }'
+
+# Synchronizacja (pull)
+curl -X POST http://localhost:8081/repos/my-project/sync-pull \
+  -H 'Content-Type: application/json' \
+  -d '{"branch": "main"}'
+```
+
+---
+
+## Scenariusz 4 — QA / developer w `mcp-webui`
 
 **Cel:** szybki test usług bez OpenWebUI, na panelu admina.
 
@@ -93,7 +159,7 @@ OpenWebUI w naszym compose jest już skonfigurowany przez env (`OPENAI_API_BASE_
 
 ---
 
-## Scenariusz 3 — developer lokalny z `git2mcp` (CLI)
+## Scenariusz 5 — developer lokalny z `git2mcp` (CLI)
 
 **Cel:** developer chce ręcznie zlecać sync/commit/test do MCP, bez UI.
 
@@ -129,7 +195,7 @@ python3 git2mcp/examples/05_local_iterate.py \
 
 ---
 
-## Scenariusz 4 — programatyczne użycie OpenAI SDK przez `mcp-gateway`
+## Scenariusz 6 — programatyczne użycie OpenAI SDK przez `mcp-gateway`
 
 **Cel:** integracja z istniejącym narzędziem (Codex, Continue.dev, własny skrypt).
 
@@ -157,7 +223,7 @@ print(resp.choices[0].message.content)
 
 ---
 
-## Scenariusz 5 — wdrożenie u klienta (multi-tenant)
+## Scenariusz 7 — wdrożenie u klienta (multi-tenant)
 
 **Cel:** dodać nowego klienta jako tenanta z osobnym kluczem i quotami.
 
@@ -198,7 +264,7 @@ print(resp.choices[0].message.content)
 
 ---
 
-## Scenariusz 6 — bezpieczne iterowanie LLM-em bez śmiecenia historii
+## Scenariusz 8 — bezpieczne iterowanie LLM-em bez śmiecenia historii
 
 **Cel:** LLM próbuje refaktoryzacji wielokrotnie; tylko sukces ląduje w historii Git.
 
@@ -232,7 +298,7 @@ curl -X POST http://localhost:8081/repos/team/code2schema-demo/checkpoint/restor
 
 ---
 
-## Scenariusz 7 — E2E między usługami przez Ansible
+## Scenariusz 9 — E2E między usługami przez Ansible
 
 **Cel:** automatycznie sprawdzić połączenia `openwebui -> gateway -> git-proxy/skills`, wykonać sample prompty i asercje na odpowiedziach.
 
@@ -251,7 +317,7 @@ Playbook `ansible/e2e-docker-stack.yml` wykonuje:
 
 ---
 
-## Scenariusz 8 — OpenWebUI: refactor + commit + push
+## Scenariusz 10 — OpenWebUI: refactor + commit + push
 
 **Cel:** wywołać refaktoryzację z OpenWebUI i automatycznie wykonać commit oraz (opcjonalnie) push.
 

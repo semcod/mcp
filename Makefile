@@ -7,25 +7,27 @@ COMPOSE := docker-compose
 COMPOSE_PROD := docker-compose -f docker-compose.yml -f docker-compose.prod.yml
 PROFILES := --profile openwebui
 
-.PHONY: help start stop restart kill-ports up down logs ps build rebuild test pytest smoke ansible-e2e clean prod-up prod-down
+.PHONY: help start stop restart kill-ports up down logs ps build rebuild test pytest smoke ansible-e2e clean prod-up prod-down setup-github install-env2mcp
 
 help:
 	@echo "MCP Skills - Makefile targets"
-	@echo "  make start       - kill host ports, build and start full stack (with OpenWebUI)"
-	@echo "  make stop        - stop all containers"
-	@echo "  make restart     - stop + start"
-	@echo "  make kill-ports  - free host ports: $(PORTS)"
-	@echo "  make build       - build all images"
-	@echo "  make rebuild     - build --no-cache"
-	@echo "  make logs        - tail compose logs"
-	@echo "  make ps          - list services"
-	@echo "  make smoke       - basic curl smoke-test against gateway/webui"
-	@echo "  make ansible-e2e - run Ansible docker E2E (gateway/openwebui/prompts)"
-	@echo "  make test        - run pytest + scripts/test.sh"
-	@echo "  make pytest      - run pytest only"
-	@echo "  make prod-up     - start production overlay"
-	@echo "  make prod-down   - stop production overlay"
-	@echo "  make clean       - down + remove volumes"
+	@echo "  make start         - kill host ports, build and start full stack (with OpenWebUI)"
+	@echo "  make stop          - stop all containers"
+	@echo "  make restart       - stop + start"
+	@echo "  make kill-ports    - free host ports: $(PORTS)"
+	@echo "  make build         - build all images"
+	@echo "  make rebuild       - build --no-cache"
+	@echo "  make logs          - tail compose logs"
+	@echo "  make ps            - list services"
+	@echo "  make smoke         - basic curl smoke-test against gateway/webui"
+	@echo "  make ansible-e2e   - run Ansible docker E2E (gateway/openwebui/prompts)"
+	@echo "  make test          - run pytest + scripts/test.sh"
+	@echo "  make pytest        - run pytest only"
+	@echo "  make prod-up       - start production overlay"
+	@echo "  make prod-down     - stop production overlay"
+	@echo "  make clean         - down + remove volumes"
+	@echo "  make install-env2mcp - install env2mcp package locally"
+	@echo "  make setup-github  - configure GitHub authentication via env2mcp"
 
 kill-ports:
 	@for p in $(PORTS); do \
@@ -101,3 +103,9 @@ prod-down:
 
 clean:
 	$(COMPOSE) $(PROFILES) down -v --remove-orphans
+
+install-env2mcp:
+	pip install -e ./env2mcp
+
+setup-github: install-env2mcp
+	@env2mcp setup-github

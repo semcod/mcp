@@ -300,3 +300,72 @@ def run_tests(repo_id: str, request: RunTestsRequest):
         "stderr": process.stderr,
         "ok": process.returncode == 0,
     }
+
+
+@app.post("/repos/{repo_id:path}/sync-pull")
+def sync_pull(repo_id: str, request: SyncPullRequest):
+    """Pull updates from remote for an existing repository."""
+    repo_path = Path(os.getenv("GIT_PROXY_REPO_ROOT", "/git-repos")) / repo_id
+
+    if not repo_path.exists():
+        raise HTTPException(status_code=404, detail=f"Repo not found: {repo_id}")
+
+    if not (repo_path / ".git").exists():
+        raise HTTPException(status_code=400, detail=f"Not a git repository: {repo_id}")
+
+    try:
+        # Fetch from origin
+        fetch_result = subprocess.run(
+            ["git", "fetch", "origin"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        if fetch_result.returncode != 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Fetch failed: {fetch_result.stderr}"
+            )
+
+        # Checkout and pull the requested branch
+        checkout_result = subprocess.run(
+            ["git", "checkout", request.branch],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            timeout=30
+        )
+
+        pull_result = subprocess.run(
+            ["git", "pull", "origin", request.branch],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        # Get current commit
+        commit_result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True
+        )
+        commit = commit_result.stdout.strip() if commit_result.returncode == 0 else "unknown"
+
+        return {
+            "repo_id": repo_id,
+            "branch": request.branch,
+            "commit": commit,
+            "message": f"Pulled latest changes from origin/{request.branch}",
+            "pull_output": pull_result.stdout,
+            "pull_stderr": pull_result.stderr,
+            "success": pull_result.returncode == 0
+        }
+
+    except subprocess.TimeoutExpired:
+        raise HTTPException(status_code=504, detail="Pull operation timed out")
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

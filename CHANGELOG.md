@@ -45,6 +45,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-03
+
+### Added
+- **MCP Gateway** - OpenAI-compatible HTTP shim with SSE streaming, multi-tenant auth, audit logging
+- **MCP WebUI** - FastAPI + HTMX admin panel at port 8092
+- **OpenWebUI Integration** - Full OpenAI-compatible API integration for end users
+- **HTTP API for MCP Skills** - FastAPI endpoints for sync, analyze, refactor (/sync, /analyze/*, /refactor/recommend)
+- **New git2mcp Local Operations** - worktree read/write/diff, patch apply, stash, checkpoint, draft branches
+- **Makefile** - Complete lifecycle management (start, stop, smoke, kill-ports, prod-up)
+- **Multi-tenant Support** - YAML-based tenant configs with API keys, quotas, feature flags
+- **Healthchecks** - Docker Compose service health checks with dependency conditions
+- **Ansible E2E Tests** - ansible/e2e-docker-stack.yml for automated integration testing
+- **GitHub Page** - WebUI page for GitHub configuration
+
+### Changed
+- mcp-skills server now runs HTTP by default (MCP_SKILLS_TRANSPORT=http)
+- Enhanced gateway prompt parsing for Repo/Source/Branch/Execute/Push/Test/Remote/Zadanie fields
+- Full refactor workflow: sync → analyze → commit → test → push (when Execute=true and Push=true)
+
+### Security
+- Bearer token authentication for all gateway endpoints
+- Path traversal protection in worktree operations
+- Per-tenant feature flags (push can be disabled per tenant)
+
 ## [0.0.2] - 2026-05-03
 
 ### Docs
