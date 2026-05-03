@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # MCP Skills Server - Analiza kodu i metryki
+  mcp-skills:
+    build: ./mcp-skills
+    container_name: mcp-skills-server
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./repos:/repos:ro
+      - ./mcp-skills/server.py:/app/server.py:ro
+    ports:
+      - "8082:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
+  # LLM Agent - Koordynacja refaktoryzacji
+  llm-agent:
+    build: ./llm-agent
+    container_name: llm-agent
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://localhost:11434}
+      - GITHUB_PAT=${GITHUB_PAT:-}
+    volumes:
+      - ./repos:/repos:ro
+      - ./output:/output
+      - ./llm-agent/agent.py:/app/agent.py:ro
+      - ./llm-agent/agent_standalone.py:/app/agent_standalone.py:ro
+    depends_on:
+      - mcp-skills
+    networks:
+      - mcp-network
+    profiles:
+      - agent
+
+  # (Opcjonalnie) Ollama dla lokalnego LLM
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-server
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    profiles:
+      - ollama
+    networks:
+      - mcp-network
+
+  # MCP Gateway - Proxy dla MCP serwerów
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    container_name: mcp-gateway
+    environment:
+      - MCP_SERVERS_CONFIG=/config/servers.json
+    volumes:
+      - ./config:/config:ro
+    ports:
+      - "8080:8080"
+    profiles:
+      - gateway
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  ollama-data:

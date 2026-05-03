@@ -1,0 +1,115 @@
+{
+  "repository": "test/sample-project",
+  "analysis": {
+    "metrics": {
+      "repo_id": "test/sample-project",
+      "file_count": 6,
+      "total_lines": 67,
+      "total_imports": 20,
+      "total_functions": 9,
+      "total_classes": 1,
+      "avg_lines_per_file": 11,
+      "largest_files": [
+        {
+          "path": "main.py",
+          "lines": 32,
+          "imports": 5,
+          "functions": 4,
+          "classes": 1
+        },
+        {
+          "path": "module_4.py",
+          "lines": 7,
+          "imports": 3,
+          "functions": 1,
+          "classes": 0
+        },
+        {
+          "path": "module_1.py",
+          "lines": 7,
+          "imports": 3,
+          "functions": 1,
+          "classes": 0
+        },
+        {
+          "path": "module_3.py",
+          "lines": 7,
+          "imports": 3,
+          "functions": 1,
+          "classes": 0
+        },
+        {
+          "path": "module_5.py",
+          "lines": 7,
+          "imports": 3,
+          "functions": 1,
+          "classes": 0
+        },
+        {
+          "path": "module_2.py",
+          "lines": 7,
+          "imports": 3,
+          "functions": 1,
+          "classes": 0
+        }
+      ]
+    },
+    "patterns_detected": {
+      "repo_id": "test/sample-project",
+      "patterns_detected": {
+        "large_files_count": 0,
+        "high_complexity_count": 0,
+        "large_files": [],
+        "high_complexity": [],
+        "common_imports": [
+          [
+            "import os",
+            6
+          ],
+          [
+            "import sys",
+            6
+          ],
+          [
+            "from typing import Dict, List",
+            6
+          ],
+          [
+            "import json",
+            1
+          ],
+          [
+            "import logging",
+            1
+          ]
+        ]
+      }
+    }
+  },
+  "refactoring_plan": {
+    "summary": "Repozytorium test/sample-project wymaga refaktoryzacji w celu poprawy utrzymywalności.",
+    "priority_actions": [
+      {
+        "priority": 1,
+        "action": "Use lazy imports in non-critical paths",
+        "files_affected": [
+          "imports"
+        ],
+        "estimated_effort": "2-4 hours"
+      }
+    ],
+    "architectural_changes": [
+      "Wprowadź podział na warstwy (controllers, services, repositories)",
+      "Zastosuj wzorzec Dependency Injection",
+      "Wydziel wspólne komponenty do osobnych modułów"
+    ],
+    "risks": [
+      "Potencjalne zmiany w API publicznym",
+      "Testy integracyjne mogą wymagać aktualizacji",
+      "Ryzyko wprowadzenia regresji"
+    ],
+    "testing_strategy": "Wykonaj pełny zestaw testów przed i po refaktoryzacji. Użyj testów mutacyjnych."
+  },
+  "dry_run": true,
+  "status": "analysis_complete"
+}
