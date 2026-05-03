@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-05-03
+
+### Fixed
+- `_format_value` no longer wraps plain tokens (GitHub PAT, URLs, port numbers) in
+  double-quotes. Values are only quoted when they contain whitespace or shell-special
+  characters. This prevents `docker-compose` and `bash` from reading `GITHUB_PAT` as
+  `"gho_..."` (with literal quote characters), which caused git clone auth failures.
+- `save` + `_load` roundtrip is now idempotent — repeated saves no longer accumulate
+  extra quote layers.
+
 ## [0.1.4] - 2026-05-03
 
 ### Docs

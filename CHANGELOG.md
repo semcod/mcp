@@ -90,6 +90,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.7] - 2026-05-03
+
+### Docs
+- Update env2mcp/CHANGELOG.md
+
+### Other
+- Update .dockerignore
+- Update Makefile
+- Update env2mcp/VERSION
+- Update env2mcp/env2mcp/config.py
+- Update env2mcp/tests/test_env2mcp.py
+- Update mcp-git-proxy/Dockerfile
+- Update mcp-skills/Dockerfile
+- Update mcp-skills/server.py
+
 ## [0.0.6] - 2026-05-03
 
 ### Docs

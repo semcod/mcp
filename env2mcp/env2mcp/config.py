@@ -49,19 +49,28 @@ class EnvConfig:
         self._data.pop(key, None)
 
     def _format_value(self, key: str, value: str) -> str:
-        """Format a value for .env file - don't quote numeric values."""
-        # Don't quote numeric values (ports, etc.)
-        if value.isdigit():
+        """Format a value for .env file.
+
+        Only quote values that contain spaces, special shell characters or are
+        empty strings.  Plain tokens, URLs and simple words are written
+        without quotes so that docker-compose / bash read them correctly.
+        """
+        # Already quoted — strip and re-evaluate to avoid double-quoting.
+        if len(value) >= 2 and (
+            (value.startswith('"') and value.endswith('"'))
+            or (value.startswith("'") and value.endswith("'"))
+        ):
+            value = value[1:-1]
+
+        # Values that need no quoting: no whitespace, no shell-special chars.
+        _NEEDS_QUOTE = re.compile(r'[\s\'"\\$`!#&;|<>()*?{}]')
+        if not value:
+            return '""'
+        if not _NEEDS_QUOTE.search(value):
             return value
-        # Don't quote boolean values
-        if value.lower() in ("true", "false"):
-            return value
-        # Don't quote values that already have quotes
-        if (value.startswith('"') and value.endswith('"')) or \
-           (value.startswith("'") and value.endswith("'")):
-            return value
-        # Quote string values
-        return f'"{value}"'
+        # Escape inner double-quotes and wrap.
+        escaped = value.replace('\\', '\\\\').replace('"', '\\"')
+        return f'"{escaped}"'
 
     def save(self, create_backup: bool = True) -> None:
         """Save configuration to .env file."""

@@ -69,6 +69,10 @@ services:
     build:
       context: ..
       dockerfile: mcp/mcp-skills/Dockerfile
+      cache_from:
+        - type=local,src=/tmp/docker-cache/mcp-skills
+      cache_to:
+        - type=local,dest=/tmp/docker-cache/mcp-skills,mode=max
     container_name: mcp-skills-server
     environment:
       - PYTHONUNBUFFERED=1
@@ -77,6 +81,8 @@ services:
       - MCP_SKILLS_TRANSPORT=http
       - MCP_SKILLS_HTTP_HOST=0.0.0.0
       - MCP_SKILLS_HTTP_PORT=8080
+      - GITHUB_PAT=${GITHUB_PAT:-}
+      - GH_TOKEN=${GH_TOKEN:-}
     volumes:
       - skills-cache:/skills-cache
       - ./mcp-skills/server.py:/app/server.py:ro

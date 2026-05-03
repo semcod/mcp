@@ -1,5 +1,9 @@
 SHELL := /bin/bash
 
+# Enable BuildKit for --mount=type=cache support and faster layer builds
+export DOCKER_BUILDKIT := 1
+export COMPOSE_DOCKER_CLI_BUILD := 1
+
 # Load port variables from .env (fallback to defaults)
 ifneq (,$(wildcard .env))
   include .env
@@ -70,6 +74,10 @@ kill-ports:
 	done
 
 start: kill-ports
+	@echo "Pruning orphaned containers to avoid name conflicts..."
+	@for c in mcp-redis mcp-git-proxy gh2mcp-agent mcp-skills-server llm-agent mcp-gateway mcp-gateway-worker mcp-webui mcp-docs openwebui mcp-dashboard; do \
+		docker rm -f $$c >/dev/null 2>&1 || true; \
+	done
 	@GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \
 	if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \
 	$(COMPOSE) $(PROFILES) build

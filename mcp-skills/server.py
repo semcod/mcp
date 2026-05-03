@@ -906,23 +906,43 @@ def _ensure_tool_installed(
     return info
 
 
+def _inject_github_token(url: str) -> str:
+    """Embed GITHUB_PAT / GH_TOKEN into a GitHub HTTPS URL for auth."""
+    token = os.getenv("GITHUB_PAT") or os.getenv("GH_TOKEN") or ""
+    if not token:
+        return url
+    if "github.com" not in url:
+        return url
+    # https://github.com/... → https://<token>@github.com/...
+    return url.replace("https://", f"https://{token}@", 1)
+
+
 def _git_clone_or_update(repo_url: str, target_dir: Path, ref: str = "HEAD") -> dict[str, Any]:
     """Clone repo_url into target_dir, or fetch+reset if it already exists."""
     target_dir.parent.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
     env["GIT_TERMINAL_PROMPT"] = "0"
+    env["GIT_ASKPASS"] = "echo"
+    authed_url = _inject_github_token(repo_url)
+
+    def _clone_ok(proc: subprocess.CompletedProcess) -> bool:
+        """git may exit 0 but print fatal on stderr for private repos."""
+        if proc.returncode != 0:
+            return False
+        stderr = (proc.stderr or "").lower()
+        return "fatal:" not in stderr and "error:" not in stderr
 
     if not (target_dir / ".git").exists():
         if target_dir.exists() and any(target_dir.iterdir()):
-            # Non-git contents already present (e.g. from prior fragments sync).
             shutil.rmtree(target_dir, ignore_errors=True)
         proc = subprocess.run(
-            ["git", "clone", "--depth", "1", repo_url, str(target_dir)],
+            ["git", "clone", "--depth", "1", authed_url, str(target_dir)],
             capture_output=True, text=True, timeout=300, env=env,
         )
+        ok = _clone_ok(proc)
         return {
             "action": "clone",
-            "ok": proc.returncode == 0,
+            "ok": ok,
             "returncode": proc.returncode,
             "stderr": _truncate_text(proc.stderr or "", 4 * 1024),
         }
