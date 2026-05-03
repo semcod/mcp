@@ -145,7 +145,7 @@ import sys
 from typing import Dict, List
 
 def function_$i(data: Dict) -> Dict:
-    return {\"result\": data}
+    return {"result": data}
 EOF
     done
 

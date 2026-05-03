@@ -4,4 +4,4 @@ import sys
 from typing import Dict, List
 
 def function_2(data: Dict) -> Dict:
-    return {\"result\": data}
+    return {"result": data}

@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-05-03
+
+### Docs
+- Update README.md
+
+### Other
+- Update git2mcp/__init__.py
+- Update git2mcp/client.py
+- Update git2mcp/proxy.py
+- Update output/test_sample-project_analysis.json
+- Update repos/test/sample-project/module_1.py
+- Update repos/test/sample-project/module_2.py
+- Update repos/test/sample-project/module_3.py
+- Update repos/test/sample-project/module_4.py
+- Update repos/test/sample-project/module_5.py
+- Update scripts/test.sh
+
 ## [0.1.3] - 2026-05-03
 
 ### Docs
