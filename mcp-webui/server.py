@@ -29,13 +29,6 @@ try:
 except ImportError:
     ENV2MCP_AVAILABLE = False
 
-# Import gh2mcp if available (for token sync helper)
-try:
-    from gh2mcp import GitHubTokenSyncService
-    GH2MCP_AVAILABLE = True
-except ImportError:
-    GH2MCP_AVAILABLE = False
-
 
 GATEWAY_URL = os.getenv("GATEWAY_URL", "http://mcp-gateway:9000")
 GIT_PROXY_URL = os.getenv("GIT_PROXY_URL", "http://mcp-git-proxy:8080")
@@ -162,17 +155,6 @@ def _resolve_github_token() -> str | None:
         except Exception:
             pass
 
-    if GH2MCP_AVAILABLE:
-        try:
-            svc = GitHubTokenSyncService(Path(__file__).parent.parent / ".env")
-            status = svc.get_status()
-            if status.get("configured"):
-                synced = svc.sync_token(force_gh_cli=False)
-                if synced.get("success"):
-                    return os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
-        except Exception:
-            pass
-
     return None
 
 
@@ -266,6 +248,7 @@ async def github_page(request: Request):
             "sync_result": None,
             "create_result": None,
             "cli_fetch_result": None,
+            "prefill_token": "",
         }
     )
 
@@ -316,14 +299,14 @@ async def github_configure(request: Request, token: str = Form(""), action: str 
 async def github_fetch_token_from_cli(request: Request):
     """Read GitHub token from gh CLI (via env2mcp) and save to .env."""
     env_path = Path(__file__).parent.parent / ".env"
-    result = {"success": False, "error": None, "user": None, "token_hint": None}
+    result = {"success": False, "error": None, "user": None, "token_hint": None, "token": None}
 
     if GH2MCP_URL:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
                     f"{GH2MCP_URL}/sync/token",
-                    json={"force_gh_cli": True},
+                    json={"force_gh_cli": True, "include_token": True},
                 )
             if response.status_code == 200:
                 data = response.json()
@@ -331,6 +314,7 @@ async def github_fetch_token_from_cli(request: Request):
                     result["success"] = True
                     result["user"] = data.get("user")
                     result["token_hint"] = data.get("token_hint")
+                    result["token"] = data.get("token")
                 else:
                     result["error"] = data.get("error") or "gh2mcp sync failed"
             else:
@@ -360,6 +344,7 @@ async def github_fetch_token_from_cli(request: Request):
                     "sync_result": None,
                     "create_result": None,
                     "cli_fetch_result": result,
+                    "prefill_token": result.get("token") or "",
                 }
             )
 
@@ -388,6 +373,7 @@ async def github_fetch_token_from_cli(request: Request):
                 result["success"] = True
                 result["user"] = user
                 result["token_hint"] = token[:8] + "..."
+                result["token"] = token
     except Exception as exc:
         result["error"] = str(exc)
 
@@ -412,6 +398,7 @@ async def github_fetch_token_from_cli(request: Request):
             "sync_result": None,
             "create_result": None,
             "cli_fetch_result": result,
+            "prefill_token": result.get("token") or "",
         }
     )
 
@@ -435,6 +422,7 @@ async def _github_page_ctx(request: Request) -> dict:
         "sync_result": None,
         "create_result": None,
         "cli_fetch_result": None,
+        "prefill_token": "",
     }
 
 
@@ -515,6 +503,7 @@ async def github_clone(
             "sync_result": None,
             "create_result": None,
             "cli_fetch_result": None,
+            "prefill_token": "",
         }
     )
 
@@ -576,6 +565,7 @@ async def github_create_repo(
             "sync_result": None,
             "create_result": result,
             "cli_fetch_result": None,
+            "prefill_token": "",
         }
     )
 
@@ -626,5 +616,6 @@ async def github_sync(
             "sync_result": result,
             "create_result": None,
             "cli_fetch_result": None,
+            "prefill_token": "",
         }
     )

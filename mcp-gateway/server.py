@@ -39,6 +39,7 @@ TENANTS_DIR = Path(os.getenv("MCP_TENANTS_DIR", "/app/tenants"))
 AUDIT_LOG = Path(os.getenv("MCP_AUDIT_LOG", "/audit/audit.jsonl"))
 GIT_PROXY_URL = os.getenv("GIT_PROXY_URL", "http://mcp-git-proxy:8080")
 SKILLS_URL = os.getenv("SKILLS_URL", "http://mcp-skills:8080")
+GH2MCP_URL = os.getenv("GH2MCP_URL", "http://gh2mcp-agent:8079")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "openrouter/x-ai/grok-code-fast-1")
 MCP_ENV_FILE = Path(os.getenv("MCP_ENV_FILE", "/app/.env"))
@@ -121,6 +122,85 @@ def parse_bool(value: str | None, default: bool = False) -> bool:
     if normalized in {"0", "false", "no", "n", "nie", "off"}:
         return False
     return default
+
+
+def _normalize_command_text(text: str) -> str:
+    cleaned = text.replace("*", " ")
+    cleaned = re.sub(r"[^\w\sąćęłńóśźżĄĆĘŁŃÓŚŹŻ]", " ", cleaned, flags=re.UNICODE)
+    cleaned = re.sub(r"\s+", " ", cleaned, flags=re.UNICODE).strip().lower()
+    return cleaned
+
+
+def _is_github_token_sync_command(user_msg: str, prompt_ctx: dict[str, str]) -> bool:
+    if prompt_ctx.get("github_token"):
+        return False
+
+    normalized = _normalize_command_text(user_msg)
+    if not normalized:
+        return False
+
+    if normalized in {"github token", "token github", "token gh", "gh token"}:
+        return True
+
+    cleaned_user_msg = user_msg.replace("*", "").strip()
+    if re.search(r"\bgithub\s+token\s*:\s*$", cleaned_user_msg, re.IGNORECASE):
+        return True
+    if re.search(r"\btoken\s*:\s*$", cleaned_user_msg, re.IGNORECASE):
+        return True
+
+    words = set(normalized.split())
+    has_token = "token" in words
+    has_gh = "github" in words or "gh" in words or "gihutb" in words
+    intent_words = {
+        "pobierz",
+        "zaktualizuj",
+        "aktualizuj",
+        "uaktualnij",
+        "pokaz",
+        "pokaż",
+        "show",
+        "fetch",
+        "get",
+        "sync",
+        "zsynchronizuj",
+        "odswiez",
+        "odśwież",
+        "aktualny",
+        "refresh",
+        "update",
+        "nowy",
+        "najnowszy",
+    }
+    has_intent = bool(words & intent_words) or "gh auth token" in normalized
+    return has_token and has_gh and has_intent
+
+
+async def _sync_github_token_via_gh2mcp() -> dict[str, Any]:
+    if not GH2MCP_URL:
+        raise ValueError("GH2MCP_URL is not configured")
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        sync_response = await client.post(
+            f"{GH2MCP_URL}/sync/token",
+            json={"force_gh_cli": True, "include_token": False},
+        )
+        sync_data = await _expect_json(sync_response, "gh2mcp sync token")
+
+        status_response = await client.get(f"{GH2MCP_URL}/status")
+        status_data = await _expect_json(status_response, "gh2mcp status")
+
+    return {
+        "action": "sync-github-token-from-gh-cli",
+        "success": bool(sync_data.get("success")),
+        "source": sync_data.get("source"),
+        "error": sync_data.get("error"),
+        "github": {
+            "configured": bool(status_data.get("configured")),
+            "token_hint": status_data.get("token_hint"),
+            "user": status_data.get("user"),
+        },
+        "note": "Token synchronized via gh2mcp-agent (/sync/token) and saved to /app/.env for MCP services.",
+    }
 
 
 def _load_env_file_values(env_path: Path) -> dict[str, str]:
@@ -509,6 +589,7 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
         "",
     )
     prompt_ctx = parse_prompt_context(user_msg)
+    token_sync_command = _is_github_token_sync_command(user_msg, prompt_ctx)
 
     tenant_id = tenant["tenant_id"]
     repo_id = req.repo_id or prompt_ctx.get("repo_id") or f"{tenant_id}/default"
@@ -532,6 +613,29 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     push_remote = req.remote or prompt_ctx.get("remote") or "origin"
 
     async def runner() -> dict:
+        if token_sync_command:
+            try:
+                result = await _sync_github_token_via_gh2mcp()
+                return {
+                    "skill": "system",
+                    "tenant": tenant["tenant_id"],
+                    "repo_id": None,
+                    "user_request": user_request,
+                    "github": result,
+                }
+            except Exception as exc:
+                return {
+                    "skill": "system",
+                    "tenant": tenant["tenant_id"],
+                    "repo_id": None,
+                    "user_request": user_request,
+                    "github": {
+                        "action": "sync-github-token-from-gh-cli",
+                        "success": False,
+                        "error": str(exc),
+                    },
+                }
+
         try:
             return await dispatch_skill(
                 skill=skill,

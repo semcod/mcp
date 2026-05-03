@@ -15,6 +15,31 @@ Najpierw repo demo są generowane przez sam system (`scripts/generate_demo_repos
 make generate-demo-repos
 ```
 
+Domyślnie działa tryb `auto`:
+- jeśli dostępne są `gh auth status` + token + user, repo powstaną bezpośrednio na GitHub,
+- w przeciwnym razie skrypt automatycznie zrobi fallback do lokalnych bare repo.
+
+Wymuszenie providerów:
+
+```bash
+# wymuś GitHub (z fallbackiem do local, gdy gh/token niegotowe)
+make generate-demo-repos-github
+
+# wymuś local bare
+GH_DEMO_PROVIDER=local make generate-demo-repos
+```
+
+Konfiguracja nazw i widoczności repo na GitHub:
+
+```bash
+GH_DEMO_PREFIX=mcp-demo GH_DEMO_VISIBILITY=private make generate-demo-repos
+```
+
+Przykładowe nazwy tworzone na GitHub:
+- `mcp-demo-refactor-lab`
+- `mcp-demo-migration-lab`
+- `mcp-demo-integration-lab`
+
 Skrypt tworzy i seeduje 3 repozytoria:
 - `demo/refactor-lab`
 - `demo/migration-lab`
@@ -23,6 +48,8 @@ Skrypt tworzy i seeduje 3 repozytoria:
 Źródła i „GitHub-like” remotes (lokalne bare):
 - `repos/generated-sources/*`
 - `repos/generated-remotes/*.git`
+
+Jeśli provider to GitHub, remote będzie `https://github.com/<user>/<prefix>-<repo>.git`.
 
 Skrypt automatycznie synchronizuje je do `mcp-git-proxy`.
 

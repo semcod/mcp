@@ -7,7 +7,7 @@ COMPOSE := docker-compose
 COMPOSE_PROD := docker-compose -f docker-compose.yml -f docker-compose.prod.yml
 PROFILES := --profile openwebui
 
-.PHONY: help start stop restart kill-ports up down logs ps build rebuild test pytest smoke ansible-e2e ansible-github-test gh2mcp-status clean prod-up prod-down setup-github install-env2mcp generate-demo-repos
+.PHONY: help start stop restart kill-ports up down logs ps build rebuild test pytest smoke ansible-e2e ansible-github-test gh2mcp-status clean prod-up prod-down setup-github install-env2mcp generate-demo-repos generate-demo-repos-github
 
 help:
 	@echo "MCP Skills - Makefile targets"
@@ -29,8 +29,10 @@ help:
 	@echo "  make install-env2mcp - install env2mcp package locally"
 	@echo "  make setup-github  - configure GitHub authentication via env2mcp"
 	@echo "  make generate-demo-repos - create and sync demo repos for use-cases"
+	@echo "  make generate-demo-repos-github - force create/sync demo repos on GitHub via gh"
 	@echo "  make ansible-github-test  - test GitHub token + create-repo via Ansible (requires GITHUB_PAT)"
 	@echo "  make gh2mcp-status - show gh2mcp agent health and token status"
+	@echo "  env vars for demo repos: GH_DEMO_PROVIDER=auto|github|local GH_DEMO_PREFIX=mcp-demo GH_DEMO_VISIBILITY=private|public"
 
 kill-ports:
 	@for p in $(PORTS); do \
@@ -88,7 +90,15 @@ smoke:
 	@echo "--- gateway /v1/models (no auth) ---"; curl -s -o /dev/null -w '%{http_code}\n' http://localhost:9000/v1/models
 	@echo "--- gateway /v1/models (auth) ---"; curl -fsS -H "Authorization: Bearer $${WEBUI_API_KEY:-sk-mcp-default-dev-key}" http://localhost:9000/v1/models | python3 -m json.tool | head -20
 	@echo "--- mcp-skills /health (container) ---"; $(COMPOSE) $(PROFILES) exec -T mcp-skills python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5).status)"
-	@echo "--- mcp-webui / ---"; curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8092/
+	@echo "--- mcp-webui / (wait for 200) ---"; \
+	code=""; \
+	for i in {1..30}; do \
+		code=$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8092/ || true); \
+		if [ "$$code" = "200" ]; then break; fi; \
+		sleep 1; \
+	done; \
+	echo "$$code"; \
+	[ "$$code" = "200" ]
 
 ansible-e2e:
 	ansible-playbook -i ansible/inventory.ini ansible/e2e-docker-stack.yml
@@ -123,3 +133,6 @@ setup-github: install-env2mcp
 
 generate-demo-repos:
 	bash scripts/generate_demo_repos.sh
+
+generate-demo-repos-github:
+	GH_DEMO_PROVIDER=github bash scripts/generate_demo_repos.sh

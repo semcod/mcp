@@ -4,6 +4,7 @@ import asyncio
 import os
 
 from fastapi import FastAPI
+from fastapi import Query
 from pydantic import BaseModel
 
 from .sync import GitHubTokenSyncService
@@ -18,6 +19,7 @@ service = GitHubTokenSyncService(ENV_FILE)
 
 class SyncTokenRequest(BaseModel):
     force_gh_cli: bool = False
+    include_token: bool = False
 
 
 _sync_task: asyncio.Task | None = None
@@ -53,10 +55,13 @@ def health() -> dict:
 
 
 @app.get("/status")
-def status() -> dict:
-    return service.get_status()
+def status(include_token: bool = Query(False)) -> dict:
+    return service.get_status(include_token=include_token)
 
 
 @app.post("/sync/token")
 def sync_token(payload: SyncTokenRequest) -> dict:
-    return service.sync_token(force_gh_cli=payload.force_gh_cli)
+    return service.sync_token(
+        force_gh_cli=payload.force_gh_cli,
+        include_token=payload.include_token,
+    )

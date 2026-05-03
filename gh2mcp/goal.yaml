@@ -1,0 +1,4 @@
+# goal.yaml - Override for gh2mcp package
+strategies:
+  python:
+    publish: twine upload dist/gh2mcp-{version}*

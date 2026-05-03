@@ -112,6 +112,7 @@ services:
     environment:
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
       - SKILLS_URL=http://mcp-skills:8080
+      - GH2MCP_URL=http://gh2mcp-agent:8079
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-openrouter/x-ai/grok-code-fast-1}
       - GITHUB_PAT=${GITHUB_PAT:-}
@@ -134,6 +135,8 @@ services:
       mcp-git-proxy:
         condition: service_healthy
       mcp-skills:
+        condition: service_healthy
+      gh2mcp-agent:
         condition: service_healthy
     networks:
       - mcp-internal

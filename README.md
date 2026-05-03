@@ -4,10 +4,10 @@
 ## AI Cost Tracking
 
 ![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$2.85-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-4.3h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$3.00-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-4.7h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $2.8500 (19 commits)
-- 👤 **Human dev:** ~$428 (4.3h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $3.0000 (20 commits)
+- 👤 **Human dev:** ~$469 (4.7h @ $100/h, 30min dedup)
 
 Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -52,8 +52,8 @@ make ansible-github-test      # weryfikuje token + create-repo + cleanup
 ```bash
 # make stop                   # zatrzymuje wszystko
 # make smoke                  # szybki test API gateway/webui
-# make generate-demo-repos    # tworzy 3 repo demo (refactor/migration/integration)
-# make ansible-e2e            # E2E test całego stacku
+# make generate-demo-repos    # tworzy 3 repo demo (auto: github/local fallback)
+# make generate-demo-repos-github  # wymusza tryb github (gh + fallback)
 # make help                   # pełna lista targetów
 ```
 

@@ -104,6 +104,9 @@ Jeśli masz już uruchomiony stack, możesz pobrać token **bezpośrednio z WebU
 2. Kliknij **"Pobierz token z gh CLI"** — token zostanie odczytany z `gh auth token`
    i zapisany do `.env` bez ponownego logowania.
 
+`gh2mcp-agent` korzysta z mounta `${HOME}/.config/gh:/root/.config/gh:ro`,
+więc token z lokalnego `gh auth login` jest dostępny również w Dockerze.
+
 Weryfikacja:
 ```bash
 env2mcp github status     # czy token jest w .env
@@ -454,6 +457,36 @@ Repo URL: owner/repo
 
 Gateway zamieni to na `https://github.com/owner/repo.git` i automatycznie wstrzyknie token.
 
+Możesz też uruchomić synchronizację tokenu z `gh` CLI przez **sam tekst w czacie**
+(bez wklejania tokenu), np.:
+
+```text
+Pobierz token GitHub z gh CLI
+```
+
+lub:
+
+```text
+Pokaż github token i zsynchronizuj
+```
+
+albo:
+
+```text
+Zaktualizuj token GitHub z gh CLI
+```
+
+Wtedy `mcp-gateway` rozpozna intencję i wywoła `gh2mcp-agent /sync/token`
+zamiast uruchamiać workflow refactor/analyze dla repo.
+
+Token jest zapisywany do `.env` (`/app/.env` w kontenerach), z którego korzystają
+inne usługi stacku, m.in. `mcp-gateway`, `mcp-webui` oraz workflow LLM (`llm-agent`).
+
+Przy tym trybie:
+- **pobranie** tokenu jest wymuszane przez `gh2mcp` z `gh auth token` (`force_gh_cli=true`),
+- **zapis** tokenu odbywa się przez `env2mcp` (`EnvConfig`) do pliku
+  `/home/tom/github/semcod/mcp/.env` (w kontenerach widocznego jako `/app/.env`).
+
 ### Jak czytać wynik JSON
 
 - `analysis` — metryki/wzorce/rekomendacje z `mcp-skills`.
@@ -508,6 +541,11 @@ curl -o /dev/null -w '%{http_code}\n' http://localhost:8092/   # -> 200
 **Jak szybko wygenerować repo demo i uruchomić use-case?**
 ```bash
 make generate-demo-repos
+```
+Warianty:
+```bash
+make generate-demo-repos-github                # preferuj GitHub
+GH_DEMO_PROVIDER=local make generate-demo-repos  # wymuś local bare
 ```
 Szczegółowe prompty i scenariusze: `docs/USE_CASES.md`.
 

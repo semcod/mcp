@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-03
+
+### Docs
+- Update README.md
+- Update docs/USAGE.md
+- Update docs/USE_CASES.md
+
+### Other
+- Update Makefile
+- Update gh2mcp/gh2mcp/server.py
+- Update gh2mcp/gh2mcp/sync.py
+- Update gh2mcp/goal.yaml
+- Update gh2mcp/tests/test_gh2mcp.py
+- Update gh2mcp/uv.lock
+- Update mcp-gateway/server.py
+- Update mcp-gateway/test_gateway_token_command.py
+- Update mcp-webui/Dockerfile
+- Update mcp-webui/server.py
+- ... and 2 more files
+
 ## [0.1.1] - 2026-05-03
 
 ### Docs

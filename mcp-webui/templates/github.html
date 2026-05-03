@@ -49,7 +49,7 @@
                     <p class="mb-2 fw-semibold"><i class="bi bi-terminal"></i> Opcja 1 — pobierz token z gh CLI (zalecane)</p>
                     <p class="text-muted small mb-2">
                         Jeśli masz zainstalowane <code>gh</code> i jesteś zalogowany (<code>gh auth login</code>),
-                        kliknij poniżej — token zostanie automatycznie pobrany i zapisany.
+                        kliknij poniżej — <code>gh2mcp-agent</code> pobierze token i zapisze go do <code>.env</code>.
                     </p>
                     <form method="post" action="/github/fetch-token-from-cli">
                         <button type="submit" class="btn btn-dark btn-sm">
@@ -70,7 +70,8 @@
                         <div class="mb-2">
                             <input type="password" class="form-control form-control-sm" id="token" name="token"
                                    placeholder="ghp_xxx... lub github_pat_xxx..."
-                                   autocomplete="off">
+                                   autocomplete="off"
+                                   value="{{ prefill_token if prefill_token else '' }}">
                             <div class="form-text">
                                 Utwórz token na
                                 <a href="https://github.com/settings/tokens/new?scopes=repo,delete_repo" target="_blank">github.com/settings/tokens</a>
