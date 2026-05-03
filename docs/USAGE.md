@@ -19,6 +19,10 @@ Powiązane dokumenty:
 cp .env.example .env
 # wpisz OPENROUTER_API_KEY i WEBUI_API_KEY (klucz tenanta z mcp-gateway/tenants/default.yaml)
 
+# Opcjonalnie: skonfiguruj GitHub (token do pobierania repo)
+make setup-github
+# lub ręcznie: wpisz GITHUB_PAT w .env
+
 # 2) wystartuj zestaw
 make start          # killuje porty hostowe + docker-compose up -d (z OpenWebUI)
 # make stop         # zatrzymuje
@@ -30,6 +34,7 @@ make start          # killuje porty hostowe + docker-compose up -d (z OpenWebUI)
 Po starcie:
 - `mcp-gateway`     → http://localhost:9000        (publiczny, OpenAI-compat)
 - `mcp-webui`       → http://localhost:8092        (panel testowy)
+  - `/github`       → konfiguracja GitHub i zarządzanie repo
 - `openwebui`       → http://localhost:3000        (frontend dla użytkowników)
 - `mcp-git-proxy`   → http://localhost:8081        (dev only)
 - `dashboard`       → http://localhost:8085
