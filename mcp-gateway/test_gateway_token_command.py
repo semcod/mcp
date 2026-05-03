@@ -92,6 +92,26 @@ def test_is_org_list_command(msg: str, expected: bool):
     assert gateway._is_org_list_command(msg) is expected
 
 
+@pytest.mark.parametrize(
+    "msg,expected",
+    [
+        ("pokaz 10 ostatnich repo github", True),
+        ("list recent github repositories", True),
+        ("wylistuj repo github", False),
+        ("ustaw organizacje github semcod", False),
+    ],
+)
+def test_is_repo_list_command(msg: str, expected: bool):
+    assert gateway._is_repo_list_command(msg) is expected
+
+
+def test_extract_repo_list_limit_defaults_and_bounds():
+    assert gateway._extract_repo_list_limit("pokaz repo", default=10, max_limit=30) == 10
+    assert gateway._extract_repo_list_limit("pokaz 7 repo", default=10, max_limit=30) == 7
+    assert gateway._extract_repo_list_limit("pokaz 200 repo", default=10, max_limit=30) == 30
+    assert gateway._extract_repo_list_limit("pokaz 0 repo", default=10, max_limit=30) == 1
+
+
 def test_extract_org_from_text():
     msg = "ustaw organizacje github: semcod"
     assert gateway._extract_org_from_text(msg, {}) == "semcod"
@@ -443,6 +463,34 @@ def test_render_chat_content_system_human_readable():
     assert "Organizacja domyślna: `semcod`" in content
 
 
+def test_render_chat_content_system_recent_repos_human_readable():
+    result = {
+        "skill": "system",
+        "github": {
+            "action": "list-recent-github-repos",
+            "success": True,
+            "user": "tom",
+            "count": 2,
+            "repos": [
+                {
+                    "nameWithOwner": "tom/demo-a",
+                    "pushedAt": "2026-05-03T13:04:49Z",
+                    "url": "https://github.com/tom/demo-a",
+                },
+                {
+                    "nameWithOwner": "tom/demo-b",
+                    "pushedAt": "2026-05-03T13:04:40Z",
+                    "url": "https://github.com/tom/demo-b",
+                },
+            ],
+        },
+    }
+    content = gateway._render_chat_content(result)
+    assert "Ostatnio aktywne repo" in content
+    assert "`tom/demo-a`" in content
+    assert "https://github.com/tom/demo-a" in content
+
+
 def test_render_chat_content_queued_human_readable():
     result = {
         "skill": "queued",
@@ -456,6 +504,94 @@ def test_render_chat_content_queued_human_readable():
     assert "Zadanie zakolejkowane" in content
     assert "`abc123`" in content
     assert "GET /jobs/abc123" in content
+
+
+# ---------------------------------------------------------------------------
+# _is_repo_list_command
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "msg,expected",
+    [
+        ("pokaż ostatnio edytowane repo na github", True),
+        ("lista ostatnich repo github", True),
+        ("pokaż ostatnie repo na github 10", True),
+        ("lista ostatnio edytowanych repozytoriów github", True),
+        ("show last 5 repos on github", True),
+        ("Pobierz token GitHub z gh CLI", False),
+        ("Ustaw organizację: semcod", False),
+        ("Repo: semcod/mcp\nZadanie: refactor", False),
+    ],
+)
+def test_is_repo_list_command(msg, expected):
+    assert gateway._is_repo_list_command(msg) is expected
+
+
+@pytest.mark.parametrize(
+    "msg,expected",
+    [
+        ("pokaż ostatnie 5 repo github", 5),
+        ("pokaż ostatnio edytowane repo github 10", 10),
+        ("lista repo github", 10),  # default
+        ("last 30 repos github", 30),
+        ("last 99 repos github", 30),  # capped at max_limit=30
+    ],
+)
+def test_extract_repo_list_limit(msg, expected):
+    assert gateway._extract_repo_list_limit(msg, default=10, max_limit=30) == expected
+
+
+# ---------------------------------------------------------------------------
+# _summary_text with redsl engine
+# ---------------------------------------------------------------------------
+
+def test_summary_text_redsl_engine():
+    analysis = {
+        "engine": "redsl",
+        "metrics": {
+            "file_count": 20,
+            "total_lines": 1500,
+            "avg_complexity": 4.2,
+            "critical_count": 3,
+            "alerts_count": 7,
+        },
+        "recommendations": {
+            "recommendations": [
+                {
+                    "priority": "high",
+                    "target": "mcp-gateway/server.py",
+                    "suggested_action": "Split into modules",
+                    "reason": "File too large",
+                    "redsl_score": 0.87,
+                }
+            ]
+        },
+        "redsl_raw": {"decisions_count": 12},
+    }
+    text = gateway._summary_text(analysis, "refactor etap 1")
+    assert "Engine: redsl" in text
+    assert "Avg complexity (CC): 4.2" in text
+    assert "Critical hotspots: 3" in text
+    assert "Alerts: 7" in text
+    assert "redsl decisions: 12" in text
+    assert "score=0.87" in text
+    assert "File too large" in text
+
+
+def test_summary_text_mcp_skills_engine():
+    analysis = {
+        "engine": "mcp-skills",
+        "metrics": {"file_count": 10, "total_lines": 800},
+        "recommendations": {
+            "recommendations": [
+                {"priority": "medium", "target": "utils.py", "suggested_action": "Add types"}
+            ]
+        },
+    }
+    text = gateway._summary_text(analysis, "refactor")
+    assert "Engine: mcp-skills" in text
+    assert "Avg complexity" not in text
+    assert "`utils.py`" in text
 
 
 def test_stream_job_not_found_returns_404(monkeypatch):

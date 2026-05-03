@@ -408,6 +408,21 @@ Pokaz liste wszystkich organizacji
 - wywołuje `gh2mcp /org/list` i zwraca org + repo
 
 ```text
+pokaż ostatnio edytowane repo na github
+```
+- wywołuje `gh2mcp /repo/recent` i zwraca 10 ostatnio pushowanych repo (user + orgi)
+
+```text
+pokaż ostatnie 5 repo na github
+```
+- jak wyżej, limit wyciągany z treści wiadomości (domyślnie 10, max 30)
+
+```text
+show last 5 repos on github
+```
+- angielski wariant tej samej komendy
+
+```text
 Repo: {{show last pushed repo from github owner=semcod}}
 Branch: main
 Execute: false
@@ -501,6 +516,84 @@ Fazy:
 
 ---
 
+## 99) Uruchamianie narzędzi semcod bezpośrednio z chata (NLP routing)
+
+Gateway rozpoznaje intencję typu „uruchom narzędzie X na repo Y" i kieruje ją
+do `mcp-skills/tools/run`, który:
+
+1. Klonuje repo jeżeli nie jest jeszcze sklonowane (`git clone --depth 1`).
+2. Instaluje narzędzie jeżeli go brakuje (`pip install <pkg>`).
+3. Uruchamia narzędzie w katalogu repo z domyślnymi argumentami.
+4. Zwraca `stdout`, `stderr` oraz kluczowe pliki wyjściowe (np. `SUMD.md`,
+   `redsl_refactor_plan.md`, `code2llm_output/map.toon.yaml`, `pyqual.yaml`),
+   które są od razu renderowane w okienku chat.
+
+Wspierane narzędzia (wszystkie z ekosystemu semcod):
+
+- `sumd` — generowanie `SUMD.md` / `SUMR.md`
+- `code2llm` — analiza statyczna + call-graph (TOON)
+- `code2docs` — auto-dokumentacja projektu
+- `code2logic` — ekstrakcja logiki biznesowej
+- `code2schema` — wyprowadzanie schematów (JSON/SQL/OpenAPI)
+- `redsl` — plan refaktoryzacji
+- `redup` — duplikaty kodu
+- `pyqual` — ocena jakości Python
+- `domd` — audyt dokumentacji Markdown
+- `vallm`, `regix`, `regres`, `clickmd`, `algitex`
+
+### Przykład (dokładnie jak w wymaganiu)
+
+Wklej w OpenWebUI (dowolny model `mcp-skills/*`):
+
+```text
+wygeneruj sumd dla https://github.com/tom-sapletta-com/mcp-demo-integration-lab
+```
+
+Co dzieje się pod spodem:
+
+1. `mcp-gateway` parsuje wiadomość i wykrywa `tool=sumd`,
+   `repo_url=https://github.com/tom-sapletta-com/mcp-demo-integration-lab`.
+2. Gateway wywołuje `POST /tools/run` na `mcp-skills` z payloadem:
+   ```json
+   {"tool": "sumd", "repo_id": "tom-sapletta-com/mcp-demo-integration-lab",
+    "repo_url": "https://github.com/tom-sapletta-com/mcp-demo-integration-lab",
+    "auto_install": true}
+   ```
+3. `mcp-skills`:
+   - klonuje repo do `/repos/tom-sapletta-com/mcp-demo-integration-lab`,
+   - w razie potrzeby `pip install sumd`,
+   - uruchamia `sumd scan .` w katalogu repo.
+4. Gateway renderuje w chacie: status, komendę, `stdout` oraz treść `SUMD.md`
+   osadzoną jako fenced block.
+
+### Inne warianty NLP rozumiane przez gateway
+
+```text
+uruchom code2llm na https://github.com/owner/repo
+run redsl on https://github.com/owner/repo
+przeanalizuj redup dla owner/repo
+code2docs dla https://github.com/owner/repo
+```
+
+### Bezpośrednie wywołanie HTTP (pomijając NLP)
+
+```bash
+curl -fsS http://localhost:8080/tools/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tool": "sumd",
+    "repo_url": "https://github.com/tom-sapletta-com/mcp-demo-integration-lab"
+  }' | jq .
+```
+
+Lista dostępnych narzędzi:
+
+```bash
+curl -fsS http://localhost:8080/tools/list | jq '.tools[] | {tool, description}'
+```
+
+---
+
 ## Podsumowanie funkcji
 
 | Funkcja | Opis | Endpoint/Prompt |
@@ -511,4 +604,5 @@ Fazy:
 | Async mode | Background jobs via Redis/RQ | `async_mode: true` |
 | Job streaming | SSE status updates | `GET /jobs/{id}/stream` |
 | Copy/OpenWebUI buttons | Przyciski na blokach `<pre>` w docs | http://localhost:8093 |
+| Tool NLP routing | `wygeneruj sumd dla <URL>` → klon+instal+run | `mcp-skills/tools/run` |
 

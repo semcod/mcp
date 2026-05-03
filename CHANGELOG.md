@@ -45,6 +45,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2026-05-03
+
+### Docs
+- Update docs/CHAT_PLAYBOOKS.md
+
+### Other
+- Update Makefile
+- Update ansible/e2e-docker-stack.yml
+- Update ansible/e2e-gh2mcp.yml
+- Update ansible/e2e-github-qa.yml
+- Update ansible/e2e-tools.yml
+- Update ansible/test-github-integration.yml
+- Update gh2mcp/gh2mcp/server.py
+- Update gh2mcp/gh2mcp/sync.py
+- Update gh2mcp/tests/test_gh2mcp.py
+- Update mcp-docs/server.py
+- ... and 8 more files
+
 ## [0.0.4] - 2026-05-03
 
 ### Docs

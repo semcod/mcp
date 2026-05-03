@@ -3,8 +3,10 @@
   hosts: local
   gather_facts: false
   vars:
-    gh2mcp_base: "http://localhost:8079"
-    gateway_base: "http://localhost:9000"
+    port_gateway: "{{ lookup('env', 'PORT_GATEWAY') | default('9000', true) }}"
+    port_gh2mcp: "{{ lookup('env', 'PORT_GH2MCP') | default('8079', true) }}"
+    gh2mcp_base: "http://localhost:{{ port_gh2mcp }}"
+    gateway_base: "http://localhost:{{ port_gateway }}"
     api_key: "{{ lookup('env', 'WEBUI_API_KEY') | default('sk-mcp-default-dev-key', true) }}"
 
   tasks:
@@ -316,6 +318,189 @@
              or '# Analiza repo' in cmd_template_repo.json.choices[0].message.content"
         fail_msg: "Template Repo resolution failed - effective_repo_url likely not propagated to git sync"
 
+    # ------------------------------------------------------------------ repo/recent
+    - name: POST /repo/recent - list recent repos across user+orgs (limit 5)
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/repo/recent"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          limit: 5
+          include_orgs: true
+        status_code: 200
+      register: repo_recent_result
+      ignore_errors: true
+
+    - name: Assert repo/recent response shape
+      ansible.builtin.assert:
+        that:
+          - repo_recent_result.json.success is defined
+          - >-
+            (repo_recent_result.json.success is sameas true
+             and repo_recent_result.json.repos is defined
+             and repo_recent_result.json.count is defined)
+            or (repo_recent_result.json.success is sameas false
+                and repo_recent_result.json.error is defined)
+
+    - name: When repo/recent succeeds - assert repos is a list with expected fields
+      when: repo_recent_result.json.success is sameas true
+      ansible.builtin.assert:
+        that:
+          - repo_recent_result.json.repos | type_debug == 'list'
+          - repo_recent_result.json.count == (repo_recent_result.json.repos | length)
+
+    # ------------------------------------------------------------------ gateway chat command: github-qa repo list
+    - name: "Gateway chat - 'Jakie mam ostatnie repozytoria?' via github-qa model"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/github-qa
+          stream: false
+          messages:
+            - role: user
+              content: "Jakie mam ostatnie repozytoria na GitHubie?"
+        status_code: 200
+        timeout: 120
+      register: cmd_github_qa
+      ignore_errors: true
+
+    - name: Assert github-qa chat command returns non-empty response
+      ansible.builtin.assert:
+        that:
+          - cmd_github_qa.json.choices | length > 0
+          - cmd_github_qa.json.choices[0].message.content | length > 0
+
+    - name: Assert github-qa response mentions GitHub Q&A or OPENROUTER_API_KEY (when key missing)
+      ansible.builtin.assert:
+        that:
+          - >-
+            'GitHub Q&A' in cmd_github_qa.json.choices[0].message.content
+            or 'github' in (cmd_github_qa.json.choices[0].message.content | lower)
+            or 'OPENROUTER_API_KEY' in cmd_github_qa.json.choices[0].message.content
+        fail_msg: "github-qa response did not contain expected content"
+
+    # ------------------------------------------------------------------ mcp-skills tools/list
+    - name: GET mcp-skills /tools/list via gateway (container-internal call)
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "lista narzędzi"
+        status_code: 200
+        timeout: 30
+      register: cmd_tools_list
+      ignore_errors: true
+
+    - name: Assert tools/list chat command returns non-empty response
+      ansible.builtin.assert:
+        that:
+          - cmd_tools_list.json.choices | length > 0
+          - cmd_tools_list.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ gateway chat: NLP tool routing (sumd)
+    - name: "Gateway chat - NLP tool intent 'wygeneruj sumd dla owner/repo'"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "wygeneruj sumd dla semcod/mcp"
+        status_code: 200
+        timeout: 120
+      register: cmd_nlp_sumd
+      ignore_errors: true
+
+    - name: Assert NLP sumd intent returns recognizable response
+      ansible.builtin.assert:
+        that:
+          - cmd_nlp_sumd.json.choices | length > 0
+          - cmd_nlp_sumd.json.choices[0].message.content | length > 0
+          - >-
+            'sumd' in (cmd_nlp_sumd.json.choices[0].message.content | lower)
+            or 'repo' in (cmd_nlp_sumd.json.choices[0].message.content | lower)
+            or 'clone' in (cmd_nlp_sumd.json.choices[0].message.content | lower)
+            or 'tool' in (cmd_nlp_sumd.json.choices[0].message.content | lower)
+        fail_msg: "NLP sumd routing did not produce expected output"
+
+    # ------------------------------------------------------------------ gateway chat: NLP tool routing (code2llm, full URL)
+    - name: "Gateway chat - NLP tool intent 'run code2llm on https://github.com/...'"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "run code2llm on https://github.com/semcod/mcp"
+        status_code: 200
+        timeout: 120
+      register: cmd_nlp_code2llm
+      ignore_errors: true
+
+    - name: Assert NLP code2llm intent returns recognizable response
+      ansible.builtin.assert:
+        that:
+          - cmd_nlp_code2llm.json.choices | length > 0
+          - cmd_nlp_code2llm.json.choices[0].message.content | length > 0
+          - >-
+            'code2llm' in (cmd_nlp_code2llm.json.choices[0].message.content | lower)
+            or 'repo' in (cmd_nlp_code2llm.json.choices[0].message.content | lower)
+            or 'tool' in (cmd_nlp_code2llm.json.choices[0].message.content | lower)
+        fail_msg: "NLP code2llm routing did not produce expected output"
+
+    # ------------------------------------------------------------------ gateway chat: NLP - unknown tool (error path)
+    - name: "Gateway chat - NLP unrecognized tool name (expect helpful error)"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "uruchom nieistniejacenarzedzie na semcod/mcp"
+        status_code: 200
+        timeout: 30
+      register: cmd_nlp_unknown
+      ignore_errors: true
+
+    - name: Assert unknown-tool prompt returns helpful error or tool list
+      ansible.builtin.assert:
+        that:
+          - cmd_nlp_unknown.json.choices | length > 0
+          - cmd_nlp_unknown.json.choices[0].message.content | length > 0
+
     # ------------------------------------------------------------------ summary
     - name: Print gh2mcp E2E summary
       ansible.builtin.debug:
@@ -327,3 +512,9 @@
           - "org/set test-org-e2e:   success={{ org_set_result.json.success }}, org={{ org_set_result.json.org }}"
           - "org/list:               success={{ org_list_result.json.success }}, org_count={{ org_list_result.json.org_count | default('n/a') }}"
           - "repo/last-pushed:       success={{ last_pushed_result.json.success }}, repo={{ last_pushed_result.json.repo | default('n/a') }}"
+          - "repo/recent:            success={{ repo_recent_result.json.success | default('n/a') }}, count={{ repo_recent_result.json.count | default('n/a') }}"
+          - "github-qa chat:         status={{ cmd_github_qa.status | default('error') }}"
+          - "tools/list chat:        status={{ cmd_tools_list.status | default('error') }}"
+          - "NLP sumd routing:       status={{ cmd_nlp_sumd.status | default('error') }}"
+          - "NLP code2llm routing:   status={{ cmd_nlp_code2llm.status | default('error') }}"
+          - "NLP unknown tool:       status={{ cmd_nlp_unknown.status | default('error') }}"

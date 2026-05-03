@@ -3,8 +3,8 @@
   hosts: local
   gather_facts: false
   vars:
-    git_proxy_base: "http://localhost:8081"
-    webui_base: "http://localhost:8092"
+    git_proxy_base: "http://localhost:{{ lookup('env', 'PORT_GIT_PROXY') | default('8081', true) }}"
+    webui_base: "http://localhost:{{ lookup('env', 'PORT_WEBUI') | default('8092', true) }}"
     github_token: "{{ lookup('env', 'GITHUB_PAT') | default(lookup('env', 'GITHUB_TOKEN'), true) }}"
     test_repo_name: "mcp-e2e-test-{{ ansible_date_time.epoch | default('0') }}"
     delete_after_test: true

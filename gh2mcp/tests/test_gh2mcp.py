@@ -207,3 +207,71 @@ def test_get_last_pushed_repo_no_repos(monkeypatch, tmp_path: Path):
     result = service.get_last_pushed_repo(owner="semcod", limit=10)
     assert result["success"] is False
     assert "No repositories found" in result["error"]
+
+
+def test_get_recent_repos_sorts_across_user_and_orgs(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(sync_module, "GitHubCLI", _GhAvailableUser)
+
+    def _fake_run(args, *unused_args, **unused_kwargs):
+        if args[:3] == ["gh", "api", "user/orgs"]:
+            return _ProcResult(returncode=0, stdout='[{"login":"acme"}]')
+
+        if args[:3] == ["gh", "repo", "list"]:
+            owner = args[3]
+            if owner == "semcod":
+                return _ProcResult(
+                    returncode=0,
+                    stdout='['
+                    '{"nameWithOwner":"semcod/old","pushedAt":"2026-01-01T00:00:00Z","url":"https://github.com/semcod/old","isPrivate":false},'
+                    '{"nameWithOwner":"semcod/new","pushedAt":"2026-05-01T00:00:00Z","url":"https://github.com/semcod/new","isPrivate":false}'
+                    ']'
+                )
+            if owner == "acme":
+                return _ProcResult(
+                    returncode=0,
+                    stdout='['
+                    '{"nameWithOwner":"acme/top","pushedAt":"2026-05-03T00:00:00Z","url":"https://github.com/acme/top","isPrivate":true}'
+                    ']'
+                )
+            return _ProcResult(returncode=0, stdout='[]')
+
+        return _ProcResult(returncode=1, stdout="", stderr="unexpected command")
+
+    monkeypatch.setattr(sync_module.subprocess, "run", _fake_run)
+    service = GitHubTokenSyncService(tmp_path / ".env")
+
+    result = service.get_recent_repos(limit=3, owner=None, include_orgs=True)
+    assert result["success"] is True
+    assert result["count"] == 3
+    assert result["owners_checked"] == ["semcod", "acme"]
+
+    repos = result["repos"]
+    assert repos[0]["nameWithOwner"] == "acme/top"
+    assert repos[1]["nameWithOwner"] == "semcod/new"
+    assert repos[2]["nameWithOwner"] == "semcod/old"
+
+
+def test_get_recent_repos_owner_only(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(sync_module, "GitHubCLI", _GhAvailableUser)
+
+    def _fake_run(args, *unused_args, **unused_kwargs):
+        if args[:3] == ["gh", "repo", "list"] and args[3] == "teamx":
+            return _ProcResult(
+                returncode=0,
+                stdout='['
+                '{"nameWithOwner":"teamx/repo-a","pushedAt":"2026-04-01T00:00:00Z","url":"https://github.com/teamx/repo-a","isPrivate":false},'
+                '{"nameWithOwner":"teamx/repo-b","pushedAt":"2026-05-01T00:00:00Z","url":"https://github.com/teamx/repo-b","isPrivate":false}'
+                ']'
+            )
+        if args[:3] == ["gh", "api", "user/orgs"]:
+            return _ProcResult(returncode=0, stdout='[{"login":"should-not-be-used"}]')
+        return _ProcResult(returncode=1, stdout="", stderr="unexpected command")
+
+    monkeypatch.setattr(sync_module.subprocess, "run", _fake_run)
+    service = GitHubTokenSyncService(tmp_path / ".env")
+
+    result = service.get_recent_repos(limit=1, owner="teamx", include_orgs=True)
+    assert result["success"] is True
+    assert result["owners_checked"] == ["teamx"]
+    assert result["count"] == 1
+    assert result["repos"][0]["nameWithOwner"] == "teamx/repo-b"

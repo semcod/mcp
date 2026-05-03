@@ -1,13 +1,26 @@
 SHELL := /bin/bash
 
-# Public ports used by the stack
-PORTS := 3000 8079 8081 8085 8092 8093 9000
+# Load port variables from .env (fallback to defaults)
+ifneq (,$(wildcard .env))
+  include .env
+  export
+endif
+
+PORT_OPENWEBUI ?= 3000
+PORT_GH2MCP    ?= 8079
+PORT_GIT_PROXY ?= 8081
+PORT_DASHBOARD ?= 8085
+PORT_WEBUI     ?= 8092
+PORT_DOCS      ?= 8093
+PORT_GATEWAY   ?= 9000
+
+PORTS := $(PORT_OPENWEBUI) $(PORT_GH2MCP) $(PORT_GIT_PROXY) $(PORT_DASHBOARD) $(PORT_WEBUI) $(PORT_DOCS) $(PORT_GATEWAY)
 
 COMPOSE := docker-compose
 COMPOSE_PROD := docker-compose -f docker-compose.yml -f docker-compose.prod.yml
 PROFILES := --profile openwebui
 
-.PHONY: help start stop restart kill-ports up down logs ps build rebuild test pytest smoke ansible-e2e ansible-gh2mcp ansible-github-test gh2mcp-status reload-gateway clean prod-up prod-down setup-github install-env2mcp generate-demo-repos generate-demo-repos-github
+.PHONY: help start stop restart kill-ports up down logs ps build rebuild test pytest smoke ansible-e2e ansible-gh2mcp ansible-github-qa ansible-github-test ansible-tools-e2e gh2mcp-status reload-gateway reload-skills clean prod-up prod-down setup-github install-env2mcp generate-demo-repos generate-demo-repos-github
 
 help:
 	@echo "MCP Skills - Makefile targets"
@@ -22,8 +35,9 @@ help:
 	@echo "  make smoke         - basic curl smoke-test against gateway/webui"
 	@echo "  make ansible-e2e   - run Ansible docker E2E (gateway/openwebui/prompts)"
 	@echo "  make ansible-gh2mcp - run Ansible gh2mcp E2E (token/org/repo endpoints + chat commands)"
+	@echo "  make ansible-github-qa - run Ansible GitHub Q&A E2E (github-qa model + /repo/recent)"
 	@echo "  make reload-gateway - rebuild + restart mcp-gateway, mcp-gateway-worker and gh2mcp-agent (preserves GH_TOKEN)"
-	@echo "  make test          - run pytest + scripts/test.sh"
+	@echo "  make test          - run pytest (all unit tests) + scripts/test.sh + ansible-github-qa E2E"
 	@echo "  make pytest        - run pytest only"
 	@echo "  make prod-up       - start production overlay"
 	@echo "  make prod-down     - stop production overlay"
@@ -33,8 +47,10 @@ help:
 	@echo "  make generate-demo-repos - create and sync demo repos for use-cases"
 	@echo "  make generate-demo-repos-github - force create/sync demo repos on GitHub via gh"
 	@echo "  make ansible-github-test  - test GitHub token + create-repo via Ansible (requires GITHUB_PAT)"
+	@echo "  make ansible-tools-e2e - run Ansible NLP tool routing E2E (mcp-skills /tools/list + gateway chat)"
+	@echo "  make reload-skills  - rebuild + restart mcp-skills container"
 	@echo "  make gh2mcp-status - show gh2mcp agent health and token status"
-	@echo "  mcp-docs:         http://localhost:8093 (dokumentacja + playbooki chat)"
+	@echo "  mcp-docs:         http://localhost:$(PORT_DOCS) (dokumentacja + playbooki chat)"
 	@echo "  env vars for demo repos: GH_DEMO_PROVIDER=auto|github|local GH_DEMO_PREFIX=mcp-demo GH_DEMO_VISIBILITY=private|public"
 
 kill-ports:
@@ -63,12 +79,12 @@ start: kill-ports
 	@$(MAKE) smoke
 	@echo ""
 	@echo "MCP Skills stack started:"
-	@echo "  OpenWebUI:  http://localhost:3000"
-	@echo "  MCP WebUI:  http://localhost:8092"
-	@echo "  MCP Docs:   http://localhost:8093"
-	@echo "  Gateway:    http://localhost:9000"
-	@echo "  Dashboard:  http://localhost:8085"
-	@echo "  Git Proxy:  http://localhost:8081"
+	@echo "  OpenWebUI:  http://localhost:$(PORT_OPENWEBUI)"
+	@echo "  MCP WebUI:  http://localhost:$(PORT_WEBUI)"
+	@echo "  MCP Docs:   http://localhost:$(PORT_DOCS)"
+	@echo "  Gateway:    http://localhost:$(PORT_GATEWAY)"
+	@echo "  Dashboard:  http://localhost:$(PORT_DASHBOARD)"
+	@echo "  Git Proxy:  http://localhost:$(PORT_GIT_PROXY)"
 
 stop:
 	$(COMPOSE) $(PROFILES) down --remove-orphans
@@ -93,16 +109,17 @@ rebuild:
 	$(COMPOSE) $(PROFILES) build --no-cache
 
 smoke:
-	@echo "--- gateway /health ---"; curl -fsS http://localhost:9000/health && echo
-	@echo "--- gh2mcp /health ---"; curl -fsS http://localhost:8079/health && echo
-	@echo "--- mcp-docs /health ---"; curl -fsS http://localhost:8093/health && echo
-	@echo "--- gateway /v1/models (no auth) ---"; curl -s -o /dev/null -w '%{http_code}\n' http://localhost:9000/v1/models
-	@echo "--- gateway /v1/models (auth) ---"; curl -fsS -H "Authorization: Bearer $${WEBUI_API_KEY:-sk-mcp-default-dev-key}" http://localhost:9000/v1/models | python3 -m json.tool | head -20
+	@echo "--- gateway /health ---"; curl -fsS http://localhost:$(PORT_GATEWAY)/health && echo
+	@echo "--- gh2mcp /health ---"; curl -fsS http://localhost:$(PORT_GH2MCP)/health && echo
+	@echo "--- mcp-docs /health ---"; curl -fsS http://localhost:$(PORT_DOCS)/health && echo
+	@echo "--- gateway /v1/models (no auth) ---"; curl -s -o /dev/null -w '%{http_code}\n' http://localhost:$(PORT_GATEWAY)/v1/models
+	@echo "--- gateway /v1/models (auth) ---"; curl -fsS -H "Authorization: Bearer $${WEBUI_API_KEY:-sk-mcp-default-dev-key}" http://localhost:$(PORT_GATEWAY)/v1/models | python3 -m json.tool | head -20
 	@echo "--- mcp-skills /health (container) ---"; $(COMPOSE) $(PROFILES) exec -T mcp-skills python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5).status)"
+	@echo "--- mcp-skills /tools/list (container) ---"; $(COMPOSE) $(PROFILES) exec -T mcp-skills python -c "import urllib.request, json; r=urllib.request.urlopen('http://127.0.0.1:8080/tools/list', timeout=5); d=json.loads(r.read()); print('tools:', len(d.get('tools',[])))" && echo OK || echo 'SKIP (tools not ready)'
 	@echo "--- mcp-webui / (wait for 200) ---"; \
 	code=""; \
 	for i in {1..30}; do \
-		code=$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8092/ || true); \
+		code=$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:$(PORT_WEBUI)/ || true); \
 		if [ "$$code" = "200" ]; then break; fi; \
 		sleep 1; \
 	done; \
@@ -115,24 +132,39 @@ ansible-e2e:
 ansible-gh2mcp:
 	ansible-playbook -i ansible/inventory.ini ansible/e2e-gh2mcp.yml
 
+ansible-github-qa:
+	ansible-playbook -i ansible/inventory.ini ansible/e2e-github-qa.yml
+
 reload-gateway:
 	@GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \
 	if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \
-	$(COMPOSE) $(PROFILES) up -d --build mcp-gateway mcp-gateway-worker gh2mcp-agent
+	$(COMPOSE) $(PROFILES) up -d --build --remove-orphans mcp-gateway mcp-gateway-worker gh2mcp-agent
 	@echo "mcp-gateway + mcp-gateway-worker + gh2mcp-agent rebuilt and restarted (GH_TOKEN preserved)"
+
+ansible-tools-e2e:
+	ansible-playbook -i ansible/inventory.ini ansible/e2e-tools.yml
+
+reload-skills:
+	$(COMPOSE) $(PROFILES) up -d --build --remove-orphans mcp-skills
+	@echo "mcp-skills rebuilt and restarted"
 
 ansible-github-test:
 	ansible-playbook -i ansible/inventory.ini ansible/test-github-integration.yml
 
 gh2mcp-status:
-	@echo "--- gh2mcp /health ---"; curl -fsS http://localhost:8079/health && echo
-	@echo "--- gh2mcp /status ---"; curl -fsS http://localhost:8079/status | python3 -m json.tool
+	@echo "--- gh2mcp /health ---"; curl -fsS http://localhost:$(PORT_GH2MCP)/health && echo
+	@echo "--- gh2mcp /status ---"; curl -fsS http://localhost:$(PORT_GH2MCP)/status | python3 -m json.tool
 
 pytest:
 	python3 -m pytest -q git2mcp/tests/test_git2mcp.py
+	cd mcp-gateway && python3 -m pytest -q
+	cd gh2mcp && python3 -m pytest -q
+	cd mcp-skills && SKILLS_REPO_BASE=/tmp/mcp-skills-test python3 -m pytest -q
 
 test: pytest
 	bash scripts/test.sh
+	$(MAKE) ansible-github-qa
+	$(MAKE) ansible-tools-e2e
 
 prod-up: kill-ports
 	$(COMPOSE_PROD) $(PROFILES) up -d --build

@@ -1,0 +1,232 @@
+---
+- name: GitHub Q&A E2E - gateway mcp-skills/github-qa skill
+  hosts: local
+  gather_facts: false
+  vars:
+    port_gateway: "{{ lookup('env', 'PORT_GATEWAY') | default('9000', true) }}"
+    port_gh2mcp: "{{ lookup('env', 'PORT_GH2MCP') | default('8079', true) }}"
+    gateway_base: "http://localhost:{{ port_gateway }}"
+    gh2mcp_base: "http://localhost:{{ port_gh2mcp }}"
+    api_key: "{{ lookup('env', 'WEBUI_API_KEY') | default('sk-mcp-default-dev-key', true) }}"
+
+  tasks:
+
+    # ------------------------------------------------------------------ health
+    - name: Wait for gateway health
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/health"
+        method: GET
+        status_code: 200
+      register: gateway_health
+      retries: 30
+      delay: 2
+      until: gateway_health.status == 200
+
+    - name: Assert gateway health
+      ansible.builtin.assert:
+        that:
+          - gateway_health.json.status == 'ok'
+
+    - name: Wait for gh2mcp-agent health
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/health"
+        method: GET
+        status_code: 200
+      register: gh2mcp_health
+      retries: 30
+      delay: 2
+      until: gh2mcp_health.status == 200
+
+    - name: Assert gh2mcp health
+      ansible.builtin.assert:
+        that:
+          - gh2mcp_health.json.status == 'ok'
+
+    # ------------------------------------------------------------------ /v1/models - github-qa exposed
+    - name: GET /v1/models - verify mcp-skills/github-qa is exposed
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/models"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+        status_code: 200
+      register: models_response
+
+    - name: Assert mcp-skills/github-qa is in models list
+      ansible.builtin.assert:
+        that:
+          - "'mcp-skills/github-qa' in (models_response.json.data | map(attribute='id') | list)"
+        fail_msg: "mcp-skills/github-qa not found in /v1/models - check SKILL_MODELS in server.py and github_qa feature flag in tenant"
+
+    # ------------------------------------------------------------------ gh2mcp /repo/recent
+    - name: POST /repo/recent - list recent repos via gh2mcp
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/repo/recent"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          limit: 5
+          include_orgs: true
+        status_code: 200
+      register: repo_recent_result
+      ignore_errors: true
+
+    - name: Assert /repo/recent response shape
+      ansible.builtin.assert:
+        that:
+          - repo_recent_result.json.success is defined
+          - >-
+            (repo_recent_result.json.success is sameas true
+             and repo_recent_result.json.repos is defined
+             and repo_recent_result.json.count is defined)
+            or (repo_recent_result.json.success is sameas false
+                and repo_recent_result.json.error is defined)
+
+    - name: When /repo/recent succeeds - assert repos is a list
+      when: repo_recent_result.json.success is sameas true
+      ansible.builtin.assert:
+        that:
+          - repo_recent_result.json.repos | type_debug == 'list'
+          - repo_recent_result.json.count == (repo_recent_result.json.repos | length)
+
+    # ------------------------------------------------------------------ gh2mcp /status - required for github-qa
+    - name: GET /status - gh2mcp token status
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/status"
+        method: GET
+        status_code: 200
+      register: gh2mcp_status
+
+    - name: Assert /status response shape
+      ansible.builtin.assert:
+        that:
+          - gh2mcp_status.json.configured is defined
+          - gh2mcp_status.json.gh_available is defined
+
+    # ------------------------------------------------------------------ chat: 'Jakie mam ostatnie repozytoria?' (Polish)
+    - name: "Gateway chat - 'Jakie mam ostatnie repozytoria?' via github-qa model"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/github-qa
+          stream: false
+          messages:
+            - role: user
+              content: "Jakie mam ostatnie repozytoria na GitHubie?"
+        status_code: 200
+        timeout: 120
+      register: github_qa_repos
+      ignore_errors: true
+
+    - name: Assert github-qa repos response has choices
+      ansible.builtin.assert:
+        that:
+          - github_qa_repos.json.choices | length > 0
+          - github_qa_repos.json.choices[0].message.content | length > 0
+
+    - name: Assert github-qa repos response contains Q&A section or error explanation
+      ansible.builtin.assert:
+        that:
+          - >-
+            'GitHub Q&A' in github_qa_repos.json.choices[0].message.content
+            or 'github' in (github_qa_repos.json.choices[0].message.content | lower)
+            or 'OPENROUTER_API_KEY' in github_qa_repos.json.choices[0].message.content
+        fail_msg: "github-qa response is unexpected - missing Q&A header or github mention"
+
+    # ------------------------------------------------------------------ chat: 'Who is the owner of my last repo?' (English)
+    - name: "Gateway chat - 'Who is the owner of my last repo?' via github-qa model"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/github-qa
+          stream: false
+          messages:
+            - role: user
+              content: "Who is the owner of my last repository?"
+        status_code: 200
+        timeout: 120
+      register: github_qa_owner
+      ignore_errors: true
+
+    - name: Assert github-qa owner response has choices
+      ansible.builtin.assert:
+        that:
+          - github_qa_owner.json.choices | length > 0
+          - github_qa_owner.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ chat: analyze model still works (no regression)
+    - name: "Regression - mcp-skills/analyze model not broken by github-qa addition"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/analyze
+          stream: false
+          messages:
+            - role: user
+              content: "Pobierz token github"
+        status_code: 200
+      register: regression_analyze
+      ignore_errors: true
+
+    - name: Assert analyze regression response is non-empty
+      ansible.builtin.assert:
+        that:
+          - regression_analyze.json.choices | length > 0
+          - regression_analyze.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ chat: 'Ile mam repozytoriów?' (Polish - natural language limit)
+    - name: "Gateway chat - 'Ile mam repozytoriow?' via github-qa model"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/github-qa
+          stream: false
+          messages:
+            - role: user
+              content: "Ile mam repozytoriów na GitHub i jakie są najnowsze?"
+        status_code: 200
+        timeout: 120
+      register: github_qa_count
+      ignore_errors: true
+
+    - name: Assert github-qa count response has choices
+      ansible.builtin.assert:
+        that:
+          - github_qa_count.json.choices | length > 0
+          - github_qa_count.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ summary
+    - name: Print github-qa E2E summary
+      ansible.builtin.debug:
+        msg:
+          - "gateway health:           {{ gateway_health.json.status }}"
+          - "gh2mcp health:            {{ gh2mcp_health.json.status }}"
+          - "gh2mcp configured:        {{ gh2mcp_status.json.configured }}"
+          - "mcp-skills/github-qa:     in models={{ 'mcp-skills/github-qa' in (models_response.json.data | map(attribute='id') | list) }}"
+          - "repo/recent success:      {{ repo_recent_result.json.success | default('n/a') }}"
+          - "github-qa repos prompt:   status={{ github_qa_repos.status | default('error') }}"
+          - "github-qa owner prompt:   status={{ github_qa_owner.status | default('error') }}"
+          - "github-qa count prompt:   status={{ github_qa_count.status | default('error') }}"
+          - "analyze regression:       status={{ regression_analyze.status | default('error') }}"

@@ -5,9 +5,12 @@
   vars:
     project_root: "{{ playbook_dir | dirname }}"
     compose_cmd: "docker-compose --profile openwebui"
-    gateway_base: "http://localhost:9000"
-    webui_base: "http://localhost:8092"
-    openwebui_base: "http://localhost:3000"
+    port_gateway: "{{ lookup('env', 'PORT_GATEWAY') | default('9000', true) }}"
+    port_webui: "{{ lookup('env', 'PORT_WEBUI') | default('8092', true) }}"
+    port_openwebui: "{{ lookup('env', 'PORT_OPENWEBUI') | default('3000', true) }}"
+    gateway_base: "http://localhost:{{ port_gateway }}"
+    webui_base: "http://localhost:{{ port_webui }}"
+    openwebui_base: "http://localhost:{{ port_openwebui }}"
     api_key: "{{ lookup('env', 'WEBUI_API_KEY') | default('sk-mcp-default-dev-key', true) }}"
     sample_prompt_refactor: |
       Repo: team/code2schema-demo

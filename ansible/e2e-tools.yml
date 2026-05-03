@@ -1,0 +1,285 @@
+---
+- name: MCP Skills - NLP tool routing E2E
+  hosts: local
+  gather_facts: false
+  vars:
+    port_gateway: "{{ lookup('env', 'PORT_GATEWAY') | default('9000', true) }}"
+    gateway_base: "http://localhost:{{ port_gateway }}"
+    skills_base: "http://localhost:{{ lookup('env', 'PORT_SKILLS') | default('8080', true) }}"
+    api_key: "{{ lookup('env', 'WEBUI_API_KEY') | default('sk-mcp-default-dev-key', true) }}"
+    demo_repo: "{{ lookup('env', 'DEMO_REPO') | default('semcod/mcp', true) }}"
+    demo_repo_url: "https://github.com/{{ demo_repo }}"
+
+  tasks:
+
+    # ------------------------------------------------------------------ health
+    - name: Wait for gateway health
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/health"
+        method: GET
+        status_code: 200
+      register: gw_health
+      retries: 30
+      delay: 2
+      until: gw_health.status == 200
+
+    - name: Assert gateway health payload
+      ansible.builtin.assert:
+        that:
+          - gw_health.json.status == 'ok'
+
+    # ------------------------------------------------------------------ /v1/models includes mcp-skills/tool
+    - name: GET /v1/models - assert mcp-skills/tool is listed
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/models"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+        status_code: 200
+      register: models_result
+
+    - name: Assert mcp-skills/tool model is present
+      ansible.builtin.assert:
+        that:
+          - models_result.json.data | selectattr('id', 'equalto', 'mcp-skills/tool') | list | length > 0
+        fail_msg: "mcp-skills/tool not found in /v1/models"
+
+    # ------------------------------------------------------------------ /tools/list (direct)
+    - name: GET mcp-skills /tools/list directly (requires skills port 8080 exposed)
+      ansible.builtin.uri:
+        url: "{{ skills_base }}/tools/list"
+        method: GET
+        status_code: 200
+        timeout: 15
+      register: tools_list_direct
+      ignore_errors: true
+
+    - name: Assert /tools/list response shape (when reachable)
+      when: tools_list_direct is not failed
+      ansible.builtin.assert:
+        that:
+          - tools_list_direct.json.tools is defined
+          - tools_list_direct.json.tools | type_debug == 'list'
+          - tools_list_direct.json.tools | length > 0
+          - tools_list_direct.json.count is defined
+
+    - name: Print tools count (when reachable)
+      when: tools_list_direct is not failed
+      ansible.builtin.debug:
+        msg: "Registered semcod tools: {{ tools_list_direct.json.count }}"
+
+    # ------------------------------------------------------------------ NLP via gateway - lista narzędzi
+    - name: "Gateway chat - 'lista narzędzi' via mcp-skills/tool model"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "lista narzędzi"
+        status_code: 200
+        timeout: 30
+      register: cmd_tools_list_chat
+      ignore_errors: true
+
+    - name: Assert tools list chat returns non-empty response
+      ansible.builtin.assert:
+        that:
+          - cmd_tools_list_chat.json.choices | length > 0
+          - cmd_tools_list_chat.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ NLP tool routing: sumd (short owner/repo slug)
+    - name: "Gateway chat - NLP 'wygeneruj sumd dla {{ demo_repo }}'"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "wygeneruj sumd dla {{ demo_repo }}"
+        status_code: 200
+        timeout: 180
+      register: cmd_nlp_sumd
+      ignore_errors: true
+
+    - name: Assert NLP sumd routing returns recognizable response
+      ansible.builtin.assert:
+        that:
+          - cmd_nlp_sumd.json.choices | length > 0
+          - cmd_nlp_sumd.json.choices[0].message.content | length > 0
+          - >-
+            'sumd' in (cmd_nlp_sumd.json.choices[0].message.content | lower)
+            or 'repo' in (cmd_nlp_sumd.json.choices[0].message.content | lower)
+            or 'tool' in (cmd_nlp_sumd.json.choices[0].message.content | lower)
+        fail_msg: "NLP sumd routing did not produce expected output"
+
+    # ------------------------------------------------------------------ NLP tool routing: code2llm (full HTTPS URL)
+    - name: "Gateway chat - NLP 'run code2llm on {{ demo_repo_url }}'"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "run code2llm on {{ demo_repo_url }}"
+        status_code: 200
+        timeout: 180
+      register: cmd_nlp_code2llm
+      ignore_errors: true
+
+    - name: Assert NLP code2llm routing returns recognizable response
+      ansible.builtin.assert:
+        that:
+          - cmd_nlp_code2llm.json.choices | length > 0
+          - cmd_nlp_code2llm.json.choices[0].message.content | length > 0
+          - >-
+            'code2llm' in (cmd_nlp_code2llm.json.choices[0].message.content | lower)
+            or 'repo' in (cmd_nlp_code2llm.json.choices[0].message.content | lower)
+            or 'tool' in (cmd_nlp_code2llm.json.choices[0].message.content | lower)
+        fail_msg: "NLP code2llm routing did not produce expected output"
+
+    # ------------------------------------------------------------------ NLP tool routing: redup (duplicate detection)
+    - name: "Gateway chat - NLP 'przeanalizuj redup dla {{ demo_repo }}'"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "przeanalizuj redup dla {{ demo_repo }}"
+        status_code: 200
+        timeout: 180
+      register: cmd_nlp_redup
+      ignore_errors: true
+
+    - name: Assert NLP redup routing returns recognizable response
+      ansible.builtin.assert:
+        that:
+          - cmd_nlp_redup.json.choices | length > 0
+          - cmd_nlp_redup.json.choices[0].message.content | length > 0
+        fail_msg: "NLP redup routing returned empty response"
+
+    # ------------------------------------------------------------------ NLP tool routing: no repo provided (error path)
+    - name: "Gateway chat - NLP tool intent without repo (expect helpful error)"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "wygeneruj sumd"
+        status_code: 200
+        timeout: 30
+      register: cmd_nlp_no_repo
+      ignore_errors: true
+
+    - name: Assert missing-repo prompt returns helpful error
+      ansible.builtin.assert:
+        that:
+          - cmd_nlp_no_repo.json.choices | length > 0
+          - cmd_nlp_no_repo.json.choices[0].message.content | length > 0
+          - >-
+            'repo' in (cmd_nlp_no_repo.json.choices[0].message.content | lower)
+            or 'url' in (cmd_nlp_no_repo.json.choices[0].message.content | lower)
+            or 'github' in (cmd_nlp_no_repo.json.choices[0].message.content | lower)
+        fail_msg: "Missing-repo error path did not return expected hint"
+
+    # ------------------------------------------------------------------ NLP tool routing: unknown tool name (error path)
+    - name: "Gateway chat - NLP unrecognized tool name (expect helpful error)"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/tool
+          stream: false
+          messages:
+            - role: user
+              content: "uruchom faketools na {{ demo_repo }}"
+        status_code: 200
+        timeout: 30
+      register: cmd_nlp_unknown
+      ignore_errors: true
+
+    - name: Assert unknown-tool prompt returns non-empty helpful response
+      ansible.builtin.assert:
+        that:
+          - cmd_nlp_unknown.json.choices | length > 0
+          - cmd_nlp_unknown.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ direct HTTP /tools/run (unsupported tool → 400/422/error)
+    # Note: mcp-skills port 8080 is only exposed inside the Docker network.
+    # This test is skipped when direct access is unavailable (404 from host Apache).
+    - name: Direct POST /tools/run with unsupported tool
+      ansible.builtin.uri:
+        url: "{{ skills_base }}/tools/run"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          tool: "notrealtool"
+          repo_id: "semcod/mcp"
+        status_code: [200, 400, 422]
+        timeout: 15
+      register: tools_run_bad
+      ignore_errors: true
+
+    - name: Assert unsupported-tool run returns error payload or 400/422 (skip if unreachable)
+      when: tools_run_bad.status is defined and tools_run_bad.status != 404
+      ansible.builtin.assert:
+        that:
+          - >-
+            tools_run_bad.status in [400, 422]
+            or (tools_run_bad.json is defined
+                and (tools_run_bad.json.ok is sameas false
+                     or tools_run_bad.json.detail is defined))
+        fail_msg: "Expected error for unsupported tool, got unexpected response"
+
+    # ------------------------------------------------------------------ summary
+    - name: Print NLP tool routing E2E summary
+      ansible.builtin.debug:
+        msg:
+          - "gateway health:         {{ gw_health.json.status }}"
+          - "mcp-skills/tool model:  present={{ models_result.json.data | selectattr('id', 'equalto', 'mcp-skills/tool') | list | length > 0 }}"
+          - "tools/list (direct):    status={{ tools_list_direct.status | default('unreachable - ok if port not exposed') }}"
+          - "tools list (chat):      status={{ cmd_tools_list_chat.status | default('error') }}"
+          - "NLP sumd:               status={{ cmd_nlp_sumd.status | default('error') }}"
+          - "NLP code2llm:           status={{ cmd_nlp_code2llm.status | default('error') }}"
+          - "NLP redup:              status={{ cmd_nlp_redup.status | default('error') }}"
+          - "NLP no-repo error:      status={{ cmd_nlp_no_repo.status | default('error') }}"
+          - "NLP unknown-tool error: status={{ cmd_nlp_unknown.status | default('error') }}"
+          - "demo repo used:         {{ demo_repo }}"

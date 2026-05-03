@@ -10,5 +10,7 @@ features:
   refactor: true
   analyze: true
   push: true
+  tool: true
+  github_qa: true
 audit:
   enabled: true

@@ -9,6 +9,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 
 DOCS_ROOT = Path(os.getenv("MCP_DOCS_ROOT", "/docs"))
+_port_openwebui = os.getenv("PORT_OPENWEBUI", "3000")
+OPENWEBUI_URL = os.getenv("OPENWEBUI_URL", f"http://localhost:{_port_openwebui}/")
 
 app = FastAPI(title="mcp-docs", version="0.1.0")
 
@@ -22,6 +24,7 @@ def _markdown_to_html(md_text: str) -> str:
 
 
 def _page(title: str, body: str) -> str:
+    openwebui_url = OPENWEBUI_URL
     return f"""<!doctype html>
 <html lang=\"pl\">
 <head>
@@ -129,7 +132,7 @@ def _page(title: str, body: str) -> str:
   <div id=\"toast\" class=\"toast\">Skopiowano do schowka!</div>
   <script>
     (function() {{
-      const OPENWEBUI_URL = "http://localhost:3000/";
+      const OPENWEBUI_URL = "{openwebui_url}";
       const toast = document.getElementById("toast");
 
       function showToast(msg) {{

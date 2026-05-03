@@ -27,7 +27,7 @@ services:
       - ./repos:/host-repos:ro
       - ..:/host-semcod:ro
     ports:
-      - "8081:8080"
+      - "${PORT_GIT_PROXY:-8081}:8080"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
       interval: 20s
@@ -54,7 +54,7 @@ services:
       - ./.env:/app/.env
       - ${HOME}/.config/gh:/root/.config/gh:ro
     ports:
-      - "8079:8079"
+      - "${PORT_GH2MCP:-8079}:8079"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8079/health', timeout=3)"]
       interval: 20s
@@ -66,7 +66,9 @@ services:
 
   # MCP Skills Server - analiza kodu i metryki
   mcp-skills:
-    build: ./mcp-skills
+    build:
+      context: ..
+      dockerfile: mcp/mcp-skills/Dockerfile
     container_name: mcp-skills-server
     environment:
       - PYTHONUNBUFFERED=1
@@ -128,7 +130,7 @@ services:
       - SKILLS_URL=http://mcp-skills:8080
       - GH2MCP_URL=http://gh2mcp-agent:8079
       - MCP_ASYNC_ENABLED=${MCP_ASYNC_ENABLED:-true}
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - RQ_QUEUE_NAME=${RQ_QUEUE_NAME:-mcp-jobs}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-openrouter/x-ai/grok-code-fast-1}
@@ -142,7 +144,7 @@ services:
       - ./.env:/app/.env
       - audit-storage:/audit
     ports:
-      - "9000:9000"
+      - "${PORT_GATEWAY:-9000}:9000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/health', timeout=3)"]
       interval: 20s
@@ -173,7 +175,7 @@ services:
       - SKILLS_URL=http://mcp-skills:8080
       - GH2MCP_URL=http://gh2mcp-agent:8079
       - MCP_ASYNC_ENABLED=${MCP_ASYNC_ENABLED:-true}
-      - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
       - RQ_QUEUE_NAME=${RQ_QUEUE_NAME:-mcp-jobs}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-openrouter/x-ai/grok-code-fast-1}
@@ -213,7 +215,7 @@ services:
     volumes:
       - ./.env:/app/.env
     ports:
-      - "8092:8090"
+      - "${PORT_WEBUI:-8092}:8090"
     depends_on:
       mcp-gateway:
         condition: service_healthy
@@ -233,7 +235,7 @@ services:
       dockerfile: mcp-docs/Dockerfile
     container_name: mcp-docs
     ports:
-      - "8093:8090"
+      - "${PORT_DOCS:-8093}:8090"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)"]
       interval: 20s
@@ -254,7 +256,7 @@ services:
     volumes:
       - openwebui-data:/app/backend/data
     ports:
-      - "3000:8080"
+      - "${PORT_OPENWEBUI:-3000}:8080"
     depends_on:
       mcp-gateway:
         condition: service_healthy
@@ -276,7 +278,7 @@ services:
       - ./dashboard/index.html:/app/index.html:ro
       - ./dashboard/server.py:/app/server.py:ro
     ports:
-      - "8085:8080"
+      - "${PORT_DASHBOARD:-8085}:8080"
     depends_on:
       - mcp-git-proxy
       - mcp-skills

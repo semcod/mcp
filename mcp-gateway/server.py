@@ -182,15 +182,17 @@ def _is_github_configured() -> bool:
     return bool(_runtime_github_token())
 
 
-async def _get_default_github_repo() -> str | None:
-    """Pobiera domyślne repo z GitHub: ostatnio pushowane lub pierwsze z listy."""
+async def _get_default_github_repo() -> dict[str, str] | None:
+    """Pobiera domyślne repo z GitHub wraz z repo_url."""
     if not _is_github_configured() or not GH2MCP_URL:
         return None
     try:
-        # Spróbuj pobrać ostatnio pushowane repo
+        # Spróbuj pobrać ostatnio pushowane repo.
         resolved = await _last_pushed_repo_via_gh2mcp(owner=None, limit=10)
         if resolved.get("success") and resolved.get("repo"):
-            return resolved["repo"]
+            repo_id = str(resolved["repo"])
+            repo_url = str(resolved.get("repo_url") or f"https://github.com/{repo_id}.git")
+            return {"repo_id": repo_id, "repo_url": repo_url}
     except Exception:
         pass
     return None
@@ -246,7 +248,13 @@ def parse_prompt_context(user_msg: str) -> dict[str, str]:
             match = regex.match(line)
             if match:
                 parsed[key] = match.group(1).strip()
-    # Jeśli repo_id nie zostało znalezione przez regex, spróbuj ekstrakcji owner/repo z tekstu
+    # Jeśli wiadomość jest samym template repo, potraktuj go jako repo_id.
+    if "repo_id" not in parsed:
+        stripped = user_msg.strip()
+        if REPO_TEMPLATE_REGEX.match(stripped):
+            parsed["repo_id"] = stripped
+
+    # Jeśli repo_id nie zostało znalezione przez regex, spróbuj ekstrakcji owner/repo z tekstu.
     if "repo_id" not in parsed:
         repo_match = GITHUB_REPO_SLUG_REGEX.search(user_msg)
         if repo_match:
@@ -431,6 +439,182 @@ def _is_org_list_command(user_msg: str) -> bool:
     return has_org and has_list and (has_repo or "wszystkich" in words or "all" in words)
 
 
+def _is_repo_list_command(user_msg: str) -> bool:
+    """Wykrywa zapytania o listę repozytoriów GitHub"""
+    normalized = _normalize_command_text(user_msg)
+    words = set(normalized.split())
+    
+    has_github = "github" in words or "gh" in words
+    has_repo = any(
+        token in words
+        for token in {
+            "repo",
+            "repos", 
+            "repozytorium",
+            "repozytoria",
+            "repozytoriow",
+            "repozytoriów",
+            "repositories",
+        }
+    )
+    has_list = "pokaz" in words or "pokaż" in words or "lista" in words or "wylistuj" in words or "list" in words or "show" in words
+    has_last = "ostatnio" in words or "ostatnich" in words or "last" in words or "recent" in words
+    has_edited = "edytowanych" in words or "edytowane" in words or "edited" in words or "modified" in words or "updated" in words or "pushed" in words
+    
+    # Wzory: "lista repo na github", "ostatnio edytowane repo github", itp.
+    return has_github and has_repo and has_list and (has_last or has_edited or "10" in user_msg or "pięć" in user_msg or "piec" in user_msg)
+
+
+def _extract_repo_list_limit(user_msg: str, default: int = 10, max_limit: int = 30) -> int:
+    match = re.search(r"\b(\d{1,3})\b", user_msg)
+    if not match:
+        return default
+    try:
+        value = int(match.group(1))
+    except Exception:
+        return default
+    return max(1, min(value, max_limit))
+
+
+# ---------------------------------------------------------------------------
+# Generic semcod tool intent parsing (sumd, code2llm, redsl, ...)
+# ---------------------------------------------------------------------------
+
+# Tools accessible from chat through mcp-skills /tools/run.
+SUPPORTED_TOOL_NAMES: tuple[str, ...] = (
+    "sumd",
+    "code2llm",
+    "code2docs",
+    "code2logic",
+    "code2schema",
+    "redsl",
+    "redup",
+    "regres",
+    "regix",
+    "vallm",
+    "pyqual",
+    "domd",
+    "clickmd",
+    "algitex",
+)
+
+# Verbs that indicate "run this tool on this repo".
+_TOOL_INTENT_VERBS = {
+    "wygeneruj",
+    "generuj",
+    "wygenerujesz",
+    "uruchom",
+    "uruchommy",
+    "odpal",
+    "odpalmy",
+    "zrob",
+    "zrób",
+    "wykonaj",
+    "stwórz",
+    "stworz",
+    "run",
+    "execute",
+    "generate",
+    "build",
+    "make",
+    "analyze",
+    "analyse",
+    "analizuj",
+    "przeanalizuj",
+    "scan",
+    "skanuj",
+    "zeskanuj",
+    "lint",
+    "validate",
+    "waliduj",
+}
+
+_REPO_URL_REGEX = re.compile(
+    r"https?://(?:www\.)?(?:github\.com|gitlab\.com|bitbucket\.org)/[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+"
+    r"(?:\.git)?",
+    re.IGNORECASE,
+)
+
+
+def _strip_url_suffix(url: str) -> str:
+    cleaned = url.rstrip(".,;:!?)")
+    return cleaned
+
+
+def parse_tool_intent(user_msg: str, prompt_ctx: dict[str, str] | None = None) -> dict[str, Any] | None:
+    """Detect requests like 'wygeneruj sumd dla <URL>' / 'run code2llm on owner/repo'.
+
+    Returns dict with keys: tool, repo_url (optional), repo_id (optional),
+    subcommand (optional), args (list[str]) — or None if no tool intent matched.
+    """
+    if not user_msg:
+        return None
+    text = user_msg.strip()
+    if not text:
+        return None
+
+    normalized = _normalize_command_text(text)
+    words = normalized.split()
+    if not words:
+        return None
+
+    # Locate the tool name. Prefer earliest occurrence.
+    tool_name: str | None = None
+    tool_idx: int = -1
+    for idx, word in enumerate(words):
+        if word in SUPPORTED_TOOL_NAMES:
+            tool_name = word
+            tool_idx = idx
+            break
+
+    if tool_name is None:
+        return None
+
+    # Require an explicit verb OR the tool name as the first word OR an explicit
+    # repo URL — otherwise we cannot be sure this is an action prompt.
+    has_verb = any(w in _TOOL_INTENT_VERBS for w in words[: tool_idx + 1])
+    is_first_word = tool_idx == 0
+    repo_url_match = _REPO_URL_REGEX.search(text)
+    repo_url = _strip_url_suffix(repo_url_match.group(0)) if repo_url_match else None
+
+    if not (has_verb or is_first_word or repo_url):
+        return None
+
+    repo_id: str | None = None
+    if prompt_ctx:
+        repo_id = prompt_ctx.get("repo_id")
+
+    if not repo_id and not repo_url:
+        # Try to find an owner/repo slug after the tool name.
+        slug_match = re.search(
+            r"\b([A-Za-z0-9][A-Za-z0-9_.\-]*)/([A-Za-z0-9][A-Za-z0-9_.\-]*)\b",
+            text,
+        )
+        if slug_match:
+            repo_id = f"{slug_match.group(1)}/{slug_match.group(2)}"
+
+    if not repo_id and repo_url:
+        # Derive owner/repo from URL.
+        try:
+            parsed = urlparse(repo_url)
+            parts = [p for p in parsed.path.strip("/").split("/") if p]
+            if len(parts) >= 2:
+                last = parts[1]
+                if last.endswith(".git"):
+                    last = last[:-4]
+                repo_id = f"{parts[0]}/{last}"
+        except Exception:
+            pass
+
+    return {
+        "tool": tool_name,
+        "repo_url": repo_url,
+        "repo_id": repo_id,
+        "subcommand": None,
+        "args": [],
+    }
+
+
 def _is_github_token_sync_command(user_msg: str, prompt_ctx: dict[str, str]) -> bool:
     if prompt_ctx.get("github_token"):
         return False
@@ -533,6 +717,33 @@ async def _set_default_org_via_gh2mcp(org: str | None) -> dict[str, Any]:
     }
 
 
+async def _list_recent_repos_via_gh2mcp(
+    limit: int = 10,
+    owner: str | None = None,
+    include_orgs: bool = True,
+) -> dict[str, Any]:
+    if not GH2MCP_URL:
+        raise ValueError("GH2MCP_URL is not configured")
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            f"{GH2MCP_URL}/repo/recent",
+            json={"limit": limit, "owner": owner, "include_orgs": include_orgs},
+        )
+        data = await _expect_json(response, "gh2mcp recent repos")
+
+    return {
+        "action": "list-recent-github-repos",
+        "success": bool(data.get("success")),
+        "error": data.get("error"),
+        "user": data.get("user"),
+        "count": data.get("count"),
+        "repos": data.get("repos", []),
+        "owners_checked": data.get("owners_checked", []),
+        "note": "Recent repositories listed via gh2mcp (gh CLI, pushedAt desc).",
+    }
+
+
 async def _list_orgs_via_gh2mcp(repos_limit: int = 30) -> dict[str, Any]:
     if not GH2MCP_URL:
         raise ValueError("GH2MCP_URL is not configured")
@@ -552,6 +763,24 @@ async def _list_orgs_via_gh2mcp(repos_limit: int = 30) -> dict[str, Any]:
         "org_count": data.get("org_count"),
         "orgs": data.get("orgs", []),
         "note": "Organizations and repositories listed via gh2mcp (gh CLI).",
+    }
+
+
+async def _gh2mcp_status_via_gh2mcp() -> dict[str, Any]:
+    if not GH2MCP_URL:
+        raise ValueError("GH2MCP_URL is not configured")
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.get(f"{GH2MCP_URL}/status")
+        data = await _expect_json(response, "gh2mcp status")
+
+    return {
+        "action": "github-status",
+        "success": bool(data.get("configured")),
+        "error": data.get("error"),
+        "configured": bool(data.get("configured")),
+        "user": data.get("user"),
+        "token_hint": data.get("token_hint"),
     }
 
 
@@ -915,18 +1144,40 @@ async def _create_github_pr(
 def _summary_text(analysis: dict[str, Any], user_request: str) -> str:
     metrics = analysis.get("metrics", {})
     recs = analysis.get("recommendations", {}).get("recommendations", [])
+    engine = analysis.get("engine", "mcp-skills")
+    redsl_raw = analysis.get("redsl_raw", {})
     lines = [
         "# MCP Refactoring Summary",
         "",
         f"Request: {user_request}",
+        f"Engine: {engine}",
         f"Files: {metrics.get('file_count', 0)}",
         f"Total lines: {metrics.get('total_lines', 0)}",
-        "",
-        "## Suggested actions",
     ]
+    if engine == "redsl":
+        avg_cc = metrics.get("avg_complexity", 0.0)
+        critical = metrics.get("critical_count", 0)
+        alerts = metrics.get("alerts_count", 0)
+        if avg_cc:
+            lines.append(f"Avg complexity (CC): {avg_cc}")
+        if critical:
+            lines.append(f"Critical hotspots: {critical}")
+        if alerts:
+            lines.append(f"Alerts: {alerts}")
+        decisions_count = redsl_raw.get("decisions_count", 0)
+        lines.append(f"redsl decisions: {decisions_count}")
+    lines += ["", "## Suggested actions"]
     if recs:
-        for rec in recs[:5]:
-            lines.append(f"- [{rec.get('priority', 'medium')}] {rec.get('target', 'general')}: {rec.get('suggested_action', 'review')}" )
+        for rec in recs[:10]:
+            priority = rec.get("priority", "medium")
+            target = rec.get("target", "general")
+            action = rec.get("suggested_action", "review")
+            reason = rec.get("reason", "")
+            score = rec.get("redsl_score")
+            score_str = f" (score={score:.2f})" if score is not None else ""
+            lines.append(f"- [{priority}] `{target}`: {action}{score_str}")
+            if reason:
+                lines.append(f"  > {reason}")
     else:
         lines.append("- No automatic recommendations generated.")
     return "\n".join(lines) + "\n"
@@ -953,6 +1204,23 @@ def _render_system_text(result: dict[str, Any]) -> str:
     status = "✅" if success else "⚠️"
 
     lines = [f"{status} Operacja systemowa: `{action}`"]
+
+    if action == "list-recent-github-repos":
+        user = github.get("user")
+        if user:
+            lines.append(f"- Użytkownik: `{user}`")
+        lines.append(f"- Liczba repo: `{github.get('count', 0)}`")
+        repos = github.get("repos") or []
+        if repos:
+            lines.append("")
+            lines.append("## Ostatnio aktywne repo")
+            for idx, repo in enumerate(repos, start=1):
+                slug = repo.get("nameWithOwner") or "?"
+                pushed_at = repo.get("pushedAt") or "?"
+                url = repo.get("url")
+                lines.append(f"{idx}. `{slug}` — `{pushed_at}`")
+                if url:
+                    lines.append(f"   - {url}")
 
     if action == "list-github-orgs-and-repos":
         user = github.get("user")
@@ -1092,11 +1360,145 @@ def _render_refactor_text(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _file_fence_lang(path: str) -> str:
+    p = path.lower()
+    if p.endswith(".md"):
+        return "markdown"
+    if p.endswith((".yaml", ".yml")):
+        return "yaml"
+    if p.endswith(".json"):
+        return "json"
+    if p.endswith(".toml"):
+        return "toml"
+    if p.endswith((".py",)):
+        return "python"
+    return ""
+
+
+def _render_tool_text(result: dict[str, Any]) -> str:
+    """Render result of /tools/run into a Markdown chat reply."""
+    tool = result.get("tool") or "?"
+    repo_id = result.get("repo_id") or "?"
+    repo_url = result.get("repo_url")
+    returncode = result.get("returncode")
+    ok = bool(result.get("ok"))
+    status = "✅" if ok else "❌"
+    lines = [f"# {status} `{tool}` na `{repo_id}`"]
+    if result.get("tool_description"):
+        lines.append(f"_{result['tool_description']}_")
+    if repo_url:
+        lines.append(f"- Źródło: {repo_url}")
+
+    sync = result.get("sync") or {}
+    if sync:
+        lines.append(
+            f"- Klonowanie: `{sync.get('strategy', '?')}` "
+            f"(action=`{sync.get('action', '-')}`, ok=`{str(bool(sync.get('ok'))).lower()}`)"
+        )
+        if sync.get("error"):
+            lines.append(f"  - Błąd sync: {sync['error']}")
+
+    install = result.get("install") or {}
+    if install:
+        avail = install.get("available")
+        installed_now = install.get("installed_now")
+        bin_path = install.get("binary_path")
+        lines.append(
+            f"- Instalacja: available=`{str(bool(avail)).lower()}`, "
+            f"installed_now=`{str(bool(installed_now)).lower()}`"
+            + (f", path=`{bin_path}`" if bin_path else "")
+        )
+        if install.get("pip_stderr"):
+            lines.append(f"  - pip stderr (skrót): `{install['pip_stderr'][:300]}`")
+        if install.get("error"):
+            lines.append(f"  - Błąd instalacji: {install['error']}")
+
+    cmd = result.get("command") or []
+    if cmd:
+        lines.append(f"- Komenda: `{' '.join(cmd)}`")
+    if returncode is not None:
+        lines.append(f"- returncode: `{returncode}`")
+
+    if result.get("error"):
+        lines.append("")
+        lines.append(f"⚠️ {result['error']}")
+
+    stdout = (result.get("stdout") or "").strip()
+    stderr = (result.get("stderr") or "").strip()
+    if stdout:
+        lines.append("")
+        lines.append("## stdout")
+        lines.append("```")
+        lines.append(stdout[:6000])
+        lines.append("```")
+    if stderr:
+        lines.append("")
+        lines.append("## stderr")
+        lines.append("```")
+        lines.append(stderr[:3000])
+        lines.append("```")
+
+    summary_files = result.get("summary_files") or []
+    output_files = result.get("output_files") or []
+
+    primary = summary_files or output_files
+    rendered_paths: set[str] = set()
+    if primary:
+        lines.append("")
+        lines.append("## Wygenerowane artefakty")
+    for entry in primary:
+        path = entry.get("path") or "?"
+        rendered_paths.add(path)
+        size = entry.get("size") or 0
+        truncated = entry.get("truncated")
+        lines.append(f"### `{path}` ({size} B{', truncated' if truncated else ''})")
+        content = entry.get("content")
+        if content is None:
+            lines.append("_binary file_")
+            continue
+        lang = _file_fence_lang(path)
+        fence = f"```{lang}" if lang else "```"
+        lines.append(fence)
+        lines.append(content[:8000])
+        lines.append("```")
+
+    extra = [e for e in output_files if (e.get("path") or "?") not in rendered_paths]
+    if extra:
+        lines.append("")
+        lines.append("## Pozostałe pliki wyjściowe")
+        for entry in extra:
+            path = entry.get("path") or "?"
+            size = entry.get("size") or 0
+            lines.append(f"- `{path}` ({size} B)")
+
+    return "\n".join(lines)
+
+
+def _render_github_qa_text(result: dict[str, Any]) -> str:
+    answer = (result.get("answer") or "").strip()
+    if not answer:
+        answer = "⚠️ Brak odpowiedzi z GitHub Q&A."
+
+    lines = [answer]
+    llm = result.get("llm") or {}
+    llm_model = llm.get("model")
+    if llm_model:
+        state = "used" if llm.get("used") else "fallback"
+        lines.append("")
+        lines.append(f"_GitHub Q&A: model=`{llm_model}`, state=`{state}`_")
+
+    error = result.get("error")
+    if error and error not in answer:
+        lines.append("")
+        lines.append(f"⚠️ {error}")
+    return "\n".join(lines)
+
+
 def _render_chat_content(result: dict[str, Any]) -> str:
     if not isinstance(result, dict):
         return str(result)
 
-    if result.get("error"):
+    if result.get("error") and not result.get("skill"):
         return f"❌ Błąd workflow: {result.get('error')}"
 
     skill = result.get("skill")
@@ -1108,6 +1510,10 @@ def _render_chat_content(result: dict[str, Any]) -> str:
         return _render_analyze_text(result)
     if skill == "refactor":
         return _render_refactor_text(result)
+    if skill == "tool":
+        return _render_tool_text(result.get("tool_result") or result)
+    if skill == "github_qa":
+        return _render_github_qa_text(result)
 
     return json.dumps(result, ensure_ascii=False)
 
@@ -1136,7 +1542,242 @@ async def _expect_json(response: httpx.Response, action: str) -> dict[str, Any]:
     raise ValueError(f"{action} returned non-object payload")
 
 
-async def _run_skills_analysis(client: httpx.AsyncClient, repo_id: str) -> dict[str, Any]:
+async def _run_skills_tool(
+    tool: str,
+    repo_id: str | None,
+    repo_url: str | None,
+    subcommand: str | None = None,
+    args: list[str] | None = None,
+    timeout: float = 900.0,
+) -> dict[str, Any]:
+    """Call mcp-skills /tools/run for a generic semcod CLI tool."""
+    payload: dict[str, Any] = {
+        "tool": tool,
+        "auto_install": True,
+        "use_git_proxy": True,
+    }
+    if repo_id:
+        payload["repo_id"] = repo_id
+    if repo_url:
+        payload["repo_url"] = repo_url
+    if subcommand:
+        payload["subcommand"] = subcommand
+    if args:
+        payload["args"] = list(args)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(f"{SKILLS_URL}/tools/run", json=payload)
+        if response.status_code >= 400:
+            text = response.text
+            try:
+                detail = response.json().get("detail", text)
+            except Exception:
+                detail = text
+            return {
+                "tool": tool,
+                "repo_id": repo_id,
+                "repo_url": repo_url,
+                "ok": False,
+                "error": f"mcp-skills /tools/run HTTP {response.status_code}: {detail}",
+            }
+        return response.json()
+
+
+async def _ask_openrouter_github_qa(user_request: str, github_context: dict[str, Any]) -> dict[str, Any]:
+    if not OPENROUTER_API_KEY:
+        return {
+            "ok": False,
+            "error": "OPENROUTER_API_KEY is not configured",
+        }
+
+    system_prompt = (
+        "Jesteś asystentem GitHub dla semcod/mcp. "
+        "Odpowiadaj po polsku, rzeczowo i praktycznie. "
+        "Bazuj na przekazanym kontekście runtime z gh2mcp. "
+        "Jeśli w kontekście nie ma danych, napisz to wprost i podaj kolejne kroki."
+    )
+    user_prompt = (
+        f"Pytanie użytkownika:\n{user_request}\n\n"
+        "Kontekst runtime (JSON z gh2mcp):\n"
+        f"{json.dumps(github_context, ensure_ascii=False)}"
+    )
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://mcp-gateway.local",
+        "X-Title": "mcp-gateway-github-qa",
+    }
+    payload = {
+        "model": LLM_MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+        "temperature": 0.2,
+    }
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=payload,
+        )
+
+    if response.status_code >= 400:
+        text = response.text
+        try:
+            detail = response.json().get("error", {}).get("message") or text
+        except Exception:
+            detail = text
+        return {
+            "ok": False,
+            "error": f"OpenRouter HTTP {response.status_code}: {detail}",
+        }
+
+    try:
+        data = response.json()
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": f"OpenRouter returned invalid JSON: {exc}",
+        }
+
+    choices = data.get("choices") if isinstance(data, dict) else None
+    first = choices[0] if isinstance(choices, list) and choices else {}
+    message = first.get("message") if isinstance(first, dict) else {}
+    answer = message_content_to_text((message or {}).get("content", "")).strip()
+    if not answer:
+        return {
+            "ok": False,
+            "error": "OpenRouter returned empty answer",
+        }
+    return {
+        "ok": True,
+        "answer": answer,
+    }
+
+
+def _repo_owner(repo_id: str | None) -> str | None:
+    if not repo_id or "/" not in repo_id:
+        return None
+    return repo_id.split("/", 1)[0].strip() or None
+
+
+async def _run_github_qa(
+    user_request: str,
+    repo_id: str | None = None,
+    repo_url: str | None = None,
+) -> dict[str, Any]:
+    owner = _repo_owner(repo_id)
+    github_context: dict[str, Any] = {
+        "repo_id_hint": repo_id,
+        "repo_url_hint": repo_url,
+    }
+
+    try:
+        github_context["status"] = await _gh2mcp_status_via_gh2mcp()
+    except Exception as exc:
+        github_context["status"] = {"success": False, "error": str(exc)}
+
+    try:
+        github_context["recent_repos"] = await _list_recent_repos_via_gh2mcp(
+            limit=10,
+            owner=owner,
+            include_orgs=owner is None,
+        )
+    except Exception as exc:
+        github_context["recent_repos"] = {"success": False, "error": str(exc)}
+
+    wants_orgs = bool(
+        {"organizacja", "organizacje", "organization", "organizations", "org", "orgs"}
+        & set(_normalize_command_text(user_request).split())
+    )
+    if wants_orgs:
+        try:
+            github_context["orgs"] = await _list_orgs_via_gh2mcp(repos_limit=10)
+        except Exception as exc:
+            github_context["orgs"] = {"success": False, "error": str(exc)}
+
+    llm = await _ask_openrouter_github_qa(user_request, github_context)
+    if not llm.get("ok"):
+        error = str(llm.get("error") or "unknown llm error")
+        if "OPENROUTER_API_KEY" in error:
+            answer = (
+                "⚠️ GitHub Q&A wymaga `OPENROUTER_API_KEY`. "
+                "Ustaw klucz w `.env` i zrestartuj gateway (`make reload-gateway`)."
+            )
+        else:
+            answer = (
+                "⚠️ Nie udało się pobrać odpowiedzi z OpenRouter. "
+                "Sprawdź konfigurację LLM i spróbuj ponownie."
+            )
+        return {
+            "skill": "github_qa",
+            "ok": False,
+            "repo_id": repo_id,
+            "repo_url": repo_url,
+            "question": user_request,
+            "answer": answer,
+            "error": error,
+            "github_context": github_context,
+            "llm": {
+                "provider": "openrouter",
+                "model": LLM_MODEL,
+                "used": False,
+            },
+        }
+
+    return {
+        "skill": "github_qa",
+        "ok": True,
+        "repo_id": repo_id,
+        "repo_url": repo_url,
+        "question": user_request,
+        "answer": llm.get("answer") or "",
+        "github_context": github_context,
+        "llm": {
+            "provider": "openrouter",
+            "model": LLM_MODEL,
+            "used": True,
+        },
+    }
+
+
+async def _run_skills_analysis(
+    client: httpx.AsyncClient,
+    repo_id: str,
+    execute: bool = False,
+    user_request: str = "",
+    max_actions: int = 10,
+) -> dict[str, Any]:
+    # Spr\u00f3buj u\u017cy\u0107 redsl jako silnika analizy (je\u015bli dost\u0119pny)
+    try:
+        redsl_res = await client.post(
+            f"{SKILLS_URL}/refactor/redsl",
+            json={
+                "repo_id": repo_id,
+                "max_actions": max_actions,
+                "dry_run": not execute,
+                "execute": execute,
+                "user_request": user_request,
+            },
+            timeout=180.0,
+        )
+        if redsl_res.status_code == 200:
+            data = redsl_res.json()
+            if data.get("engine") == "redsl":
+                return {
+                    "sync": data.get("sync", {}),
+                    "metrics": data.get("metrics", {}),
+                    "patterns": {"repo_id": repo_id, "patterns_detected": {}},
+                    "recommendations": data.get("recommendations", {}),
+                    "engine": "redsl",
+                    "redsl_raw": data.get("redsl_raw", {}),
+                }
+    except Exception:
+        pass
+
+    # Fallback: klasyczna analiza przez mcp-skills
     sync_res = await _expect_json(
         await client.post(f"{SKILLS_URL}/sync", json={"repo_id": repo_id, "ref": "HEAD"}),
         "skills sync",
@@ -1161,6 +1802,7 @@ async def _run_skills_analysis(client: httpx.AsyncClient, repo_id: str) -> dict[
         "metrics": metrics,
         "patterns": patterns,
         "recommendations": recommendations,
+        "engine": "mcp-skills",
     }
 
 
@@ -1200,6 +1842,18 @@ SKILL_MODELS = {
     "mcp-skills/analyze": {
         "description": "Static analysis & metrics through mcp-skills",
         "skill": "analyze",
+    },
+    "mcp-skills/tool": {
+        "description": (
+            "Run any semcod CLI tool (sumd, code2llm, code2docs, code2logic, "
+            "redsl, redup, pyqual, domd, vallm, regix, regres, code2schema, "
+            "clickmd, algitex) on a target repo. Routed by NLP intent."
+        ),
+        "skill": "tool",
+    },
+    "mcp-skills/github-qa": {
+        "description": "General GitHub Q&A using gh2mcp context + OpenRouter LLM synthesis.",
+        "skill": "github_qa",
     },
 }
 
@@ -1435,6 +2089,15 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     token_sync_command = _is_github_token_sync_command(user_msg, prompt_ctx)
     org_set_command = _is_org_set_command(user_msg)
     org_list_command = _is_org_list_command(user_msg)
+    repo_list_command = _is_repo_list_command(user_msg)
+    tool_intent = parse_tool_intent(user_msg, prompt_ctx)
+    # If the user explicitly chose the tool model but provided no recognizable
+    # intent, we still want to surface a helpful error in chat instead of falling
+    # through to refactor/analyze.
+    force_tool_skill = skill == "tool"
+    if force_tool_skill and tool_intent is None:
+        # Allow the runner to render an instructive message.
+        tool_intent = {"tool": None, "repo_url": None, "repo_id": None, "args": []}
 
     tenant_id = tenant["tenant_id"]
     # Priorytet: jawne repo_id > repo_id z promptu > ostatnio/najczęściej używane > GitHub ostatnio pushowane > domyślne
@@ -1461,12 +2124,14 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     async_mode = MCP_ASYNC_ENABLED if req.async_mode is None else req.async_mode
 
     async def runner() -> dict:
-        nonlocal repo_id_input
-        # Jeśli repo_id_input jest None, spróbuj pobrać domyślne z GitHub
-        if not repo_id_input:
+        nonlocal repo_id_input, repo_url
+        # Dla analyze/refactor wymagamy repo; spróbuj pobrać domyślne z GitHub.
+        if skill in {"analyze", "refactor"} and not repo_id_input:
             github_default = await _get_default_github_repo()
             if github_default:
-                repo_id_input = github_default
+                repo_id_input = github_default["repo_id"]
+                if not repo_url:
+                    repo_url = github_default.get("repo_url")
             else:
                 repo_id_input = f"{tenant_id}/default"
         
@@ -1483,6 +2148,17 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
 
         if org_list_command:
             result = await _list_orgs_via_gh2mcp(repos_limit=30)
+            return {
+                "skill": "system",
+                "tenant": tenant["tenant_id"],
+                "repo_id": None,
+                "user_request": user_request,
+                "github": result,
+            }
+
+        if repo_list_command:
+            limit = _extract_repo_list_limit(user_msg, default=10, max_limit=30)
+            result = await _list_recent_repos_via_gh2mcp(limit=limit)
             return {
                 "skill": "system",
                 "tenant": tenant["tenant_id"],
@@ -1523,6 +2199,84 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
                         "error": str(exc),
                     },
                 }
+
+        if skill == "github_qa":
+            return await _run_github_qa(
+                user_request=user_request,
+                repo_id=repo_id_input,
+                repo_url=repo_url,
+            )
+
+        # NLP-routed tool execution (sumd / code2llm / redsl / ...)
+        if tool_intent is not None:
+            if not tenant.get("features", {}).get("tool", True):
+                return {
+                    "skill": "tool",
+                    "tenant": tenant_id,
+                    "tool_result": {
+                        "tool": tool_intent.get("tool"),
+                        "ok": False,
+                        "error": "Feature 'tool' not enabled for tenant.",
+                    },
+                }
+            if not tool_intent.get("tool"):
+                return {
+                    "skill": "tool",
+                    "tenant": tenant_id,
+                    "tool_result": {
+                        "tool": None,
+                        "ok": False,
+                        "error": (
+                            "Nie rozpoznałem nazwy narzędzia. Dostępne: "
+                            + ", ".join(SUPPORTED_TOOL_NAMES)
+                            + ". Przykład: 'wygeneruj sumd dla "
+                            "https://github.com/owner/repo'."
+                        ),
+                    },
+                }
+            tool_repo_url = tool_intent.get("repo_url") or repo_url
+            tool_repo_id = tool_intent.get("repo_id") or repo_id_input
+            if not tool_repo_id and not tool_repo_url:
+                github_default = await _get_default_github_repo()
+                if github_default:
+                    tool_repo_id = github_default.get("repo_id")
+                    if not tool_repo_url:
+                        tool_repo_url = github_default.get("repo_url")
+            if not tool_repo_id and not tool_repo_url:
+                return {
+                    "skill": "tool",
+                    "tenant": tenant_id,
+                    "tool_result": {
+                        "tool": tool_intent.get("tool"),
+                        "ok": False,
+                        "error": "Brak repozytorium docelowego — podaj URL lub owner/repo.",
+                    },
+                }
+            try:
+                tool_result = await _run_skills_tool(
+                    tool=tool_intent["tool"],
+                    repo_id=tool_repo_id,
+                    repo_url=tool_repo_url,
+                    subcommand=tool_intent.get("subcommand"),
+                    args=tool_intent.get("args") or [],
+                )
+            except Exception as exc:
+                tool_result = {
+                    "tool": tool_intent.get("tool"),
+                    "repo_id": tool_repo_id,
+                    "repo_url": tool_repo_url,
+                    "ok": False,
+                    "error": f"mcp-skills /tools/run failed: {exc}",
+                }
+            if tool_repo_id and tool_result.get("ok"):
+                _track_repo_usage(tenant_id, tool_repo_id, platform="github")
+            return {
+                "skill": "tool",
+                "tenant": tenant_id,
+                "repo_id": tool_repo_id,
+                "user_request": user_request,
+                "tool_result": tool_result,
+            }
 
         try:
             resolved_repo_id, repo_selection = await _resolve_repo_id_template(repo_id_input)
@@ -1806,7 +2560,7 @@ async def dispatch_skill(
         )
 
         if skill == "analyze":
-            analysis = await _run_skills_analysis(client, repo_id)
+            analysis = await _run_skills_analysis(client, repo_id, execute=False, user_request=user_request)
             return {
                 "skill": "analyze",
                 "tenant": tenant_id,
@@ -1832,7 +2586,7 @@ async def dispatch_skill(
                 "checkpoint create",
             )
 
-            analysis = await _run_skills_analysis(client, repo_id)
+            analysis = await _run_skills_analysis(client, repo_id, execute=execute_commit, user_request=user_request)
             base_branch = branch
             working_branch = branch
             plan_payload: dict[str, Any] = {
