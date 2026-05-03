@@ -1,0 +1,123 @@
+name: Code Quality Improvement
+project_name: ''
+project_type: prefactoring
+domain: dev-tools
+goal: Improve code quality using prefact
+goals:
+- Fix all prefact-detected issues
+- Improve code maintainability
+- Ensure consistent code style
+quality_gates:
+- metric: Prefact Issues
+  threshold: '0'
+sprints:
+- id: sprint-1
+  name: Code Quality Improvements
+  duration: 2 weeks
+  objectives:
+  - Fix code quality issues
+  task_patterns:
+  - id: ticket-83b3de41
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in git2mcp/client.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/client.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5014d0be
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in client.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - client.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-af822ff2
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in proxy.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - proxy.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8b8bf049
+    name: Fix smart-return-type issues
+    description: Resolve 2 smart-return-type issues in tests/test_git2mcp.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_git2mcp.py
+    rule_id: smart-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-774790de
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in tests/test_git2mcp.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_git2mcp.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c1f9d497
+    name: Fix string-concat issues
+    description: Resolve 2 string-concat issues in git2mcp/proxy.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/proxy.py
+    rule_id: string-concat
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-922cea60
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in git2mcp/proxy.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/proxy.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ca7c8bf4
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in git2mcp/proxy.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/proxy.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced

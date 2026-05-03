@@ -86,7 +86,7 @@ test_semcod_fragment_transfer() {
     cd "$PROJECT_ROOT"
     docker-compose up -d mcp-git-proxy mcp-skills > /dev/null
 
-    local semcod_repos=("docs" "code2schema" "ats-benchmark")
+    local semcod_repos=("docs" "code2schema" "taskinity")
 
     # 1) Sync 3 repos into git-proxy using git2mcp-compatible source_path
     for repo_name in "${semcod_repos[@]}"; do
@@ -107,7 +107,7 @@ import asyncio
 import json
 from server import MCPSkillsServer
 
-REPOS = ["semcod/docs", "semcod/code2schema", "semcod/ats-benchmark"]
+REPOS = ["semcod/docs", "semcod/code2schema", "semcod/taskinity"]
 
 
 async def main():
@@ -128,7 +128,7 @@ import asyncio
 from pathlib import Path
 from server import MCPSkillsServer
 
-REPOS = ["semcod/docs", "semcod/code2schema", "semcod/ats-benchmark"]
+REPOS = ["semcod/docs", "semcod/code2schema", "semcod/taskinity"]
 
 
 async def main():

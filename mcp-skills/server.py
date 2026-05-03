@@ -17,8 +17,8 @@ from typing import Any, Dict, List, Optional
 import httpx
 
 from mcp.server import Server
+from mcp.server import NotificationOptions
 from mcp.server.models import InitializationOptions
-from mcp.server.stdio import StdioServerTransport
 from mcp.types import (
     CallToolRequestParams,
     ListToolsResult,
@@ -46,9 +46,13 @@ class MCPSkillsServer:
 
     async def _sync_from_git_proxy(self, repo_id: str, ref: str = "HEAD") -> Dict[str, Any]:
         target_repo = self.repo_base / repo_id
-        if target_repo.exists():
-            shutil.rmtree(target_repo)
         target_repo.mkdir(parents=True, exist_ok=True)
+
+        existing_files = {
+            str(path.relative_to(target_repo)): path
+            for path in target_repo.rglob("*")
+            if path.is_file()
+        }
 
         async with httpx.AsyncClient(timeout=120.0) as client:
             try:
@@ -68,16 +72,32 @@ class MCPSkillsServer:
                     raise ValueError("No fragments in git proxy response")
 
                 files_synced = 0
+                files_updated = 0
+                files_unchanged = 0
+                incoming_paths: set[str] = set()
                 for fragment in fragments:
                     for file_item in fragment.get("files", []):
                         rel_path = file_item.get("path")
                         content_b64 = file_item.get("content_b64")
                         if not rel_path or content_b64 is None:
                             continue
+                        incoming_paths.add(rel_path)
                         file_path = target_repo / rel_path
                         file_path.parent.mkdir(parents=True, exist_ok=True)
-                        file_path.write_bytes(base64.b64decode(content_b64))
+                        incoming_bytes = base64.b64decode(content_b64)
+
+                        if file_path.exists() and file_path.read_bytes() == incoming_bytes:
+                            files_unchanged += 1
+                        else:
+                            file_path.write_bytes(incoming_bytes)
+                            files_updated += 1
                         files_synced += 1
+
+                files_deleted = 0
+                for rel_path, existing_path in existing_files.items():
+                    if rel_path not in incoming_paths and existing_path.exists():
+                        existing_path.unlink()
+                        files_deleted += 1
 
                 return {
                     "repo_id": repo_id,
@@ -86,6 +106,9 @@ class MCPSkillsServer:
                     "transfer_mode": "fragments",
                     "fragment_count": fragments_payload.get("fragment_count", len(fragments)),
                     "files_synced": files_synced,
+                    "files_updated": files_updated,
+                    "files_unchanged": files_unchanged,
+                    "files_deleted": files_deleted,
                 }
             except Exception:
                 response = await client.post(
@@ -592,14 +615,17 @@ class MCPSkillsServer:
         """Uruchomienie serwera"""
         from mcp.server.stdio import stdio_server
 
-        async with stdio_server(server=self.server) as (read_stream, write_stream):
+        async with stdio_server() as (read_stream, write_stream):
             await self.server.run(
                 read_stream,
                 write_stream,
                 InitializationOptions(
                     server_name="mcp-skills",
                     server_version="0.1.0",
-                    capabilities=self.server.get_capabilities()
+                    capabilities=self.server.get_capabilities(
+                        notification_options=NotificationOptions(),
+                        experimental_capabilities={},
+                    )
                 )
             )
 

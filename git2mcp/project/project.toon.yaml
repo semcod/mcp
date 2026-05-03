@@ -1,0 +1,39 @@
+# git2mcp | 19 func | 2f | 769L | python | 2026-05-03
+
+HEALTH:
+  CC̄=3.5  critical=1 (limit:10)  dup=0  cycles=0
+
+ALERTS[5]:
+  !!! high_fan_out     GitProxyManager.sync_repo = 23 (limit:10)
+  !!  high_fan_out     GitProxyManager.export_package = 16 (limit:10)
+  !   high_fan_out     GitProxyManager.export_fragments = 13 (limit:10)
+  !   high_fan_out     GitProxyManager.commit_changes = 13 (limit:10)
+  !   high_fan_out     GitProxyManager._allow_local_repo_url = 10 (limit:10)
+
+MODULES[11] (top by size):
+  M[git2mcp/proxy.py] 290L C:1 F:10 CC↑12 D:0 (python)
+  M[git2mcp/client.py] 61L C:1 F:9 CC↑4 D:0 (python)
+  M[pyproject.toml] 57L C:0 F:0 CC↑0 D:0 (toml)
+  M[project.sh] 47L C:0 F:0 CC↑0 D:0 (shell)
+  M[git2mcp.egg-info/requires.txt] 12L C:0 F:0 CC↑0 D:0 (txt)
+  M[git2mcp.egg-info/SOURCES.txt] 10L C:0 F:0 CC↑0 D:0 (txt)
+  M[__init__.py] 3L C:0 F:0 CC↑0 D:0 (python)
+  M[client.py] 3L C:0 F:0 CC↑0 D:0 (python)
+  M[proxy.py] 3L C:0 F:0 CC↑0 D:0 (python)
+  M[git2mcp.egg-info/dependency_links.txt] 1L C:0 F:0 CC↑0 D:0 (txt)
+  M[git2mcp.egg-info/top_level.txt] 1L C:0 F:0 CC↑0 D:0 (txt)
+  LANGS: python:5/txt:4/shell:1/toml:1
+
+HOTSPOTS[5]:
+  ★ GitProxyManager.sync_repo fan=23  // Orchestrates 23 calls
+  ★ GitProxyManager.export_package fan=16  // Export with 16 outputs
+  ★ GitProxyManager.export_fragments fan=13  // Export with 13 outputs
+  ★ GitProxyManager.commit_changes fan=13  // Orchestrates 13 calls
+  ★ GitProxyManager._allow_local_repo_url fan=10  // Orchestrates 10 calls
+
+REFACTOR[2]:
+  [1] M/M Reduce GitProxyManager.sync_repo fan-out (currently 23)
+  [2] M/M Reduce GitProxyManager.export_package fan-out (currently 16)
+
+EVOLUTION:
+  2026-05-03 CC̄=3.5 crit=1 769L // Automated analysis

@@ -1,0 +1,33 @@
+# git2mcp | 9f 621L | python:7,less:1,shell:1 | 2026-05-03
+# stats: 4 func | 2 cls | 9 mod | CC̄=7.8 | critical:2 | cycles:0
+# alerts[5]: CC test_git_proxy_e2e_sync_export_commit_and_tests=18; CC test_git_proxy_e2e_push_to_bare_remote=10; CC _load_proxy_app=2; CC _create_sample_repo_source=1; fan-out test_git_proxy_e2e_push_to_bare_remote=18
+# hotspots[5]: test_git_proxy_e2e_push_to_bare_remote fan=18; test_git_proxy_e2e_sync_export_commit_and_tests fan=10; _load_proxy_app fan=5; _create_sample_repo_source fan=2
+# evolution: baseline
+# Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
+M[9]:
+  __init__.py,4
+  app.doql.less,22
+  client.py,4
+  git2mcp/__init__.py,4
+  git2mcp/client.py,62
+  git2mcp/proxy.py,291
+  project.sh,47
+  proxy.py,4
+  tests/test_git2mcp.py,183
+D:
+  __init__.py:
+  client.py:
+  git2mcp/__init__.py:
+  git2mcp/client.py:
+    e: Git2MCPClient
+    Git2MCPClient: __init__(2),_request(3),health(0),list_repos(0),sync_repo(4),export_package(2),commit_changes(5),run_tests(2),push(3)
+  git2mcp/proxy.py:
+    e: GitProxyManager
+    GitProxyManager: __init__(2),_repo_path(1),_ensure_parent(1),_allow_local_repo_url(1),list_repos(0),sync_repo(4),export_package(2),export_fragments(3),commit_changes(5),push(3)
+  proxy.py:
+  tests/test_git2mcp.py:
+    e: _load_proxy_app,_create_sample_repo_source,test_git_proxy_e2e_sync_export_commit_and_tests,test_git_proxy_e2e_push_to_bare_remote
+    _load_proxy_app(repo_root;cache_root)
+    _create_sample_repo_source(source)
+    test_git_proxy_e2e_sync_export_commit_and_tests(tmp_path)
+    test_git_proxy_e2e_push_to_bare_remote(tmp_path)

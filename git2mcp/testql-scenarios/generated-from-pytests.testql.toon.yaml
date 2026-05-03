@@ -1,0 +1,55 @@
+# SCENARIO: Auto-generated from Python Tests
+# TYPE: integration
+# GENERATED: true
+
+CONFIG[2]{key, value}:
+  base_url, ${api_url:-http://localhost:8101}
+  timeout_ms, 10000
+
+# Converted 6 API calls from pytest
+API[6]{method, endpoint, expected_status}:
+  GET, /health, 200
+  GET, /repos, 200
+  POST, /packages/export, 200
+  GET, /health, 200
+  GET, /repos, 200
+  POST, /packages/export, 200
+
+# Converted 36 assertions from pytest
+ASSERT[36]{field, operator, expected}:
+  _status, ==, 200
+  status, ==, "ok"
+  _status, ==, 200
+  sync_payload.repo_id, ==, repo_id
+  _status, ==, 200
+  _status, ==, 200
+  export_payload.repo_id, ==, repo_id
+  _status, ==, 200
+  commit_payload.repo_id, ==, repo_id
+  len(commit_payload.commit), ==, 40
+  _status, ==, 200
+  tests_payload.repo_id, ==, repo_id
+  _status, ==, 200
+  _status, ==, 200
+  len(commit_payload.commit), ==, 40
+  _status, ==, 200
+  _status, ==, 200
+  pushed_file.read_text(encoding="utf-8"), ==, '{"pushed": true}'
+  _status, ==, 200
+  status, ==, "ok"
+  _status, ==, 200
+  sync_payload.repo_id, ==, repo_id
+  _status, ==, 200
+  _status, ==, 200
+  export_payload.repo_id, ==, repo_id
+  _status, ==, 200
+  commit_payload.repo_id, ==, repo_id
+  len(commit_payload.commit), ==, 40
+  _status, ==, 200
+  tests_payload.repo_id, ==, repo_id
+  _status, ==, 200
+  _status, ==, 200
+  len(commit_payload.commit), ==, 40
+  _status, ==, 200
+  _status, ==, 200
+  pushed_file.read_text(encoding="utf-8"), ==, '{"pushed": true}'

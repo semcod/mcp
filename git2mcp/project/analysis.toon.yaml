@@ -1,0 +1,43 @@
+# code2llm | 11f 488L | python:5,txt:4,shell:1,toml:1 | 2026-05-03
+# CC̄=3.5 | critical:0/19 | dups:0 | cycles:0
+
+HEALTH[0]: ok
+
+REFACTOR[0]: none needed
+
+PIPELINES[18]:
+  [1] Src [__init__]: __init__
+      PURITY: 100% pure
+  [2] Src [_request]: _request
+      PURITY: 100% pure
+  [3] Src [health]: health
+      PURITY: 100% pure
+  [4] Src [list_repos]: list_repos
+      PURITY: 100% pure
+  [5] Src [sync_repo]: sync_repo
+      PURITY: 100% pure
+
+LAYERS:
+  git2mcp/                        CC̄=3.5    ←in:0  →out:0
+  │ proxy                      290L  1C   10m  CC=12     ←0
+  │ client                      61L  1C    9m  CC=4      ←0
+  │
+  ./                              CC̄=0.0    ←in:0  →out:0
+  │ pyproject.toml              57L  0C    0m  CC=0.0    ←0
+  │ project.sh                  47L  0C    0m  CC=0.0    ←0
+  │ __init__                     3L  0C    0m  CC=0.0    ←0
+  │ client                       3L  0C    0m  CC=0.0    ←0
+  │ proxy                        3L  0C    0m  CC=0.0    ←0
+  │
+  git2mcp.egg-info/               CC̄=0.0    ←in:0  →out:0
+  │ requires.txt                12L  0C    0m  CC=0.0    ←0
+  │ SOURCES.txt                 10L  0C    0m  CC=0.0    ←0
+  │ dependency_links.txt         1L  0C    0m  CC=0.0    ←0
+  │ top_level.txt                1L  0C    0m  CC=0.0    ←0
+  │
+
+COUPLING: no cross-package imports detected
+
+EXTERNAL:
+  validation: run `vallm batch .` → validation.toon
+  duplication: run `redup scan .` → duplication.toon

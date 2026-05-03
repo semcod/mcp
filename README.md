@@ -4,10 +4,10 @@
 ## AI Cost Tracking
 
 ![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$1.05-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-2.2h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$1.35-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-2.4h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $1.0500 (7 commits)
-- 👤 **Human dev:** ~$224 (2.2h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $1.3500 (9 commits)
+- 👤 **Human dev:** ~$242 (2.4h @ $100/h, 30min dedup)
 
 Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -41,6 +41,12 @@ System autonomicznej refaktoryzacji kodu oparty na Model Context Protocol (MCP),
 3. `mcp-skills` synchronizuje paczkę do własnego cache (`/skills-cache`) narzędziem `sync_repo_from_git_proxy`.
 4. `llm-agent` analizuje cache, tworzy plan i zapisuje zmiany jako commit przez API proxy (bez ręcznej edycji przez shell).
 5. Commit można lokalnie przetestować (`/run-tests`) i dopiero potem wypchnąć (`/push`).
+
+Tryb transferu do `mcp-skills`:
+- preferowany: `POST /packages/export-fragments` (fragmenty `path + content_b64`, rekonstrukcja plików po stronie skills)
+- fallback: `POST /packages/export` (`tar.gz + base64`)
+
+`mcp-skills` nie współdzieli volume `/git-repos` z git proxy — otrzymuje repo wyłącznie przez MCP transfer.
 
 ## Szybki Start
 
@@ -167,6 +173,7 @@ Synchronizacja repozytorium z izolowanego `mcp-git-proxy` do cache skills:
 
 Najważniejsze endpointy `mcp-git-proxy`:
 - `POST /repos/sync` - klonowanie/pull repo do izolowanego volume
+- `POST /packages/export-fragments` - export repo jako fragmenty (`path + content_b64`)
 - `POST /packages/export` - eksport pełnego repo do paczki
 - `POST /repos/{repo_id}/commit` - commit zmian przesłanych jako payload
 - `POST /repos/{repo_id}/run-tests` - test commitu przed pushem
@@ -292,6 +299,10 @@ python3 -m pytest -q git2mcp/tests/test_git2mcp.py
 
 # E2E skrypt pokrywa też push-path (commit -> test -> push do lokalnego bare remote)
 # i waliduje obecność artefaktu .mcp/refactor-plan.json po pushu
+
+# E2E skrypt testuje też 3 repo z /home/tom/github/semcod
+# (docs, code2schema, ats-benchmark) oraz transfer do mcp-skills bez shared volume,
+# wyłącznie przez MCP fragmenty/path updates.
 
 # Sprawdź strukturę
 ls -la repos/ output/

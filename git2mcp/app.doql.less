@@ -1,0 +1,21 @@
+// LESS format — define @variables here as needed
+
+app {
+  name: git2mcp;
+  version: 0.1.6;
+}
+
+dependencies {
+  runtime: "httpx>=0.24.0, GitPython>=3.1.43, goal>=2.1.0, costs>=0.1.20, pfix>=0.1.60";
+  dev: "fastapi>=0.104.0, pytest>=7.4.0, goal>=2.1.0, costs>=0.1.20, pfix>=0.1.60";
+}
+
+deploy {
+  target: pip;
+}
+
+environment[name="local"] {
+  runtime: python;
+  env_file: .env;
+  python_version: >=3.11;
+}

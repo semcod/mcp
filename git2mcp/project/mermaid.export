@@ -1,0 +1,28 @@
+flowchart TD
+    subgraph git2mcp__client
+        git2mcp__client__Git2MCPClient____init__["__init__"]
+        git2mcp__client__Git2MCPClient___request["_request"]
+        git2mcp__client__Git2MCPClient__health["health"]
+        git2mcp__client__Git2MCPClient__list_repos["list_repos"]
+        git2mcp__client__Git2MCPClient__sync_repo["sync_repo"]
+        git2mcp__client__Git2MCPClient__export_package["export_package"]
+        git2mcp__client__Git2MCPClient__commit_changes["commit_changes"]
+        git2mcp__client__Git2MCPClient__run_tests["run_tests"]
+        git2mcp__client__Git2MCPClient__push["push"]
+    end
+    subgraph git2mcp__proxy
+        git2mcp__proxy__GitProxyManager____init__["__init__"]
+        git2mcp__proxy__GitProxyManager___repo_path["_repo_path"]
+        git2mcp__proxy__GitProxyManager___ensure_parent["_ensure_parent"]
+        git2mcp__proxy__GitProxyManager___allow_local_repo_url("_allow_local_repo_url CC=9")
+        git2mcp__proxy__GitProxyManager__list_repos["list_repos"]
+        git2mcp__proxy__GitProxyManager__sync_repo("sync_repo CC=12")
+        git2mcp__proxy__GitProxyManager__export_package["export_package"]
+        git2mcp__proxy__GitProxyManager__export_fragments("export_fragments CC=9")
+        git2mcp__proxy__GitProxyManager__commit_changes["commit_changes"]
+        git2mcp__proxy__GitProxyManager__push["push"]
+    end
+
+    classDef highCC fill:#ff6b6b,stroke:#c92a2a,color:#fff
+    classDef medCC fill:#ffd43b,stroke:#f08c00,color:#000
+    class git2mcp__proxy__GitProxyManager___allow_local_repo_url,git2mcp__proxy__GitProxyManager__sync_repo,git2mcp__proxy__GitProxyManager__export_fragments medCC

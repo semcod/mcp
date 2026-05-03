@@ -1,0 +1,29 @@
+project: /home/tom/github/semcod/mcp/git2mcp
+generated_from: code2llm call graph analysis
+stats:
+  total_nodes: 0
+  total_edges: 0
+  modules_count: 0
+nodes: {}
+edges: []
+modules: {}
+entry_points:
+- git2mcp.client.Git2MCPClient.__init__
+- git2mcp.client.Git2MCPClient._request
+- git2mcp.client.Git2MCPClient.commit_changes
+- git2mcp.client.Git2MCPClient.export_package
+- git2mcp.client.Git2MCPClient.health
+- git2mcp.client.Git2MCPClient.list_repos
+- git2mcp.client.Git2MCPClient.push
+- git2mcp.client.Git2MCPClient.run_tests
+- git2mcp.client.Git2MCPClient.sync_repo
+- git2mcp.proxy.GitProxyManager.__init__
+- git2mcp.proxy.GitProxyManager._allow_local_repo_url
+- git2mcp.proxy.GitProxyManager._ensure_parent
+- git2mcp.proxy.GitProxyManager._repo_path
+- git2mcp.proxy.GitProxyManager.commit_changes
+- git2mcp.proxy.GitProxyManager.export_fragments
+- git2mcp.proxy.GitProxyManager.export_package
+- git2mcp.proxy.GitProxyManager.list_repos
+- git2mcp.proxy.GitProxyManager.push
+- git2mcp.proxy.GitProxyManager.sync_repo

@@ -43,12 +43,17 @@ class GitProxyManager:
         if not path.exists():
             return
 
-        subprocess.run(
-            ["git", "config", "--global", "--add", "safe.directory", str(path)],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+        safe_paths = {path}
+        if path.is_dir() and (path / ".git").exists():
+            safe_paths.add(path / ".git")
+
+        for safe_path in safe_paths:
+            subprocess.run(
+                ["git", "config", "--global", "--add", "safe.directory", str(safe_path)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
 
     def list_repos(self) -> list[dict]:
         repos = []
@@ -82,6 +87,7 @@ class GitProxyManager:
             if repo_path.exists():
                 shutil.rmtree(repo_path)
             if (source / ".git").exists():
+                self._allow_local_repo_url(str(source.resolve()))
                 Repo.clone_from(str(source.resolve()), str(repo_path))
                 repo = Repo(repo_path)
             else:

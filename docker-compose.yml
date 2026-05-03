@@ -52,7 +52,6 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-openrouter/x-ai/grok-code-fast-1}
-      - OLLAMA_HOST=${OLLAMA_HOST:-http://localhost:11434}
       - GITHUB_PAT=${GITHUB_PAT:-}
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
     volumes:
@@ -70,19 +69,6 @@ services:
       - mcp-network
     profiles:
       - agent
-
-  # (Opcjonalnie) Ollama dla lokalnego LLM
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama-server
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-    profiles:
-      - ollama
-    networks:
-      - mcp-network
 
   # Dashboard - Wizualizacja wyników
   dashboard:
@@ -124,7 +110,6 @@ networks:
     driver: bridge
 
 volumes:
-  ollama-data:
   git-repo-storage:
   git-cache-storage:
   skills-cache:

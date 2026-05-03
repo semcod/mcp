@@ -1,0 +1,32 @@
+flowchart TD
+
+    %% Entry points (blue)
+    classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
+
+    subgraph CLI
+        git2mcp__client__Git2MCPClient___request["_request"]
+        git2mcp__client__Git2MCPClient__health["health"]
+        git2mcp__client__Git2MCPClient__list_repos["list_repos"]
+        git2mcp__client__Git2MCPClient__sync_repo["sync_repo"]
+        git2mcp__client__Git2MCPClient__export_package["export_package"]
+        git2mcp__client__Git2MCPClient__commit_changes["commit_changes"]
+        git2mcp__client__Git2MCPClient__run_tests["run_tests"]
+        git2mcp__client__Git2MCPClient__push["push"]
+    end
+
+    subgraph Core
+        git2mcp__proxy__GitProxyManager___repo_path["_repo_path"]
+        git2mcp__proxy__GitProxyManager___ensure_parent["_ensure_parent"]
+        git2mcp__proxy__GitProxyManager___allow_local_repo_url["_allow_local_repo_url"]
+        git2mcp__proxy__GitProxyManager__list_repos["list_repos"]
+        git2mcp__proxy__GitProxyManager__sync_repo["sync_repo"]
+        git2mcp__proxy__GitProxyManager__commit_changes["commit_changes"]
+        git2mcp__proxy__GitProxyManager__push["push"]
+    end
+
+    subgraph Exporters
+        git2mcp__proxy__GitProxyManager__export_package["export_package"]
+        git2mcp__proxy__GitProxyManager__export_fragments["export_fragments"]
+    end
+
+    class git2mcp__client__Git2MCPClient___request,git2mcp__client__Git2MCPClient__health,git2mcp__client__Git2MCPClient__list_repos,git2mcp__client__Git2MCPClient__sync_repo,git2mcp__client__Git2MCPClient__export_package,git2mcp__client__Git2MCPClient__commit_changes,git2mcp__client__Git2MCPClient__run_tests,git2mcp__client__Git2MCPClient__push,git2mcp__proxy__GitProxyManager___repo_path,git2mcp__proxy__GitProxyManager___ensure_parent entry
