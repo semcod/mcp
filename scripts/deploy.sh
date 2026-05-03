@@ -65,7 +65,7 @@ build_images() {
 start_services() {
     echo -e "${YELLOW}Starting services...${NC}"
     cd "$PROJECT_ROOT"
-    docker-compose up -d mcp-skills
+    docker-compose up -d mcp-skills dashboard
     echo -e "${GREEN}✓ Services started${NC}"
 }
 
@@ -100,9 +100,13 @@ main() {
     echo ""
     echo "Services available:"
     echo "  - MCP Skills Server: http://localhost:8082"
+    echo "  - Dashboard:         http://localhost:8085"
+    echo ""
+    echo "To view the dashboard:"
+    echo "  open http://localhost:8085"
     echo ""
     echo "To run the agent:"
-    echo "  docker-compose run --rm llm-agent python agent.py --repo <repo_id>"
+    echo "  docker-compose run --rm llm-agent python agent_standalone.py --repo <repo_id>"
     echo ""
     echo "To view logs:"
     echo "  docker-compose logs -f"

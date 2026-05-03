@@ -55,6 +55,25 @@ services:
     networks:
       - mcp-network
 
+  # Dashboard - Wizualizacja wyników
+  dashboard:
+    build: ./dashboard
+    container_name: mcp-dashboard
+    environment:
+      - DASHBOARD_PORT=8080
+    volumes:
+      - ./output:/output:ro
+      - ./repos:/repos:ro
+      - ./dashboard/index.html:/app/index.html:ro
+      - ./dashboard/server.py:/app/server.py:ro
+    ports:
+      - "8085:8080"
+    depends_on:
+      - mcp-skills
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
   # MCP Gateway - Proxy dla MCP serwerów
   mcp-gateway:
     image: docker/mcp-gateway:latest

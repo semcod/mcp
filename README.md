@@ -76,7 +76,13 @@ docker-compose run --rm llm-agent python agent.py \
 ├── llm-agent/                  # Autonomiczny Agent
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   └── agent.py                # Logika agenta LLM
+│   ├── agent.py                # Logika agenta LLM
+│   └── agent_standalone.py     # Wersja standalone
+│
+├── dashboard/                  # Wizualizacja wyników
+│   ├── Dockerfile
+│   ├── server.py               # Serwer HTTP
+│   └── index.html              # Interfejs webowy
 │
 ├── scripts/                    # Skrypty pomocnicze
 │   ├── deploy.sh               # Deployment
@@ -165,6 +171,47 @@ docker-compose run --rm llm-agent python agent.py \
 3. **Weryfikacja** - Plan jest weryfikowany pod kątem ryzyka
 4. **Wykonanie** (opcjonalnie) - Zmiany są aplikowane przez MCP Git
 5. **Walidacja** - Testy weryfikują poprawność zmian
+
+## Dashboard - Wizualizacja Wyników
+
+Dashboard webowy dostarcza interaktywny interfejs do przeglądania wyników analizy.
+
+### Uruchomienie dashboardu
+
+```bash
+# Dashboard startuje automatycznie z deploy.sh
+# Lub ręcznie:
+docker-compose up -d dashboard
+```
+
+### Dostęp do dashboardu
+
+- **Dashboard UI**: http://localhost:8085
+- **API Status**: http://localhost:8085/api/status
+- **Lista analiz**: http://localhost:8085/api/analyses
+
+### Funkcje dashboardu
+
+- **Metryki w czasie rzeczywistym** - liczba plików, linii, funkcji, klas
+- **Lista plików** - ranking największych plików z metrykami
+- **Analiza importów** - najczęściej używane biblioteki
+- **Rekomendacje** - priorytetowe akcje refaktoryzacji
+- **Plan refaktoryzacji** - podsumowanie z architekturą i ryzykami
+- **Szczegóły techniczne** - pełny JSON z analizy
+
+### Przykładowe użycie
+
+```bash
+# Wygeneruj analizę
+docker-compose run --rm llm-agent python agent_standalone.py \
+  --repo my-project \
+  --dry-run
+
+# Otwórz dashboard w przeglądarce
+open http://localhost:8085
+# lub
+xdg-open http://localhost:8085
+```
 
 ## Testowanie
 

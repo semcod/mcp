@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.2] - 2026-05-03
+
+### Docs
+- Update README.md
+
+### Other
+- Update dashboard/Dockerfile
+- Update dashboard/index.html
+- Update dashboard/server.py
+- Update output/test_sample-project_analysis.json
+- Update scripts/deploy.sh
+
 ## [0.0.1] - 2026-05-03
 
 ### Docs

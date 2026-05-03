@@ -52,7 +52,61 @@
           "functions": 1,
           "classes": 0
         }
-      ]
+      ],
+      "structure_analysis": {
+        "repo_id": "test/sample-project",
+        "path_analysis": [
+          {
+            "path": "main.py",
+            "exists": true,
+            "line_count": 32,
+            "import_count": 5,
+            "function_count": 4,
+            "class_count": 1,
+            "imports": [
+              "import os",
+              "import sys",
+              "import json",
+              "import logging",
+              "from typing import Dict, List"
+            ],
+            "preview": [
+              "\"\"\"Sample project for testing MCP Skills\"\"\"",
+              "import os",
+              "import sys",
+              "import json",
+              "import logging",
+              "from typing import Dict, List",
+              "",
+              "class DataProcessor:",
+              "    \"\"\"Main data processor class\"\"\"",
+              ""
+            ]
+          },
+          {
+            "path": "module_1.py",
+            "exists": true,
+            "line_count": 7,
+            "import_count": 3,
+            "function_count": 1,
+            "class_count": 0,
+            "imports": [
+              "import os",
+              "import sys",
+              "from typing import Dict, List"
+            ],
+            "preview": [
+              "\"\"\"Module 1\"\"\"",
+              "import os",
+              "import sys",
+              "from typing import Dict, List",
+              "",
+              "def function_1(data: Dict) -> Dict:",
+              "    return {\\\"result\\\": data}"
+            ]
+          }
+        ]
+      }
     },
     "patterns_detected": {
       "repo_id": "test/sample-project",
