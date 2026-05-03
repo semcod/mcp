@@ -79,6 +79,82 @@ test_python_syntax() {
     fi
 }
 
+# Test 7: 3x semcod repos -> mcp-skills via MCP fragments (no shared git volume)
+test_semcod_fragment_transfer() {
+    echo -e "${BLUE}Test 7: semcod fragment transfer to mcp-skills${NC}"
+
+    cd "$PROJECT_ROOT"
+    docker-compose up -d mcp-git-proxy mcp-skills > /dev/null
+
+    local semcod_repos=("docs" "code2schema" "ats-benchmark")
+
+    # 1) Sync 3 repos into git-proxy using git2mcp-compatible source_path
+    for repo_name in "${semcod_repos[@]}"; do
+        local rid="semcod/${repo_name}"
+        local spath="/host-semcod/${repo_name}"
+
+        curl -fsS -X POST http://localhost:8081/repos/sync \
+            -H "Content-Type: application/json" \
+            -d "{\"repo_id\":\"${rid}\",\"source_path\":\"${spath}\",\"branch\":\"main\"}" > "/tmp/semcod-sync-${repo_name}.json"
+
+        python3 -c "import json; d=json.load(open('/tmp/semcod-sync-${repo_name}.json')); assert d['repo_id']=='${rid}'"
+        echo -e "  ${GREEN}✓${NC} synced ${rid} into mcp-git-proxy"
+    done
+
+    # 2) Transfer to mcp-skills cache via MCP fragment endpoint + path reconstruction
+    docker-compose exec -T mcp-skills python - << 'PY'
+import asyncio
+import json
+from server import MCPSkillsServer
+
+REPOS = ["semcod/docs", "semcod/code2schema", "semcod/ats-benchmark"]
+
+
+async def main():
+    s = MCPSkillsServer()
+    results = []
+    for rid in REPOS:
+        res = await s._sync_from_git_proxy(rid)
+        results.append(res)
+    print(json.dumps(results))
+
+
+asyncio.run(main())
+PY
+
+    # 3) Validate transfer mode and reconstructed files in mcp-skills cache
+    docker-compose exec -T mcp-skills python - << 'PY'
+import asyncio
+from pathlib import Path
+from server import MCPSkillsServer
+
+REPOS = ["semcod/docs", "semcod/code2schema", "semcod/ats-benchmark"]
+
+
+async def main():
+    s = MCPSkillsServer()
+    for rid in REPOS:
+        res = await s._sync_from_git_proxy(rid)
+        assert res.get("transfer_mode") == "fragments", res
+        assert res.get("files_synced", 0) > 0, res
+        p = Path(res["target_path"])
+        files = [x for x in p.rglob("*") if x.is_file()]
+        assert files, f"No files reconstructed for {rid}"
+
+
+asyncio.run(main())
+print("fragment transfer validated")
+PY
+    echo -e "  ${GREEN}✓${NC} mcp-skills reconstructed 3 semcod repos from MCP fragments"
+
+    # 4) Assert mcp-skills has no shared /git-repos mount
+    if docker inspect mcp-skills-server | grep -q '"Destination": "/git-repos"'; then
+        echo -e "  ${RED}✗ mcp-skills still has shared /git-repos mount${NC}"
+        return 1
+    fi
+    echo -e "  ${GREEN}✓${NC} mcp-skills has no shared /git-repos volume"
+}
+
 # Test 3: Sprawdzenie Docker
 test_docker() {
     echo -e "${BLUE}Test 3: Docker validation${NC}"
@@ -229,25 +305,25 @@ test_git2mcp_workflow() {
     python3 -c "import json; d=json.load(open('/tmp/gitproxy-export.json')); assert len(d.get('archive_b64','')) > 20"
     echo -e "  ${GREEN}✓${NC} mcp-git-proxy package export returns non-empty archive"
 
-    # Push path E2E: local bare remote + --push workflow
-    BARE_REMOTE="$PROJECT_ROOT/repos/test/push-remote.git"
-    SEED_WORKTREE="$PROJECT_ROOT/repos/test/push-seed"
-    VERIFY_CLONE="$PROJECT_ROOT/repos/test/push-verify"
-    rm -rf "$BARE_REMOTE" "$SEED_WORKTREE" "$VERIFY_CLONE"
-
-    git init --bare "$BARE_REMOTE" > /dev/null
-    mkdir -p "$SEED_WORKTREE"
-    git init "$SEED_WORKTREE" > /dev/null
-    cat > "$SEED_WORKTREE/app.py" << 'EOF'
-def add(a: int, b: int) -> int:
-    return a + b
-EOF
-    (cd "$SEED_WORKTREE" && git add . && git -c user.name='seed' -c user.email='seed@example.com' commit -m 'seed commit' > /dev/null)
-    (cd "$SEED_WORKTREE" && git branch -M main && git remote add origin "$BARE_REMOTE" && git push -u origin main > /dev/null)
+    # Push path E2E: writable bare remote inside mcp-git-proxy volume + --push workflow
+    BARE_REMOTE_PROXY="/git-cache/push-remote.git"
+    SEED_WORKTREE_PROXY="/tmp/push-seed"
+    PUSH_REPO_ID="test/push-project-$(date +%s)"
+    docker-compose exec -T mcp-git-proxy sh -lc "rm -rf $BARE_REMOTE_PROXY $SEED_WORKTREE_PROXY && \
+      git init --bare $BARE_REMOTE_PROXY >/dev/null && \
+      mkdir -p $SEED_WORKTREE_PROXY && \
+      git init $SEED_WORKTREE_PROXY >/dev/null && \
+      printf 'def add(a: int, b: int) -> int:\n    return a + b\n' > $SEED_WORKTREE_PROXY/app.py && \
+      cd $SEED_WORKTREE_PROXY && \
+      git add . && \
+      git -c user.name='seed' -c user.email='seed@example.com' commit -m 'seed commit' >/dev/null && \
+      git branch -M main && \
+      git remote add origin $BARE_REMOTE_PROXY && \
+      git push -u origin main >/dev/null"
 
     docker-compose run --rm llm-agent python agent_git2mcp.py \
-      --repo test/push-project \
-      --repo-url /host-repos/test/push-remote.git \
+      --repo "$PUSH_REPO_ID" \
+      --repo-url "$BARE_REMOTE_PROXY" \
       --branch main \
       --execute \
       --push \
@@ -261,8 +337,7 @@ EOF
         return 1
     fi
 
-    git clone "$BARE_REMOTE" "$VERIFY_CLONE" > /dev/null
-    if [ -f "$VERIFY_CLONE/.mcp/refactor-plan.json" ]; then
+    if docker-compose exec -T mcp-git-proxy sh -lc "git --git-dir $BARE_REMOTE_PROXY ls-tree -r main --name-only | grep -q '^.mcp/refactor-plan.json$'"; then
         echo -e "  ${GREEN}✓${NC} pushed commit is present in bare remote"
     else
         echo -e "  ${RED}✗ pushed commit artifact missing in remote${NC}"
@@ -291,6 +366,7 @@ main() {
     test_repo_setup
     test_git2mcp_workflow
     test_pytest_e2e
+    test_semcod_fragment_transfer
 
     echo ""
     echo "=========================================="

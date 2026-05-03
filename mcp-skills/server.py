@@ -45,32 +45,70 @@ class MCPSkillsServer:
         self._setup_handlers()
 
     async def _sync_from_git_proxy(self, repo_id: str, ref: str = "HEAD") -> Dict[str, Any]:
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(
-                f"{self.git_proxy_url}/packages/export",
-                json={"repo_id": repo_id, "ref": ref},
-            )
-        response.raise_for_status()
-        payload = response.json()
-
-        archive_b64 = payload.get("archive_b64")
-        if not archive_b64:
-            raise ValueError("Missing archive_b64 in git proxy response")
-
-        archive_bytes = base64.b64decode(archive_b64)
         target_repo = self.repo_base / repo_id
         if target_repo.exists():
             shutil.rmtree(target_repo)
         target_repo.mkdir(parents=True, exist_ok=True)
 
-        with tarfile.open(fileobj=BytesIO(archive_bytes), mode="r:gz") as tar:
-            tar.extractall(target_repo)
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            try:
+                fragments_response = await client.post(
+                    f"{self.git_proxy_url}/packages/export-fragments",
+                    json={
+                        "repo_id": repo_id,
+                        "ref": ref,
+                        "max_fragment_bytes": 200_000,
+                    },
+                )
+                fragments_response.raise_for_status()
+                fragments_payload = fragments_response.json()
 
-        return {
-            "repo_id": repo_id,
-            "target_path": str(target_repo),
-            "synced_ref": payload.get("ref", ref),
-        }
+                fragments = fragments_payload.get("fragments", [])
+                if not fragments:
+                    raise ValueError("No fragments in git proxy response")
+
+                files_synced = 0
+                for fragment in fragments:
+                    for file_item in fragment.get("files", []):
+                        rel_path = file_item.get("path")
+                        content_b64 = file_item.get("content_b64")
+                        if not rel_path or content_b64 is None:
+                            continue
+                        file_path = target_repo / rel_path
+                        file_path.parent.mkdir(parents=True, exist_ok=True)
+                        file_path.write_bytes(base64.b64decode(content_b64))
+                        files_synced += 1
+
+                return {
+                    "repo_id": repo_id,
+                    "target_path": str(target_repo),
+                    "synced_ref": fragments_payload.get("ref", ref),
+                    "transfer_mode": "fragments",
+                    "fragment_count": fragments_payload.get("fragment_count", len(fragments)),
+                    "files_synced": files_synced,
+                }
+            except Exception:
+                response = await client.post(
+                    f"{self.git_proxy_url}/packages/export",
+                    json={"repo_id": repo_id, "ref": ref},
+                )
+                response.raise_for_status()
+                payload = response.json()
+
+                archive_b64 = payload.get("archive_b64")
+                if not archive_b64:
+                    raise ValueError("Missing archive_b64 in git proxy response")
+
+                archive_bytes = base64.b64decode(archive_b64)
+                with tarfile.open(fileobj=BytesIO(archive_bytes), mode="r:gz") as tar:
+                    tar.extractall(target_repo)
+
+                return {
+                    "repo_id": repo_id,
+                    "target_path": str(target_repo),
+                    "synced_ref": payload.get("ref", ref),
+                    "transfer_mode": "archive",
+                }
 
     def _setup_handlers(self):
         """Konfiguracja handlerów MCP"""

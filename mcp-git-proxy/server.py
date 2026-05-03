@@ -25,6 +25,12 @@ class ExportPackageRequest(BaseModel):
     ref: str = "HEAD"
 
 
+class ExportFragmentsRequest(BaseModel):
+    repo_id: str
+    ref: str = "HEAD"
+    max_fragment_bytes: int = 200_000
+
+
 class CommitRequest(BaseModel):
     message: str
     changes: list[dict] = Field(default_factory=list)
@@ -72,6 +78,18 @@ def sync_repo(request: SyncRepoRequest):
             repo_url=request.repo_url,
             source_path=request.source_path,
             branch=request.branch,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/packages/export-fragments")
+def export_fragments(request: ExportFragmentsRequest):
+    try:
+        return manager.export_fragments(
+            repo_id=request.repo_id,
+            ref=request.ref,
+            max_fragment_bytes=request.max_fragment_bytes,
         )
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -12,6 +12,7 @@ services:
       - git-repo-storage:/git-repos
       - git-cache-storage:/git-cache
       - ./repos:/host-repos:ro
+      - ..:/host-semcod:ro
     ports:
       - "8081:8080"
     restart: unless-stopped
@@ -27,7 +28,6 @@ services:
       - SKILLS_REPO_BASE=/skills-cache
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
     volumes:
-      - git-repo-storage:/git-repos:ro
       - skills-cache:/skills-cache
       - ./mcp-skills/server.py:/app/server.py:ro
     ports:
