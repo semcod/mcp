@@ -65,7 +65,7 @@ build_images() {
 start_services() {
     echo -e "${YELLOW}Starting services...${NC}"
     cd "$PROJECT_ROOT"
-    docker-compose up -d mcp-skills dashboard
+    docker-compose up -d mcp-git-proxy mcp-skills dashboard
     echo -e "${GREEN}✓ Services started${NC}"
 }
 
@@ -80,6 +80,14 @@ health_check() {
     else
         echo -e "${RED}✗ MCP Skills Server failed to start${NC}"
         docker-compose logs mcp-skills
+        exit 1
+    fi
+
+    if docker ps | grep -q "mcp-git-proxy"; then
+        echo -e "${GREEN}✓ MCP Git Proxy is running${NC}"
+    else
+        echo -e "${RED}✗ MCP Git Proxy failed to start${NC}"
+        docker-compose logs mcp-git-proxy
         exit 1
     fi
 }
@@ -99,6 +107,7 @@ main() {
     echo "=========================================="
     echo ""
     echo "Services available:"
+    echo "  - MCP Git Proxy:    http://localhost:8081"
     echo "  - MCP Skills Server: http://localhost:8082"
     echo "  - Dashboard:         http://localhost:8085"
     echo ""
@@ -106,7 +115,7 @@ main() {
     echo "  open http://localhost:8085"
     echo ""
     echo "To run the agent:"
-    echo "  docker-compose run --rm llm-agent python agent_standalone.py --repo <repo_id>"
+    echo "  docker-compose run --rm llm-agent python agent_git2mcp.py --repo team/sample --source-path /host-repos/test/sample-project"
     echo ""
     echo "To view logs:"
     echo "  docker-compose logs -f"

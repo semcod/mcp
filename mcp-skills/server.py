@@ -4,10 +4,17 @@ MCP Skills Server - Analiza kodu i metryki dla autonomicznej refaktoryzacji
 """
 
 import asyncio
+import base64
 import json
 import logging
+import os
+import shutil
+import tarfile
+from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+import httpx
 
 from mcp.server import Server
 from mcp.server.models import InitializationOptions
@@ -30,9 +37,40 @@ class MCPSkillsServer:
     """Serwer MCP Skills z narzędziami do analizy kodu"""
 
     def __init__(self, repo_base: str = "/repos"):
-        self.repo_base = Path(repo_base)
+        env_repo_base = os.getenv("SKILLS_REPO_BASE")
+        self.repo_base = Path(env_repo_base or repo_base)
+        self.git_proxy_url = os.getenv("GIT_PROXY_URL", "http://mcp-git-proxy:8080")
+        self.repo_base.mkdir(parents=True, exist_ok=True)
         self.server = Server("mcp-skills")
         self._setup_handlers()
+
+    async def _sync_from_git_proxy(self, repo_id: str, ref: str = "HEAD") -> Dict[str, Any]:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(
+                f"{self.git_proxy_url}/packages/export",
+                json={"repo_id": repo_id, "ref": ref},
+            )
+        response.raise_for_status()
+        payload = response.json()
+
+        archive_b64 = payload.get("archive_b64")
+        if not archive_b64:
+            raise ValueError("Missing archive_b64 in git proxy response")
+
+        archive_bytes = base64.b64decode(archive_b64)
+        target_repo = self.repo_base / repo_id
+        if target_repo.exists():
+            shutil.rmtree(target_repo)
+        target_repo.mkdir(parents=True, exist_ok=True)
+
+        with tarfile.open(fileobj=BytesIO(archive_bytes), mode="r:gz") as tar:
+            tar.extractall(target_repo)
+
+        return {
+            "repo_id": repo_id,
+            "target_path": str(target_repo),
+            "synced_ref": payload.get("ref", ref),
+        }
 
     def _setup_handlers(self):
         """Konfiguracja handlerów MCP"""
@@ -60,7 +98,7 @@ class MCPSkillsServer:
                         "base_path": {
                             "type": "string",
                             "description": "Base path where repos are cloned",
-                            "default": "/repos"
+                            "default": str(self.repo_base)
                         }
                     },
                     "required": ["repo_id", "paths"]
@@ -79,7 +117,7 @@ class MCPSkillsServer:
                         "base_path": {
                             "type": "string",
                             "description": "Base path where repos are cloned",
-                            "default": "/repos"
+                            "default": str(self.repo_base)
                         },
                         "extensions": {
                             "type": "array",
@@ -110,7 +148,7 @@ class MCPSkillsServer:
                         "base_path": {
                             "type": "string",
                             "description": "Base path where repos are cloned",
-                            "default": "/repos"
+                            "default": str(self.repo_base)
                         }
                     },
                     "required": ["repo_id"]
@@ -139,7 +177,26 @@ class MCPSkillsServer:
                         "base_path": {
                             "type": "string",
                             "description": "Base path where repos are cloned",
-                            "default": "/repos"
+                            "default": str(self.repo_base)
+                        }
+                    },
+                    "required": ["repo_id"]
+                }
+            ),
+            Tool(
+                name="sync_repo_from_git_proxy",
+                description="Synchronize repository package from MCP Git Proxy into local skills cache.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "repo_id": {
+                            "type": "string",
+                            "description": "Logical repo ID"
+                        },
+                        "ref": {
+                            "type": "string",
+                            "description": "Git ref (branch/tag/sha)",
+                            "default": "HEAD"
                         }
                     },
                     "required": ["repo_id"]
@@ -161,6 +218,8 @@ class MCPSkillsServer:
                 return await self._detect_code_patterns(arguments)
             elif name == "recommend_refactoring":
                 return await self._recommend_refactoring(arguments)
+            elif name == "sync_repo_from_git_proxy":
+                return await self._sync_repo_tool(arguments)
             else:
                 raise ValueError(f"Unknown tool: {name}")
         except Exception as e:
@@ -171,7 +230,7 @@ class MCPSkillsServer:
         """Analiza struktury kodu dla podanych ścieżek"""
         repo_id = arguments.get("repo_id")
         paths = arguments.get("paths", [])
-        base_path = arguments.get("base_path", "/repos")
+        base_path = arguments.get("base_path", str(self.repo_base))
 
         if not repo_id or not paths:
             raise ValueError("repo_id and paths are required")
@@ -234,7 +293,7 @@ class MCPSkillsServer:
     async def _compute_metrics_for_repo(self, arguments: dict) -> list:
         """Obliczanie metryk dla całego repozytorium"""
         repo_id = arguments.get("repo_id")
-        base_path = arguments.get("base_path", "/repos")
+        base_path = arguments.get("base_path", str(self.repo_base))
         extensions = arguments.get("extensions", [".py"])
 
         if not repo_id:
@@ -314,7 +373,7 @@ class MCPSkillsServer:
     async def _detect_code_patterns(self, arguments: dict) -> list:
         """Wykrywanie wzorców kodu i antywzorców"""
         repo_id = arguments.get("repo_id")
-        base_path = arguments.get("base_path", "/repos")
+        base_path = arguments.get("base_path", str(self.repo_base))
         pattern_types = arguments.get("pattern_types", ["complexity", "imports"])
 
         repo_path = Path(base_path) / repo_id
@@ -397,12 +456,21 @@ class MCPSkillsServer:
 
         return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
+    async def _sync_repo_tool(self, arguments: dict) -> list:
+        repo_id = arguments.get("repo_id")
+        ref = arguments.get("ref", "HEAD")
+        if not repo_id:
+            raise ValueError("repo_id is required")
+
+        sync_result = await self._sync_from_git_proxy(repo_id, ref)
+        return [TextContent(type="text", text=json.dumps(sync_result, indent=2))]
+
     async def _recommend_refactoring(self, arguments: dict) -> list:
         """Generowanie rekomendacji refaktoryzacji"""
         repo_id = arguments.get("repo_id")
         target_paths = arguments.get("target_paths", [])
         goal = arguments.get("goal", "maintainability")
-        base_path = arguments.get("base_path", "/repos")
+        base_path = arguments.get("base_path", str(self.repo_base))
 
         repo_path = Path(base_path) / repo_id
 

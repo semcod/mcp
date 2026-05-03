@@ -23,11 +23,16 @@ test_structure() {
 
     local required_files=(
         "docker-compose.yml"
+        "mcp-git-proxy/Dockerfile"
+        "mcp-git-proxy/server.py"
         "mcp-skills/Dockerfile"
         "mcp-skills/server.py"
         "mcp-skills/requirements.txt"
+        "git2mcp/client.py"
+        "git2mcp/proxy.py"
         "llm-agent/Dockerfile"
         "llm-agent/agent.py"
+        "llm-agent/agent_git2mcp.py"
         "llm-agent/requirements.txt"
     )
 
@@ -56,6 +61,20 @@ test_python_syntax() {
         echo -e "  ${GREEN}✓${NC} llm-agent/agent.py"
     else
         echo -e "  ${RED}✗ Syntax error in llm-agent/agent.py${NC}"
+        return 1
+    fi
+
+    if python3 -m py_compile "$PROJECT_ROOT/llm-agent/agent_git2mcp.py" 2>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} llm-agent/agent_git2mcp.py"
+    else
+        echo -e "  ${RED}✗ Syntax error in llm-agent/agent_git2mcp.py${NC}"
+        return 1
+    fi
+
+    if python3 -m py_compile "$PROJECT_ROOT/mcp-git-proxy/server.py" 2>/dev/null; then
+        echo -e "  ${GREEN}✓${NC} mcp-git-proxy/server.py"
+    else
+        echo -e "  ${RED}✗ Syntax error in mcp-git-proxy/server.py${NC}"
         return 1
     fi
 }
@@ -134,18 +153,33 @@ EOF
     find "$TEST_REPO" -name "*.py" | wc -l | xargs echo -e "  ${GREEN}✓${NC} Created files:"
 }
 
-# Test 5: Test MCP Skills (jeśli uruchomiony)
-test_mcp_skills() {
-    echo -e "${BLUE}Test 5: MCP Skills Server${NC}"
+# Test 5: End-to-end git2mcp workflow
+test_git2mcp_workflow() {
+    echo -e "${BLUE}Test 5: git2mcp end-to-end workflow${NC}"
 
-    if docker ps | grep -q "mcp-skills-server"; then
-        echo -e "  ${GREEN}✓${NC} MCP Skills Server is running"
+    cd "$PROJECT_ROOT"
+    docker-compose up -d mcp-git-proxy mcp-skills > /dev/null
 
-        # Test poprzez uruchomienie agenta
-        cd "$PROJECT_ROOT"
-        docker-compose run --rm llm-agent python agent.py --repo test/sample-project --dry-run || true
+    if docker ps | grep -q "mcp-git-proxy"; then
+        echo -e "  ${GREEN}✓${NC} MCP Git Proxy is running"
     else
-        echo -e "  ${YELLOW}⚠${NC} MCP Skills Server not running (run deploy.sh first)"
+        echo -e "  ${RED}✗ MCP Git Proxy is not running${NC}"
+        return 1
+    fi
+
+    docker-compose run --rm llm-agent python agent_git2mcp.py \
+      --repo test/sample-project \
+      --source-path /host-repos/test/sample-project \
+      --branch main \
+      --execute \
+      --test-command "python -m compileall -q ." > /tmp/git2mcp-test.log
+
+    if grep -q '"status": "analysis_complete"' /tmp/git2mcp-test.log; then
+        echo -e "  ${GREEN}✓${NC} git2mcp workflow finished with analysis_complete"
+    else
+        echo -e "  ${RED}✗ git2mcp workflow did not complete successfully${NC}"
+        cat /tmp/git2mcp-test.log
+        return 1
     fi
 }
 
@@ -167,7 +201,7 @@ main() {
     test_python_syntax
     test_docker
     test_repo_setup
-    test_mcp_skills
+    test_git2mcp_workflow
 
     echo ""
     echo "=========================================="

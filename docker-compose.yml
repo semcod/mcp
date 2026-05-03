@@ -1,14 +1,34 @@
-version: '3.8'
-
 services:
+  # MCP Git Proxy - izolacja operacji git i cache repozytoriów
+  mcp-git-proxy:
+    build:
+      context: .
+      dockerfile: mcp-git-proxy/Dockerfile
+    container_name: mcp-git-proxy
+    environment:
+      - GIT_PROXY_REPO_ROOT=/git-repos
+      - GIT_PROXY_CACHE_ROOT=/git-cache
+    volumes:
+      - git-repo-storage:/git-repos
+      - git-cache-storage:/git-cache
+      - ./repos:/host-repos:ro
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
+    networks:
+      - mcp-network
+
   # MCP Skills Server - Analiza kodu i metryki
   mcp-skills:
     build: ./mcp-skills
     container_name: mcp-skills-server
     environment:
       - PYTHONUNBUFFERED=1
+      - SKILLS_REPO_BASE=/skills-cache
+      - GIT_PROXY_URL=http://mcp-git-proxy:8080
     volumes:
-      - ./repos:/repos:ro
+      - git-repo-storage:/git-repos:ro
+      - skills-cache:/skills-cache
       - ./mcp-skills/server.py:/app/server.py:ro
     ports:
       - "8082:8080"
@@ -18,6 +38,8 @@ services:
       timeout: 10s
       retries: 3
     restart: unless-stopped
+    depends_on:
+      - mcp-git-proxy
     networks:
       - mcp-network
 
@@ -26,16 +48,23 @@ services:
     build: ./llm-agent
     container_name: llm-agent
     environment:
-      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openrouter-lite}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-openrouter/x-ai/grok-code-fast-1}
       - OLLAMA_HOST=${OLLAMA_HOST:-http://localhost:11434}
       - GITHUB_PAT=${GITHUB_PAT:-}
+      - GIT_PROXY_URL=http://mcp-git-proxy:8080
     volumes:
-      - ./repos:/repos:ro
+      - ./repos:/host-repos:ro
       - ./output:/output
+      - skills-cache:/skills-cache
+      - ./git2mcp:/app/git2mcp:ro
       - ./llm-agent/agent.py:/app/agent.py:ro
       - ./llm-agent/agent_standalone.py:/app/agent_standalone.py:ro
+      - ./llm-agent/agent_git2mcp.py:/app/agent_git2mcp.py:ro
     depends_on:
+      - mcp-git-proxy
       - mcp-skills
     networks:
       - mcp-network
@@ -69,6 +98,7 @@ services:
     ports:
       - "8085:8080"
     depends_on:
+      - mcp-git-proxy
       - mcp-skills
     restart: unless-stopped
     networks:
@@ -95,3 +125,6 @@ networks:
 
 volumes:
   ollama-data:
+  git-repo-storage:
+  git-cache-storage:
+  skills-cache:

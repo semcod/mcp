@@ -1,25 +1,48 @@
 # Autonomiczny Agent Refaktoryzacji MCP
 
+
+## AI Cost Tracking
+
+![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$0.30-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-2.0h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+
+- 🤖 **LLM usage:** $0.3000 (2 commits)
+- 👤 **Human dev:** ~$200 (2.0h @ $100/h, 30min dedup)
+
+Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
+
+---
+
+
+
 System autonomicznej refaktoryzacji kodu oparty na Model Context Protocol (MCP), integrujący:
-- **MCP Skills Server** - analiza kodu i metryki
-- **MCP Git Server** - operacje na repozytoriach
-- **LLM Agent** - podejmowanie decyzji refaktoryzacyjnych
+- **MCP Git Proxy** - izolowany serwis git z osobnym volume i API do sync/commit/test/push
+- **MCP Skills Server** - analiza kodu i metryki na cache repozytoriów
+- **LLM Agent (`git2mcp`)** - planowanie refaktoryzacji i commitowanie zmian przez proxy git
 
 ## Architektura
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  LLM Agent  │────▶│ MCP Skills  │     │  MCP Git    │
-│             │◀────│  Server     │     │  Server     │
+│  LLM Agent  │────▶│ MCP Skills  │◀────│ MCP Git     │
+│ (git2mcp)   │     │  Server     │     │ Proxy       │
 └─────────────┘     └─────────────┘     └─────────────┘
       │
       ▼
 ┌─────────────┐
 │  LLM API    │
-│ (OpenAI/    │
-│  Ollama)    │
+│ (OpenRouter │
+│  lite/model)│
 └─────────────┘
 ```
+
+### Jak działa separacja Git ↔ Skills
+
+1. `mcp-git-proxy` zarządza wieloma repozytoriami (`team/repo-a`, `team/repo-b`, ...), klonuje je i utrzymuje historię git.
+2. `git2mcp` eksportuje repo jako paczkę (`tar.gz + base64`) przez endpoint `/packages/export`.
+3. `mcp-skills` synchronizuje paczkę do własnego cache (`/skills-cache`) narzędziem `sync_repo_from_git_proxy`.
+4. `llm-agent` analizuje cache, tworzy plan i zapisuje zmiany jako commit przez API proxy (bez ręcznej edycji przez shell).
+5. Commit można lokalnie przetestować (`/run-tests`) i dopiero potem wypchnąć (`/push`).
 
 ## Szybki Start
 
@@ -68,6 +91,17 @@ docker-compose run --rm llm-agent python agent.py \
 ├── .env.example                # Przykładowa konfiguracja
 ├── README.md                   # Dokumentacja
 │
+├── mcp-git-proxy/              # MCP Git Proxy service
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── server.py
+│
+├── git2mcp/                    # Pakiet python do sync/commit przez MCP
+│   ├── __init__.py
+│   ├── client.py
+│   ├── proxy.py
+│   └── pyproject.toml
+│
 ├── mcp-skills/                 # MCP Skills Server
 │   ├── Dockerfile
 │   ├── requirements.txt
@@ -77,7 +111,8 @@ docker-compose run --rm llm-agent python agent.py \
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   ├── agent.py                # Logika agenta LLM
-│   └── agent_standalone.py     # Wersja standalone
+│   ├── agent_standalone.py     # Wersja standalone
+│   └── agent_git2mcp.py        # Workflow commit/test/push przez git2mcp
 │
 ├── dashboard/                  # Wizualizacja wyników
 │   ├── Dockerfile
@@ -88,7 +123,7 @@ docker-compose run --rm llm-agent python agent.py \
 │   ├── deploy.sh               # Deployment
 │   └── test.sh                 # Testy
 │
-├── repos/                      # Sklonowane repozytoria (volume)
+├── repos/                      # Repo hosta (read-only mount)
 └── output/                     # Wyniki analizy (volume)
 ```
 
@@ -121,6 +156,25 @@ Rekomendacje refaktoryzacji:
 - Sugestie podziału plików
 - Sugestie organizacji kodu
 
+### sync_repo_from_git_proxy
+Synchronizacja repozytorium z izolowanego `mcp-git-proxy` do cache skills:
+- import paczki repo (`tar.gz + base64`)
+- odświeżanie lokalnego cache `/skills-cache/<repo_id>`
+- analiza na spójnej wersji kodu
+
+## git2mcp - paczka proxy
+
+`git2mcp` dostarcza dwa komponenty:
+- `GitProxyManager` (serwer) — sync repo, export paczek, commit/test/push
+- `Git2MCPClient` (agent) — API client używany przez `llm-agent`
+
+Najważniejsze endpointy `mcp-git-proxy`:
+- `POST /repos/sync` - klonowanie/pull repo do izolowanego volume
+- `POST /packages/export` - eksport pełnego repo do paczki
+- `POST /repos/{repo_id}/commit` - commit zmian przesłanych jako payload
+- `POST /repos/{repo_id}/run-tests` - test commitu przed pushem
+- `POST /repos/{repo_id}/push` - push po pozytywnych testach
+
 ## Przykłady Użycia
 
 ### Analiza lokalnego repozytorium
@@ -131,9 +185,10 @@ mkdir -p repos/my-project
 cp -r /path/to/code/* repos/my-project/
 
 # Uruchom analizę
-docker-compose run --rm llm-agent python agent.py \
-  --repo my-project \
-  --dry-run
+docker-compose run --rm llm-agent python agent_git2mcp.py \
+  --repo test/sample-project \
+  --source-path /host-repos/test/sample-project \
+  --branch main
 ```
 
 ### Użycie z OpenAI
@@ -164,13 +219,28 @@ docker-compose run --rm llm-agent python agent.py \
   --llm ollama
 ```
 
+### Użycie z lokalnym OpenRouter Lite
+
+```bash
+# LLM Provider: openrouter-lite, mock, openai, ollama
+# LLM_PROVIDER=openrouter-lite
+# OPENROUTER_API_KEY=...
+# LLM_MODEL=openrouter/x-ai/grok-code-fast-1
+
+docker-compose run --rm llm-agent python agent.py \
+  --repo my-project \
+  --llm openrouter-lite
+```
+
 ## Workflow Autonomicznej Refaktoryzacji
 
-1. **Analiza** - Agent pobiera metryki i wykrywa problemy
-2. **Planowanie** - LLM generuje plan refaktoryzacji
-3. **Weryfikacja** - Plan jest weryfikowany pod kątem ryzyka
-4. **Wykonanie** (opcjonalnie) - Zmiany są aplikowane przez MCP Git
-5. **Walidacja** - Testy weryfikują poprawność zmian
+1. **Sync Git** - `mcp-git-proxy` pobiera/aktualizuje repo do własnego volume.
+2. **Cache Skills** - `git2mcp` eksportuje paczkę repo i odświeża cache w skills.
+3. **Analiza** - agent liczy metryki i wykrywa wzorce.
+4. **Planowanie** - lite LLM generuje plan refaktoryzacji.
+5. **Commit via MCP** - zmiany idą jako payload do `/commit`, bez ręcznej edycji plików przez shell.
+6. **Test lokalny** - `/run-tests` w izolowanym repo git proxy.
+7. **Push (opcjonalny)** - tylko po przejściu testów.
 
 ## Dashboard - Wizualizacja Wyników
 
@@ -203,9 +273,10 @@ docker-compose up -d dashboard
 
 ```bash
 # Wygeneruj analizę
-docker-compose run --rm llm-agent python agent_standalone.py \
-  --repo my-project \
-  --dry-run
+docker-compose run --rm llm-agent python agent_git2mcp.py \
+  --repo test/sample-project \
+  --source-path /host-repos/test/sample-project \
+  --execute
 
 # Otwórz dashboard w przeglądarce
 open http://localhost:8085
@@ -223,7 +294,7 @@ xdg-open http://localhost:8085
 ls -la repos/ output/
 
 # Sprawdź logi
-docker-compose logs -f mcp-skills
+docker-compose logs -f mcp-git-proxy mcp-skills
 ```
 
 ## Rozwój
@@ -236,12 +307,12 @@ pip install -r requirements.txt
 python server.py
 ```
 
-### Lokalne uruchomienie agenta
+### Lokalne uruchomienie agenta git2mcp
 
 ```bash
 cd llm-agent
 pip install -r requirements.txt
-python agent.py --repo test/project --dry-run
+PYTHONPATH=.. python agent_git2mcp.py --repo test/sample-project --source-path ../repos/test/sample-project
 ```
 
 ## Dokumentacja MCP

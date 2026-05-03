@@ -1,0 +1,176 @@
+from __future__ import annotations
+
+import base64
+import io
+import shutil
+import tarfile
+from pathlib import Path
+
+from git import Repo, Actor
+
+
+class GitProxyManager:
+    def __init__(self, base_dir: str = "/git-repos", cache_dir: str = "/git-cache"):
+        self.base_dir = Path(base_dir)
+        self.cache_dir = Path(cache_dir)
+        self.base_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+
+    def _repo_path(self, repo_id: str) -> Path:
+        return self.base_dir / repo_id
+
+    def _ensure_parent(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+    def list_repos(self) -> list[dict]:
+        repos = []
+        for dot_git in self.base_dir.glob("**/.git"):
+            repo_root = dot_git.parent
+            rel = repo_root.relative_to(self.base_dir)
+            repo = Repo(repo_root)
+            repos.append(
+                {
+                    "repo_id": str(rel),
+                    "path": str(repo_root),
+                    "active_branch": repo.active_branch.name if not repo.head.is_detached else "DETACHED",
+                    "last_commit": repo.head.commit.hexsha,
+                }
+            )
+        return repos
+
+    def sync_repo(
+        self,
+        repo_id: str,
+        repo_url: str | None = None,
+        source_path: str | None = None,
+        branch: str = "main",
+    ) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if repo_path.exists() and (repo_path / ".git").exists():
+            repo = Repo(repo_path)
+            repo.git.fetch("--all")
+            try:
+                repo.git.checkout(branch)
+            except Exception:
+                pass
+            try:
+                repo.git.pull("origin", branch)
+            except Exception:
+                pass
+        elif source_path:
+            source = Path(source_path)
+            if not source.exists():
+                raise FileNotFoundError(f"Source path does not exist: {source_path}")
+            repo_path.parent.mkdir(parents=True, exist_ok=True)
+            if repo_path.exists():
+                shutil.rmtree(repo_path)
+            if (source / ".git").exists():
+                Repo.clone_from(str(source.resolve()), str(repo_path))
+                repo = Repo(repo_path)
+            else:
+                shutil.copytree(source, repo_path)
+                repo = Repo.init(repo_path)
+                repo.git.checkout("-b", branch)
+                repo.git.add(all=True)
+                if repo.is_dirty(untracked_files=True):
+                    actor = Actor("git2mcp-bot", "git2mcp@local")
+                    repo.index.commit("Initial import from source_path", author=actor, committer=actor)
+
+            try:
+                repo.git.checkout(branch)
+            except Exception:
+                pass
+        elif repo_url:
+            repo_path.parent.mkdir(parents=True, exist_ok=True)
+            Repo.clone_from(repo_url, str(repo_path), branch=branch)
+            repo = Repo(repo_path)
+        else:
+            raise ValueError("Either repo_url or source_path must be provided")
+
+        return {
+            "repo_id": repo_id,
+            "path": str(repo_path),
+            "head": repo.head.commit.hexsha,
+        }
+
+    def export_package(self, repo_id: str, ref: str = "HEAD") -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+
+        repo = Repo(repo_path)
+        commit = repo.commit(ref)
+        tree = commit.tree
+
+        tar_buffer = io.BytesIO()
+        with tarfile.open(fileobj=tar_buffer, mode="w:gz") as tar:
+            for blob in tree.traverse():
+                if blob.type != "blob":
+                    continue
+                if "/.git/" in blob.path or blob.path.startswith(".git/"):
+                    continue
+                data = blob.data_stream.read()
+                tar_info = tarfile.TarInfo(name=blob.path)
+                tar_info.size = len(data)
+                tar.addfile(tarinfo=tar_info, fileobj=io.BytesIO(data))
+
+        encoded = base64.b64encode(tar_buffer.getvalue()).decode("utf-8")
+        return {
+            "repo_id": repo_id,
+            "ref": commit.hexsha,
+            "archive_b64": encoded,
+            "encoding": "base64+tar.gz",
+        }
+
+    def commit_changes(
+        self,
+        repo_id: str,
+        message: str,
+        changes: list[dict],
+        author_name: str,
+        author_email: str,
+    ) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+
+        repo = Repo(repo_path)
+        for change in changes:
+            path = change["path"]
+            content = change.get("content", "")
+            mode = change.get("mode", "update")
+            absolute = repo_path / path
+            self._ensure_parent(absolute)
+
+            if mode == "delete":
+                if absolute.exists():
+                    absolute.unlink()
+                repo.index.remove([path], working_tree=True, ignore_unmatch=True)
+                continue
+
+            absolute.write_text(content, encoding="utf-8")
+            repo.index.add([path])
+
+        actor = Actor(author_name, author_email)
+        commit = repo.index.commit(message, author=actor, committer=actor)
+        return {
+            "repo_id": repo_id,
+            "commit": commit.hexsha,
+            "message": message,
+        }
+
+    def push(self, repo_id: str, remote: str = "origin", branch: str | None = None) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+
+        repo = Repo(repo_path)
+        if branch is None:
+            branch = repo.active_branch.name
+        result = repo.remote(remote).push(branch)
+        return {
+            "repo_id": repo_id,
+            "remote": remote,
+            "branch": branch,
+            "result": [str(r) for r in result],
+        }
