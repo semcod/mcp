@@ -51,7 +51,11 @@ kill-ports:
 	done
 
 start: kill-ports
+	@GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \
+	if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \
 	$(COMPOSE) $(PROFILES) build
+	@GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \
+	if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \
 	$(COMPOSE) $(PROFILES) up -d
 	@$(MAKE) smoke
 	@echo ""

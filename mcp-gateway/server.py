@@ -124,11 +124,81 @@ def parse_bool(value: str | None, default: bool = False) -> bool:
     return default
 
 
+TOKEN_INLINE_REGEX = re.compile(r"(gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)", re.IGNORECASE)
+
+
 def _normalize_command_text(text: str) -> str:
     cleaned = text.replace("*", " ")
     cleaned = re.sub(r"[^\w\sąćęłńóśźżĄĆĘŁŃÓŚŹŻ]", " ", cleaned, flags=re.UNICODE)
     cleaned = re.sub(r"\s+", " ", cleaned, flags=re.UNICODE).strip().lower()
     return cleaned
+
+
+def _extract_github_token_from_text(user_msg: str) -> str | None:
+    match = TOKEN_INLINE_REGEX.search(user_msg)
+    if match:
+        return match.group(1)
+    return None
+
+
+def _is_github_token_save_command(user_msg: str, prompt_ctx: dict[str, str]) -> bool:
+    normalized = _normalize_command_text(user_msg)
+    if not normalized:
+        return False
+
+    words = set(normalized.split())
+    has_token_word = "token" in words
+    has_gh_word = "github" in words or "gh" in words or "gihutb" in words
+    has_save_intent = (
+        "zapisz" in words
+        or "save" in words
+        or "zapisanie" in words
+        or "set" in words
+        or "env" in words
+        or ".env" in user_msg.lower()
+    )
+
+    explicit_token_value = bool(prompt_ctx.get("github_token") or _extract_github_token_from_text(user_msg))
+    if has_save_intent and has_token_word and has_gh_word:
+        return True
+    if explicit_token_value and has_save_intent:
+        return True
+    return False
+
+
+def _extract_org_from_text(user_msg: str, prompt_ctx: dict[str, str]) -> str | None:
+    if prompt_ctx.get("repo_url") and "/" in prompt_ctx["repo_url"]:
+        owner = prompt_ctx["repo_url"].split("/", 1)[0].strip()
+        if owner and owner not in {"https:", "http:"}:
+            return owner
+
+    patterns = [
+        r"(?:organizacj[aeęi]\s*[:=]?\s*)([A-Za-z0-9_.-]+)",
+        r"(?:org\s*[:=]?\s*)([A-Za-z0-9_.-]+)",
+        r"(?:organization\s*[:=]?\s*)([A-Za-z0-9_.-]+)",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, user_msg, flags=re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
+    return None
+
+
+def _is_org_set_command(user_msg: str) -> bool:
+    normalized = _normalize_command_text(user_msg)
+    words = set(normalized.split())
+    has_org = "organizacji" in words or "organizacja" in words or "org" in words or "organization" in words
+    has_set = "ustaw" in words or "zmien" in words or "zmień" in words or "set" in words or "change" in words
+    return has_org and has_set
+
+
+def _is_org_list_command(user_msg: str) -> bool:
+    normalized = _normalize_command_text(user_msg)
+    words = set(normalized.split())
+    has_org = "organizacji" in words or "organizacje" in words or "org" in words or "organization" in words
+    has_repo = "repo" in words or "repozytoriow" in words or "repozytoriów" in words or "repositories" in words
+    has_list = "pokaz" in words or "pokaż" in words or "lista" in words or "wylistuj" in words or "list" in words
+    return has_org and has_list and (has_repo or "wszystkich" in words or "all" in words)
 
 
 def _is_github_token_sync_command(user_msg: str, prompt_ctx: dict[str, str]) -> bool:
@@ -189,9 +259,19 @@ async def _sync_github_token_via_gh2mcp() -> dict[str, Any]:
         status_response = await client.get(f"{GH2MCP_URL}/status")
         status_data = await _expect_json(status_response, "gh2mcp status")
 
+    success = bool(sync_data.get("success"))
+    if success:
+        note = "Token synchronized via gh2mcp-agent (/sync/token) and saved to /app/.env for MCP services."
+    else:
+        note = (
+            "Token sync via gh2mcp-agent failed; current token status is shown from /status. "
+            "Run 'gh auth login' on host and restart stack with 'make restart'."
+        )
+
     return {
         "action": "sync-github-token-from-gh-cli",
-        "success": bool(sync_data.get("success")),
+        "success": success,
+        "method": "gh auth token",
         "source": sync_data.get("source"),
         "error": sync_data.get("error"),
         "github": {
@@ -199,8 +279,94 @@ async def _sync_github_token_via_gh2mcp() -> dict[str, Any]:
             "token_hint": status_data.get("token_hint"),
             "user": status_data.get("user"),
         },
-        "note": "Token synchronized via gh2mcp-agent (/sync/token) and saved to /app/.env for MCP services.",
+        "note": note,
     }
+
+
+async def _set_default_org_via_gh2mcp(org: str | None) -> dict[str, Any]:
+    if not GH2MCP_URL:
+        raise ValueError("GH2MCP_URL is not configured")
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        response = await client.post(
+            f"{GH2MCP_URL}/org/set",
+            json={"org": org},
+        )
+        data = await _expect_json(response, "gh2mcp set org")
+
+    return {
+        "action": "set-default-github-org",
+        "success": bool(data.get("success")),
+        "org": data.get("org"),
+        "error": data.get("error"),
+        "note": data.get("note") or "Default org updated via gh2mcp/env2mcp.",
+    }
+
+
+async def _list_orgs_via_gh2mcp(repos_limit: int = 30) -> dict[str, Any]:
+    if not GH2MCP_URL:
+        raise ValueError("GH2MCP_URL is not configured")
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            f"{GH2MCP_URL}/org/list",
+            json={"repos_limit": repos_limit},
+        )
+        data = await _expect_json(response, "gh2mcp list orgs")
+
+    return {
+        "action": "list-github-orgs-and-repos",
+        "success": bool(data.get("success")),
+        "error": data.get("error"),
+        "user": data.get("user"),
+        "org_count": data.get("org_count"),
+        "orgs": data.get("orgs", []),
+        "note": "Organizations and repositories listed via gh2mcp (gh CLI).",
+    }
+
+
+def _save_github_token_via_env2mcp(user_msg: str, prompt_ctx: dict[str, str]) -> dict[str, Any]:
+    token = prompt_ctx.get("github_token") or _extract_github_token_from_text(user_msg)
+    if not token:
+        return {
+            "action": "save-github-token-to-env",
+            "success": False,
+            "error": "No token value found. Use: 'Zapisz token github do .env: ghp_xxx'",
+            "github": {
+                "configured": False,
+                "token_hint": None,
+                "user": None,
+            },
+            "note": "Provide a GitHub token value in the command.",
+        }
+
+    try:
+        saved = _save_github_token(token)
+        return {
+            "action": "save-github-token-to-env",
+            "success": True,
+            "method": "env2mcp.EnvConfig",
+            "error": None,
+            "github": {
+                "configured": True,
+                "token_hint": token[:8] + "...",
+                "user": saved.get("github_user"),
+                "env_file": saved.get("env_file"),
+            },
+            "note": "Token saved via env2mcp to .env as GITHUB_PAT.",
+        }
+    except Exception as exc:
+        return {
+            "action": "save-github-token-to-env",
+            "success": False,
+            "error": str(exc),
+            "github": {
+                "configured": False,
+                "token_hint": None,
+                "user": None,
+            },
+            "note": "env2mcp could not save token to .env.",
+        }
 
 
 def _load_env_file_values(env_path: Path) -> dict[str, str]:
@@ -589,7 +755,10 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
         "",
     )
     prompt_ctx = parse_prompt_context(user_msg)
+    token_save_command = _is_github_token_save_command(user_msg, prompt_ctx)
     token_sync_command = _is_github_token_sync_command(user_msg, prompt_ctx)
+    org_set_command = _is_org_set_command(user_msg)
+    org_list_command = _is_org_list_command(user_msg)
 
     tenant_id = tenant["tenant_id"]
     repo_id = req.repo_id or prompt_ctx.get("repo_id") or f"{tenant_id}/default"
@@ -613,6 +782,37 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     push_remote = req.remote or prompt_ctx.get("remote") or "origin"
 
     async def runner() -> dict:
+        if org_set_command:
+            org_value = _extract_org_from_text(user_msg, prompt_ctx)
+            result = await _set_default_org_via_gh2mcp(org_value)
+            return {
+                "skill": "system",
+                "tenant": tenant["tenant_id"],
+                "repo_id": None,
+                "user_request": user_request,
+                "github": result,
+            }
+
+        if org_list_command:
+            result = await _list_orgs_via_gh2mcp(repos_limit=30)
+            return {
+                "skill": "system",
+                "tenant": tenant["tenant_id"],
+                "repo_id": None,
+                "user_request": user_request,
+                "github": result,
+            }
+
+        if token_save_command:
+            result = _save_github_token_via_env2mcp(user_msg, prompt_ctx)
+            return {
+                "skill": "system",
+                "tenant": tenant["tenant_id"],
+                "repo_id": None,
+                "user_request": user_request,
+                "github": result,
+            }
+
         if token_sync_command:
             try:
                 result = await _sync_github_token_via_gh2mcp()

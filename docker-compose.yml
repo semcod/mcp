@@ -34,6 +34,7 @@ services:
       - GH2MCP_ENV_FILE=/app/.env
       - GH2MCP_SYNC_ON_START=${GH2MCP_SYNC_ON_START:-true}
       - GH2MCP_SYNC_INTERVAL=${GH2MCP_SYNC_INTERVAL:-0}
+      - GH_TOKEN=${GH_TOKEN:-}
       - GITHUB_PAT=${GITHUB_PAT:-}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
     volumes:

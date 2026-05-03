@@ -22,6 +22,14 @@ class SyncTokenRequest(BaseModel):
     include_token: bool = False
 
 
+class SetOrgRequest(BaseModel):
+    org: str | None = None
+
+
+class ListOrgsRequest(BaseModel):
+    repos_limit: int = 30
+
+
 _sync_task: asyncio.Task | None = None
 
 
@@ -65,3 +73,13 @@ def sync_token(payload: SyncTokenRequest) -> dict:
         force_gh_cli=payload.force_gh_cli,
         include_token=payload.include_token,
     )
+
+
+@app.post("/org/set")
+def set_org(payload: SetOrgRequest) -> dict:
+    return service.set_org(org=payload.org)
+
+
+@app.post("/org/list")
+def list_orgs(payload: ListOrgsRequest) -> dict:
+    return service.list_orgs_and_repos(repos_limit=payload.repos_limit)

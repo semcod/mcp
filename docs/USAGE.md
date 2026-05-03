@@ -479,6 +479,10 @@ Zaktualizuj token GitHub z gh CLI
 Wtedy `mcp-gateway` rozpozna intencję i wywoła `gh2mcp-agent /sync/token`
 zamiast uruchamiać workflow refactor/analyze dla repo.
 
+Oddzielne komendy systemowe (chat / OpenWebUI):
+- `Pobierz token github` → pobranie przez `gh2mcp` (`gh auth token`) i sync do `.env`.
+- `Zapisz token github do .env: ghp_xxx...` → bezpośredni zapis przez `env2mcp` (`EnvConfig`) do `GITHUB_PAT`.
+
 Token jest zapisywany do `.env` (`/app/.env` w kontenerach), z którego korzystają
 inne usługi stacku, m.in. `mcp-gateway`, `mcp-webui` oraz workflow LLM (`llm-agent`).
 
@@ -486,6 +490,10 @@ Przy tym trybie:
 - **pobranie** tokenu jest wymuszane przez `gh2mcp` z `gh auth token` (`force_gh_cli=true`),
 - **zapis** tokenu odbywa się przez `env2mcp` (`EnvConfig`) do pliku
   `/home/tom/github/semcod/mcp/.env` (w kontenerach widocznego jako `/app/.env`).
+
+W praktyce Docker:
+- `make start` próbuje pobrać `GH_TOKEN` z hostowego `gh auth token` i przekazuje go do `gh2mcp-agent`,
+- dzięki temu `gh auth token` w kontenerze zwraca aktualny token, nawet jeśli hostowy `gh` używa keyring.
 
 ### Jak czytać wynik JSON
 
