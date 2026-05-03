@@ -121,6 +121,111 @@ class GitHubTokenSyncService:
             "orgs": orgs,
         }
 
+    def get_last_pushed_repo(self, owner: str | None = None, limit: int = 100) -> dict:
+        gh = GitHubCLI()
+        if not gh.is_available():
+            return {
+                "success": False,
+                "error": "gh CLI not available",
+                "owner": None,
+                "repo": None,
+            }
+
+        cfg = EnvConfig(self.env_path)
+        resolved_owner = (owner or "").strip()
+        if not resolved_owner:
+            resolved_owner = (cfg.get("GITHUB_ORG") or "").strip()
+        if not resolved_owner:
+            resolved_owner = (cfg.get("GITHUB_USER") or "").strip()
+        if not resolved_owner:
+            resolved_owner = (gh.get_user() or "").strip()
+
+        if not resolved_owner:
+            return {
+                "success": False,
+                "error": "Unable to resolve GitHub owner (set GITHUB_ORG or pass owner)",
+                "owner": None,
+                "repo": None,
+            }
+
+        try:
+            safe_limit = int(limit)
+        except Exception:
+            safe_limit = 100
+        safe_limit = max(1, min(safe_limit, 500))
+
+        try:
+            proc = subprocess.run(
+                [
+                    "gh",
+                    "repo",
+                    "list",
+                    resolved_owner,
+                    "-L",
+                    str(safe_limit),
+                    "--json",
+                    "nameWithOwner,pushedAt,url",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        except Exception as exc:
+            return {
+                "success": False,
+                "error": f"gh repo list failed: {exc}",
+                "owner": resolved_owner,
+                "repo": None,
+            }
+
+        if proc.returncode != 0:
+            error_text = (proc.stderr or proc.stdout or "gh repo list failed").strip()
+            return {
+                "success": False,
+                "error": error_text,
+                "owner": resolved_owner,
+                "repo": None,
+            }
+
+        try:
+            repos = json.loads(proc.stdout) if proc.stdout.strip() else []
+        except Exception:
+            repos = []
+
+        if not repos:
+            return {
+                "success": False,
+                "error": "No repositories found for owner",
+                "owner": resolved_owner,
+                "repo": None,
+            }
+
+        valid_repos = [
+            item
+            for item in repos
+            if isinstance(item, dict) and item.get("nameWithOwner")
+        ]
+        valid_repos.sort(key=lambda item: item.get("pushedAt") or "", reverse=True)
+
+        if not valid_repos:
+            return {
+                "success": False,
+                "error": "No repositories with usable metadata",
+                "owner": resolved_owner,
+                "repo": None,
+            }
+
+        top = valid_repos[0]
+        return {
+            "success": True,
+            "owner": resolved_owner,
+            "repo": top.get("nameWithOwner"),
+            "repo_url": top.get("url"),
+            "pushed_at": top.get("pushedAt"),
+            "candidate_count": len(valid_repos),
+            "source": "gh_cli",
+        }
+
     def sync_token(self, force_gh_cli: bool = False, include_token: bool = False) -> dict:
         cfg = EnvConfig(self.env_path)
 

@@ -28,6 +28,16 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 try:
+    from redis import Redis
+    from rq import Queue
+
+    RQ_AVAILABLE = True
+except Exception:
+    Redis = None
+    Queue = None
+    RQ_AVAILABLE = False
+
+try:
     from env2mcp import EnvConfig, GitHubCLI
 
     ENV2MCP_AVAILABLE = True
@@ -46,6 +56,18 @@ MCP_ENV_FILE = Path(os.getenv("MCP_ENV_FILE", "/app/.env"))
 GITHUB_PAT = os.getenv("GITHUB_PAT", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 GITHUB_API_URL = os.getenv("GITHUB_API_URL", "https://api.github.com")
+MCP_ASYNC_ENABLED = os.getenv("MCP_ASYNC_ENABLED", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "y",
+    "tak",
+    "on",
+}
+REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+RQ_QUEUE_NAME = os.getenv("RQ_QUEUE_NAME", "mcp-jobs")
+JOB_POLL_INTERVAL_SECONDS = 1.0
+JOB_TTL_SECONDS = 86400
 
 
 def load_tenants() -> dict[str, dict]:
@@ -125,6 +147,7 @@ def parse_bool(value: str | None, default: bool = False) -> bool:
 
 
 TOKEN_INLINE_REGEX = re.compile(r"(gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)", re.IGNORECASE)
+REPO_TEMPLATE_REGEX = re.compile(r"^\s*\{\{\s*(.+?)\s*\}\}\s*$")
 
 
 def _normalize_command_text(text: str) -> str:
@@ -138,6 +161,44 @@ def _extract_github_token_from_text(user_msg: str) -> str | None:
     match = TOKEN_INLINE_REGEX.search(user_msg)
     if match:
         return match.group(1)
+    return None
+
+
+def _extract_repo_template_expression(repo_value: str | None) -> str | None:
+    if not repo_value:
+        return None
+    match = REPO_TEMPLATE_REGEX.match(repo_value)
+    if not match:
+        return None
+    return match.group(1).strip()
+
+
+def _is_last_pushed_repo_template(expression: str | None) -> bool:
+    if not expression:
+        return False
+    normalized = _normalize_command_text(expression)
+    if not normalized:
+        return False
+
+    words = set(normalized.split())
+    has_repo = "repo" in words or "repozytorium" in words or "repozytorium" in words
+    has_last = "last" in words or "ostatnio" in words or "ostatnie" in words or "najnowsze" in words
+    has_push = "push" in words or "pushed" in words or "wypchniete" in words or "wypchnięte" in words
+    has_github = "github" in words or "gh" in words
+    return has_repo and has_last and has_push and has_github
+
+
+def _extract_owner_from_repo_template(expression: str | None) -> str | None:
+    if not expression:
+        return None
+    patterns = [
+        r"(?:owner|org|organization|organizacja)\s*[:=]\s*([A-Za-z0-9_.-]+)",
+        r"github\s+([A-Za-z0-9_.-]+)$",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, expression, flags=re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
     return None
 
 
@@ -167,27 +228,56 @@ def _is_github_token_save_command(user_msg: str, prompt_ctx: dict[str, str]) -> 
 
 
 def _extract_org_from_text(user_msg: str, prompt_ctx: dict[str, str]) -> str | None:
-    if prompt_ctx.get("repo_url") and "/" in prompt_ctx["repo_url"]:
-        owner = prompt_ctx["repo_url"].split("/", 1)[0].strip()
-        if owner and owner not in {"https:", "http:"}:
-            return owner
+    repo_url = prompt_ctx.get("repo_url")
+    if repo_url:
+        normalized_repo = _normalize_repo_url(repo_url)
+        github_repo = _github_repo_from_url(normalized_repo)
+        if github_repo:
+            return github_repo[0]
+        if "/" in repo_url:
+            owner = repo_url.split("/", 1)[0].strip()
+            if owner and owner not in {"https:", "http:"}:
+                return owner
 
     patterns = [
-        r"(?:organizacj[aeęi]\s*[:=]?\s*)([A-Za-z0-9_.-]+)",
-        r"(?:org\s*[:=]?\s*)([A-Za-z0-9_.-]+)",
-        r"(?:organization\s*[:=]?\s*)([A-Za-z0-9_.-]+)",
+        r"(?:organizacj\w*\s+(?:github\s*[:=]?\s*)?(?:na\s+|to\s+)?)([A-Za-z0-9_.-]+)",
+        r"(?:organizacj\w*\s*[:=]\s*)([A-Za-z0-9_.-]+)",
+        r"(?:org(?:anization|s)?\s+(?:to\s+)?)([A-Za-z0-9_.-]+)",
+        r"(?:org(?:anization)?\s*[:=]\s*)([A-Za-z0-9_.-]+)",
     ]
+    blocked = {
+        "github",
+        "org",
+        "orgs",
+        "organization",
+        "organizations",
+        "organizacja",
+        "organizacje",
+        "na",
+        "to",
+    }
     for pattern in patterns:
         match = re.search(pattern, user_msg, flags=re.IGNORECASE)
         if match:
-            return match.group(1).strip()
+            value = match.group(1).strip()
+            if value.lower() in blocked:
+                continue
+            return value
     return None
 
 
 def _is_org_set_command(user_msg: str) -> bool:
     normalized = _normalize_command_text(user_msg)
     words = set(normalized.split())
-    has_org = "organizacji" in words or "organizacja" in words or "org" in words or "organization" in words
+    has_org = any(word.startswith("organizac") for word in words) or any(
+        token in words
+        for token in {
+            "org",
+            "orgs",
+            "organization",
+            "organizations",
+        }
+    )
     has_set = "ustaw" in words or "zmien" in words or "zmień" in words or "set" in words or "change" in words
     return has_org and has_set
 
@@ -195,8 +285,27 @@ def _is_org_set_command(user_msg: str) -> bool:
 def _is_org_list_command(user_msg: str) -> bool:
     normalized = _normalize_command_text(user_msg)
     words = set(normalized.split())
-    has_org = "organizacji" in words or "organizacje" in words or "org" in words or "organization" in words
-    has_repo = "repo" in words or "repozytoriow" in words or "repozytoriów" in words or "repositories" in words
+    has_org = any(word.startswith("organizac") for word in words) or any(
+        token in words
+        for token in {
+            "org",
+            "orgs",
+            "organization",
+            "organizations",
+        }
+    )
+    has_repo = any(
+        token in words
+        for token in {
+            "repo",
+            "repos",
+            "repozytorium",
+            "repozytoria",
+            "repozytoriow",
+            "repozytoriów",
+            "repositories",
+        }
+    )
     has_list = "pokaz" in words or "pokaż" in words or "lista" in words or "wylistuj" in words or "list" in words
     return has_org and has_list and (has_repo or "wszystkich" in words or "all" in words)
 
@@ -323,6 +432,58 @@ async def _list_orgs_via_gh2mcp(repos_limit: int = 30) -> dict[str, Any]:
         "orgs": data.get("orgs", []),
         "note": "Organizations and repositories listed via gh2mcp (gh CLI).",
     }
+
+
+async def _last_pushed_repo_via_gh2mcp(owner: str | None = None, limit: int = 100) -> dict[str, Any]:
+    if not GH2MCP_URL:
+        raise ValueError("GH2MCP_URL is not configured")
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(
+            f"{GH2MCP_URL}/repo/last-pushed",
+            json={"owner": owner, "limit": limit},
+        )
+        data = await _expect_json(response, "gh2mcp last pushed repo")
+
+    return {
+        "action": "resolve-last-pushed-repo",
+        "success": bool(data.get("success")),
+        "error": data.get("error"),
+        "owner": data.get("owner"),
+        "repo": data.get("repo"),
+        "repo_url": data.get("repo_url"),
+        "pushed_at": data.get("pushed_at"),
+        "source": data.get("source"),
+    }
+
+
+async def _resolve_repo_id_template(repo_value: str) -> tuple[str, dict[str, Any] | None]:
+    expression = _extract_repo_template_expression(repo_value)
+    if not expression:
+        return repo_value, None
+
+    if _is_last_pushed_repo_template(expression):
+        owner = _extract_owner_from_repo_template(expression)
+        resolved = await _last_pushed_repo_via_gh2mcp(owner=owner, limit=100)
+        if not resolved.get("success") or not resolved.get("repo"):
+            raise ValueError(
+                "Repo template resolution failed for last pushed GitHub repository: "
+                f"{resolved.get('error') or 'unknown error'}"
+            )
+        selected_repo = str(resolved["repo"]).strip()
+        return selected_repo, {
+            "strategy": "last_pushed_repo_from_github",
+            "input": repo_value,
+            "resolved_repo_id": selected_repo,
+            "owner": resolved.get("owner"),
+            "repo_url": resolved.get("repo_url"),
+            "pushed_at": resolved.get("pushed_at"),
+            "source": resolved.get("source"),
+        }
+
+    raise ValueError(
+        "Unsupported Repo template. Supported example: {{show last pushed repo from github}}"
+    )
 
 
 def _save_github_token_via_env2mcp(user_msg: str, prompt_ctx: dict[str, str]) -> dict[str, Any]:
@@ -596,6 +757,186 @@ def _summary_text(analysis: dict[str, Any], user_request: str) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _render_repo_selection_text(repo_selection: dict[str, Any] | None) -> list[str]:
+    if not repo_selection:
+        return []
+    lines = ["", "## Wybrane repo (auto-resolve)"]
+    lines.append(f"- Strategia: `{repo_selection.get('strategy', '?')}`")
+    lines.append(f"- Wejście: `{repo_selection.get('input', '?')}`")
+    lines.append(f"- Repo: `{repo_selection.get('resolved_repo_id', '?')}`")
+    if repo_selection.get("owner"):
+        lines.append(f"- Owner: `{repo_selection.get('owner')}`")
+    if repo_selection.get("pushed_at"):
+        lines.append(f"- Last push: `{repo_selection.get('pushed_at')}`")
+    return lines
+
+
+def _render_system_text(result: dict[str, Any]) -> str:
+    github = result.get("github") or {}
+    action = github.get("action") or "system-action"
+    success = bool(github.get("success"))
+    status = "✅" if success else "⚠️"
+
+    lines = [f"{status} Operacja systemowa: `{action}`"]
+
+    if action == "list-github-orgs-and-repos":
+        user = github.get("user")
+        if user:
+            lines.append(f"- Użytkownik: `{user}`")
+        lines.append(f"- Liczba organizacji: `{github.get('org_count', 0)}`")
+        orgs = github.get("orgs") or []
+        if orgs:
+            lines.append("")
+            lines.append("## Organizacje i repo")
+            for org in orgs[:8]:
+                org_name = org.get("name") or "?"
+                org_type = org.get("type") or "org"
+                repo_count = org.get("repo_count", 0)
+                lines.append(f"- `{org_name}` ({org_type}, repo: {repo_count})")
+                repos = org.get("repos") or []
+                if repos:
+                    preview = ", ".join(f"`{r}`" for r in repos[:5])
+                    suffix = " ..." if len(repos) > 5 else ""
+                    lines.append(f"  - {preview}{suffix}")
+
+    if github.get("org"):
+        lines.append(f"- Organizacja domyślna: `{github.get('org')}`")
+    if github.get("repo"):
+        lines.append(f"- Repo: `{github.get('repo')}`")
+    if github.get("note"):
+        lines.append(f"- Info: {github.get('note')}")
+    if github.get("error"):
+        lines.append(f"- Błąd: {github.get('error')}")
+    return "\n".join(lines)
+
+
+def _render_analyze_text(result: dict[str, Any]) -> str:
+    repo_id = result.get("repo_id") or "?"
+    branch = result.get("branch") or "main"
+    analysis = result.get("analysis") or {}
+    metrics = analysis.get("metrics") or {}
+    recommendations = (analysis.get("recommendations") or {}).get("recommendations") or []
+
+    lines = [
+        f"# Analiza repo `{repo_id}`",
+        "",
+        f"- Branch: `{branch}`",
+        f"- Pliki: `{metrics.get('file_count', '?')}`",
+        f"- Linie: `{metrics.get('total_lines', '?')}`",
+    ]
+
+    lines.extend(_render_repo_selection_text(result.get("repo_selection")))
+
+    lines.append("")
+    lines.append("## Proponowane etapy")
+    if recommendations:
+        for idx, rec in enumerate(recommendations[:7], start=1):
+            priority = rec.get("priority", "medium")
+            target = rec.get("target", "general")
+            action = rec.get("suggested_action", "review")
+            lines.append(f"{idx}. **[{priority}] {target}** — {action}")
+    else:
+        lines.append("1. Brak automatycznych rekomendacji — sprawdź metryki i wzorce.")
+
+    note = result.get("note")
+    if note:
+        lines.append("")
+        lines.append(f"_Info: {note}_")
+    return "\n".join(lines)
+
+
+def _render_queued_text(result: dict[str, Any]) -> str:
+    job_id = result.get("job_id") or "?"
+    status = result.get("status") or "queued"
+    repo_id = result.get("repo_id") or "?"
+    branch = result.get("branch") or "main"
+    lines = [
+        f"⏳ Zadanie zakolejkowane: `{job_id}`",
+        f"- Repo: `{repo_id}`",
+        f"- Branch: `{branch}`",
+        f"- Status: `{status}`",
+        f"- Podgląd: `GET /jobs/{job_id}`",
+    ]
+    note = result.get("note")
+    if note:
+        lines.append(f"- Info: {note}")
+    return "\n".join(lines)
+
+
+def _render_refactor_text(result: dict[str, Any]) -> str:
+    repo_id = result.get("repo_id") or "?"
+    branch = result.get("branch") or "main"
+    base_branch = result.get("base_branch") or "main"
+    execution = result.get("execution") or {}
+    execute_commit = bool(execution.get("execute_commit"))
+    summary = ((result.get("plan_preview") or {}).get("summary") or "").strip()
+
+    lines = [
+        f"# Plan refaktoryzacji `{repo_id}`",
+        "",
+        f"- Branch roboczy: `{branch}`",
+        f"- Branch bazowy: `{base_branch}`",
+        f"- Execute: `{str(execute_commit).lower()}`",
+    ]
+
+    lines.extend(_render_repo_selection_text(result.get("repo_selection")))
+
+    if summary:
+        lines.append("")
+        lines.append("## Podsumowanie planu")
+        lines.append(summary)
+
+    lines.append("")
+    lines.append("## Status wykonania")
+    lines.append(f"- Committed: `{str(bool(execution.get('committed'))).lower()}`")
+
+    tests = execution.get("tests") or {}
+    if tests:
+        lines.append(f"- Tests ok: `{str(bool(tests.get('ok'))).lower()}`")
+
+    lines.append(f"- Pushed: `{str(bool(execution.get('pushed'))).lower()}`")
+
+    draft_branch = (execution.get("draft_branch") or {}).get("branch")
+    if draft_branch:
+        lines.append(f"- Draft branch: `{draft_branch}`")
+
+    pr = execution.get("pull_request") or {}
+    if pr.get("url"):
+        lines.append(f"- PR: {pr.get('url')}")
+    elif pr.get("reason"):
+        lines.append(f"- PR: pominięto ({pr.get('reason')})")
+
+    if not execute_commit:
+        lines.append("")
+        lines.append("_Tryb plan-only: nic nie zostało zapisane ani wypchnięte._")
+
+    note = result.get("note")
+    if note:
+        lines.append("")
+        lines.append(f"_Info: {note}_")
+    return "\n".join(lines)
+
+
+def _render_chat_content(result: dict[str, Any]) -> str:
+    if not isinstance(result, dict):
+        return str(result)
+
+    if result.get("error"):
+        return f"❌ Błąd workflow: {result.get('error')}"
+
+    skill = result.get("skill")
+    if skill == "system":
+        return _render_system_text(result)
+    if skill == "queued":
+        return _render_queued_text(result)
+    if skill == "analyze":
+        return _render_analyze_text(result)
+    if skill == "refactor":
+        return _render_refactor_text(result)
+
+    return json.dumps(result, ensure_ascii=False)
+
+
 def _build_commit_changes(plan_payload: dict[str, Any], summary_md: str) -> list[dict[str, str]]:
     return [
         {
@@ -697,6 +1038,7 @@ class ChatCompletionRequest(BaseModel):
     model: str
     messages: list[ChatMessage]
     stream: bool = False
+    async_mode: bool | None = None
     repo_id: str | None = None
     repo_url: str | None = None
     github_token: str | None = None
@@ -716,6 +1058,141 @@ class ChatCompletionRequest(BaseModel):
 
 # In-memory job store (MVP; Redis/Postgres in stage 5)
 JOBS: dict[str, dict] = {}
+_REDIS_CLIENT: Any | None = None
+_RQ_QUEUE: Any | None = None
+
+
+def _job_storage_key(job_id: str) -> str:
+    return f"mcp:job:{job_id}"
+
+
+def _get_redis_client() -> Any | None:
+    global _REDIS_CLIENT
+    if not RQ_AVAILABLE:
+        return None
+    if _REDIS_CLIENT is not None:
+        return _REDIS_CLIENT
+    try:
+        _REDIS_CLIENT = Redis.from_url(REDIS_URL, decode_responses=True)
+        _REDIS_CLIENT.ping()
+        return _REDIS_CLIENT
+    except Exception:
+        _REDIS_CLIENT = None
+        return None
+
+
+def _get_queue() -> Any | None:
+    global _RQ_QUEUE
+    if not MCP_ASYNC_ENABLED:
+        return None
+    if not RQ_AVAILABLE:
+        return None
+    if _RQ_QUEUE is not None:
+        return _RQ_QUEUE
+    redis_client = _get_redis_client()
+    if redis_client is None:
+        return None
+    _RQ_QUEUE = Queue(name=RQ_QUEUE_NAME, connection=redis_client, default_timeout=900)
+    return _RQ_QUEUE
+
+
+def _save_job(job_id: str, payload: dict[str, Any]) -> None:
+    JOBS[job_id] = payload
+    redis_client = _get_redis_client()
+    if redis_client is None:
+        return
+    try:
+        redis_client.setex(
+            _job_storage_key(job_id),
+            JOB_TTL_SECONDS,
+            json.dumps(payload, ensure_ascii=False),
+        )
+    except Exception:
+        return
+
+
+def _load_job(job_id: str) -> dict[str, Any] | None:
+    redis_client = _get_redis_client()
+    if redis_client is not None:
+        try:
+            raw = redis_client.get(_job_storage_key(job_id))
+            if raw:
+                payload = json.loads(raw)
+                if isinstance(payload, dict):
+                    JOBS[job_id] = payload
+                    return payload
+        except Exception:
+            pass
+    return JOBS.get(job_id)
+
+
+def _update_job(job_id: str, **updates: Any) -> dict[str, Any]:
+    current = _load_job(job_id) or {}
+    current.update(updates)
+    current["updated_at"] = time.time()
+    _save_job(job_id, current)
+    return current
+
+
+def _queue_workflow_job(job_id: str, payload: dict[str, Any]) -> None:
+    queue = _get_queue()
+    if queue is None:
+        raise RuntimeError("Async queue is unavailable (enable MCP_ASYNC_ENABLED and Redis/RQ)")
+    queue.enqueue(
+        "server.execute_dispatch_job",
+        kwargs={"job_id": job_id, "payload": payload},
+        job_id=job_id,
+        result_ttl=JOB_TTL_SECONDS,
+        failure_ttl=JOB_TTL_SECONDS,
+    )
+
+
+def execute_dispatch_job(job_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    _update_job(job_id, status="analyzing", phase="analyzing", started_at=time.time())
+    try:
+        result = asyncio.run(
+            dispatch_skill(
+                skill=payload["skill"],
+                tenant=payload["tenant"],
+                repo_id=payload["repo_id"],
+                repo_url=payload.get("repo_url"),
+                github_token=payload.get("github_token"),
+                source_path=payload.get("source_path"),
+                branch=payload["branch"],
+                user_request=payload["user_request"],
+                execute_commit=payload["execute_commit"],
+                push_after_tests=payload["push_after_tests"],
+                create_draft_branch=payload["create_draft_branch"],
+                draft_name=payload["draft_name"],
+                open_pull_request=payload["open_pull_request"],
+                pr_title=payload.get("pr_title"),
+                pr_body=payload.get("pr_body"),
+                pr_base=payload["pr_base"],
+                test_command=payload["test_command"],
+                push_remote=payload["push_remote"],
+                job_id=job_id,
+            )
+        )
+        repo_selection = payload.get("repo_selection")
+        if repo_selection:
+            result["repo_selection"] = repo_selection
+        _update_job(
+            job_id,
+            status="done",
+            phase="done",
+            completed_at=time.time(),
+            result=result,
+        )
+        return result
+    except Exception as exc:
+        _update_job(
+            job_id,
+            status="failed",
+            phase="failed",
+            completed_at=time.time(),
+            error=str(exc),
+        )
+        raise
 
 
 app = FastAPI(title="mcp-gateway", version="0.1.0")
@@ -747,7 +1224,15 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
         raise HTTPException(status_code=403, detail=f"Feature '{skill}' not enabled for tenant")
 
     job_id = uuid.uuid4().hex
-    JOBS[job_id] = {"status": "pending", "tenant": tenant["tenant_id"], "skill": skill}
+    _save_job(
+        job_id,
+        {
+            "status": "pending",
+            "tenant": tenant["tenant_id"],
+            "skill": skill,
+            "created_at": time.time(),
+        },
+    )
     audit({"event": "chat_completions", "tenant": tenant["tenant_id"], "model": req.model, "job_id": job_id})
 
     user_msg = next(
@@ -761,7 +1246,7 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     org_list_command = _is_org_list_command(user_msg)
 
     tenant_id = tenant["tenant_id"]
-    repo_id = req.repo_id or prompt_ctx.get("repo_id") or f"{tenant_id}/default"
+    repo_id_input = req.repo_id or prompt_ctx.get("repo_id") or f"{tenant_id}/default"
     repo_url = req.repo_url or prompt_ctx.get("repo_url")
     github_token = req.github_token or prompt_ctx.get("github_token")
     source_path = req.source_path or prompt_ctx.get("source_path")
@@ -773,13 +1258,14 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     execute_commit = req.execute if req.execute is not None else parse_bool(prompt_ctx.get("execute"), default=False)
     push_after_tests = req.push if req.push is not None else parse_bool(prompt_ctx.get("push"), default=False)
     create_draft_branch = req.draft if req.draft is not None else parse_bool(prompt_ctx.get("draft"), default=push_after_tests)
-    draft_name = req.draft_name or prompt_ctx.get("draft_name") or _default_draft_name(repo_id)
+    draft_name_input = req.draft_name or prompt_ctx.get("draft_name")
     open_pull_request = req.open_pr if req.open_pr is not None else parse_bool(prompt_ctx.get("open_pr"), default=push_after_tests)
     pr_title = req.pr_title or prompt_ctx.get("pr_title")
     pr_body = req.pr_body or prompt_ctx.get("pr_body")
     pr_base = req.pr_base or prompt_ctx.get("pr_base") or branch
     test_command = req.test_command or prompt_ctx.get("test_command") or "python3 -m compileall -q ."
     push_remote = req.remote or prompt_ctx.get("remote") or "origin"
+    async_mode = MCP_ASYNC_ENABLED if req.async_mode is None else req.async_mode
 
     async def runner() -> dict:
         if org_set_command:
@@ -837,11 +1323,63 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
                 }
 
         try:
-            return await dispatch_skill(
+            resolved_repo_id, repo_selection = await _resolve_repo_id_template(repo_id_input)
+            resolved_repo_url = (repo_selection or {}).get("repo_url") if not repo_url else None
+            effective_repo_url = repo_url or resolved_repo_url
+            draft_name = draft_name_input or _default_draft_name(resolved_repo_id)
+            dispatch_payload = {
+                "skill": skill,
+                "tenant": tenant,
+                "repo_id": resolved_repo_id,
+                "repo_url": effective_repo_url,
+                "github_token": github_token,
+                "source_path": source_path,
+                "branch": branch,
+                "user_request": user_request,
+                "execute_commit": execute_commit,
+                "push_after_tests": push_after_tests,
+                "create_draft_branch": create_draft_branch,
+                "draft_name": draft_name,
+                "open_pull_request": open_pull_request,
+                "pr_title": pr_title,
+                "pr_body": pr_body,
+                "pr_base": pr_base,
+                "test_command": test_command,
+                "push_remote": push_remote,
+                "repo_selection": repo_selection,
+            }
+
+            queue_error: str | None = None
+            if async_mode and skill in {"analyze", "refactor"}:
+                try:
+                    _queue_workflow_job(job_id, dispatch_payload)
+                    _update_job(
+                        job_id,
+                        status="queued",
+                        phase="queued",
+                        tenant=tenant["tenant_id"],
+                        skill=skill,
+                        repo_id=resolved_repo_id,
+                        branch=branch,
+                    )
+                    return {
+                        "skill": "queued",
+                        "status": "queued",
+                        "tenant": tenant["tenant_id"],
+                        "repo_id": resolved_repo_id,
+                        "branch": branch,
+                        "job_id": job_id,
+                        "note": "Workflow uruchomiony w tle (Redis/RQ worker).",
+                    }
+                except Exception as exc:
+                    queue_error = str(exc)
+                    _update_job(job_id, queue_error=queue_error)
+
+            result = await dispatch_skill(
                 skill=skill,
                 tenant=tenant,
-                repo_id=repo_id,
-                repo_url=repo_url,
+                repo_id=resolved_repo_id,
+                repo_url=effective_repo_url,
                 github_token=github_token,
                 source_path=source_path,
                 branch=branch,
@@ -856,7 +1394,18 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
                 pr_base=pr_base,
                 test_command=test_command,
                 push_remote=push_remote,
+                job_id=job_id,
             )
+            if repo_selection:
+                result["repo_selection"] = repo_selection
+            if queue_error:
+                fallback_note = (
+                    "Queue unavailable; executed synchronously instead. "
+                    f"Reason: {queue_error}"
+                )
+                existing_note = result.get("note")
+                result["note"] = f"{existing_note} {fallback_note}" if existing_note else fallback_note
+            return result
         except Exception as exc:
             return {"error": str(exc)}
 
@@ -880,10 +1429,10 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
             }
 
             result = await task
-            JOBS[job_id]["status"] = "done"
-            JOBS[job_id]["result"] = result
+            if result.get("skill") != "queued":
+                _update_job(job_id, status="done", phase="done", result=result, completed_at=time.time())
 
-            content = json.dumps(result, ensure_ascii=False)
+            content = _render_chat_content(result)
             yield {
                 "data": json.dumps(
                     {
@@ -896,6 +1445,80 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
                     ensure_ascii=False,
                 )
             }
+
+            if result.get("skill") == "queued":
+                last_marker = "queued"
+                while True:
+                    await asyncio.sleep(JOB_POLL_INTERVAL_SECONDS)
+                    state = _load_job(job_id) or {}
+                    status = state.get("status") or "queued"
+                    phase = state.get("phase") or status
+                    marker = f"{status}:{phase}"
+                    if marker != last_marker:
+                        yield {
+                            "data": json.dumps(
+                                {
+                                    "id": completion_id,
+                                    "object": "chat.completion.chunk",
+                                    "created": created,
+                                    "model": req.model,
+                                    "choices": [
+                                        {
+                                            "index": 0,
+                                            "delta": {"content": f"\n\n_Status: `{phase}`_"},
+                                            "finish_reason": None,
+                                        }
+                                    ],
+                                },
+                                ensure_ascii=False,
+                            )
+                        }
+                        last_marker = marker
+                    if status == "done":
+                        final_result = state.get("result") or {
+                            "error": "Job finished but no result payload",
+                        }
+                        yield {
+                            "data": json.dumps(
+                                {
+                                    "id": completion_id,
+                                    "object": "chat.completion.chunk",
+                                    "created": created,
+                                    "model": req.model,
+                                    "choices": [
+                                        {
+                                            "index": 0,
+                                            "delta": {"content": f"\n\n{_render_chat_content(final_result)}"},
+                                            "finish_reason": None,
+                                        }
+                                    ],
+                                },
+                                ensure_ascii=False,
+                            )
+                        }
+                        break
+                    if status == "failed":
+                        error_result = {"error": state.get("error") or "Unknown background job error"}
+                        yield {
+                            "data": json.dumps(
+                                {
+                                    "id": completion_id,
+                                    "object": "chat.completion.chunk",
+                                    "created": created,
+                                    "model": req.model,
+                                    "choices": [
+                                        {
+                                            "index": 0,
+                                            "delta": {"content": f"\n\n{_render_chat_content(error_result)}"},
+                                            "finish_reason": None,
+                                        }
+                                    ],
+                                },
+                                ensure_ascii=False,
+                            )
+                        }
+                        break
+
             yield {
                 "data": json.dumps(
                     {
@@ -912,8 +1535,8 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
         return EventSourceResponse(event_stream())
 
     result = await runner()
-    JOBS[job_id]["status"] = "done"
-    JOBS[job_id]["result"] = result
+    if result.get("skill") != "queued":
+        _update_job(job_id, status="done", phase="done", result=result, completed_at=time.time())
     return {
         "id": completion_id,
         "object": "chat.completion",
@@ -922,7 +1545,7 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
         "choices": [
             {
                 "index": 0,
-                "message": {"role": "assistant", "content": json.dumps(result, ensure_ascii=False)},
+                "message": {"role": "assistant", "content": _render_chat_content(result)},
                 "finish_reason": "stop",
             }
         ],
@@ -950,11 +1573,15 @@ async def dispatch_skill(
     pr_base: str,
     test_command: str,
     push_remote: str,
+    job_id: str | None = None,
 ) -> dict:
     tenant_id = tenant["tenant_id"]
     github_config_result: dict[str, Any] | None = None
     if github_token:
         github_config_result = _save_github_token(github_token)
+
+    if job_id:
+        _update_job(job_id, status="analyzing", phase="analyzing")
 
     normalized_repo_url = _normalize_repo_url(repo_url)
     safe_repo_url = _redact_repo_url(normalized_repo_url)
@@ -990,6 +1617,8 @@ async def dispatch_skill(
             }
 
         if skill == "refactor":
+            if job_id:
+                _update_job(job_id, status="refactoring", phase="refactoring")
             ckpt = await _expect_json(
                 await client.post(
                 f"{GIT_PROXY_URL}/repos/{repo_id}/checkpoint",
@@ -1050,6 +1679,8 @@ async def dispatch_skill(
                     await client.post(f"{GIT_PROXY_URL}/repos/{repo_id}/commit", json=commit_payload),
                     "git commit",
                 )
+                if job_id:
+                    _update_job(job_id, status="testing", phase="testing")
                 tests_result = await _expect_json(
                     await client.post(
                         f"{GIT_PROXY_URL}/repos/{repo_id}/run-tests",
@@ -1149,9 +1780,46 @@ async def dispatch_skill(
 
 @app.get("/jobs/{job_id}")
 def get_job(job_id: str, _: dict = Depends(authenticate)):
-    if job_id not in JOBS:
+    payload = _load_job(job_id)
+    if payload is None:
         raise HTTPException(status_code=404, detail="Job not found")
-    return JOBS[job_id]
+    return payload
+
+
+@app.get("/jobs/{job_id}/stream")
+async def stream_job(job_id: str, _: dict = Depends(authenticate)):
+    if _load_job(job_id) is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    async def event_stream():
+        last_marker = ""
+        while True:
+            state = _load_job(job_id) or {}
+            status = state.get("status") or "pending"
+            phase = state.get("phase") or status
+            marker = f"{status}:{phase}:{state.get('updated_at')}"
+
+            if marker != last_marker:
+                payload = {
+                    "job_id": job_id,
+                    "status": status,
+                    "phase": phase,
+                    "updated_at": state.get("updated_at"),
+                    "error": state.get("error"),
+                }
+                if status in {"done", "failed"}:
+                    payload["result"] = state.get("result")
+                yield {"data": json.dumps(payload, ensure_ascii=False)}
+                last_marker = marker
+
+            if status in {"done", "failed"}:
+                break
+
+            await asyncio.sleep(JOB_POLL_INTERVAL_SECONDS)
+
+        yield {"data": "[DONE]"}
+
+    return EventSourceResponse(event_stream())
 
 
 @app.get("/audit/tail")

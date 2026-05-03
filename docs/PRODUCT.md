@@ -39,12 +39,13 @@ Praktyczne use-case i gotowe prompty (refactor/migration/integration): `docs/USE
                            +----------------+
 
 [ developer / QA ] -> mcp-webui (8092) -> mcp-gateway
+                    -> mcp-docs  (8093) -> statyczna dokumentacja + playbooki
 ```
 
 ## Sieci Docker
 
 - `mcp-internal` — wewnętrzna, bez publicznych portów (proxy, skills, agent)
-- `mcp-public` — publiczne usługi: gateway (9000), webui (8092), openwebui (3000), dashboard (8085)
+- `mcp-public` — publiczne usługi: gateway (9000), webui (8092), mcp-docs (8093), openwebui (3000), dashboard (8085)
 
 ## Konfiguracja klienta (tenant)
 
@@ -124,18 +125,26 @@ Wystarczy dodać plik i restart `mcp-gateway`.
 - `GET /playground` — free-form prompt
 - `GET /diff` — worktree diff
 
+## Endpointy mcp-docs (port 8093)
+
+- `GET /health` — healthcheck
+- `GET /` — strona główna dokumentacji i playbooki chat
+
 ## Endpointy gh2mcp-agent (port 8079)
 
 - `GET /health` — status usługi
 - `GET /status` — status tokenu (`configured`, `user`, `token_hint`)
 - `POST /sync/token` — wymuś synchronizację tokenu do `.env`
+- `POST /org/set` — ustaw domyślną organizację GitHub (`{"org": "semcod"}`)
+- `POST /org/list` — lista organizacji i ich repo (`{"repos_limit": 30}`)
+- `POST /repo/last-pushed` — znajdź ostatnio pushowane repo (`{"owner": "...", "limit": 100}`)
 
 ### Prompt contract dla `mcp-skills/refactor`
 
 Gateway parsuje z promptu (lub z `extra_body`) pola:
 
-- `Repo`
-- `Repo URL` (opcjonalnie)
+- `Repo` (lub template: `{{pokaż ostatnie repo z github}}`)
+- `Repo URL` (opcjonalnie, shorthand `owner/repo`)
 - `GitHub Token` (opcjonalnie, zapisywany do `.env` przez `env2mcp`)
 - `Source` (opcjonalnie)
 - `Branch`
@@ -160,6 +169,30 @@ Przy `PR: true` gateway próbuje utworzyć draft PR przez GitHub API (wymaga `GI
 Przy podaniu `GitHub Token: ...` gateway zapisuje token do `.env` i używa go przy kolejnych synchronizacjach GitHub.
 
 `Repo URL` wspiera również skrót `owner/repo` (mapowany do `https://github.com/owner/repo.git`).
+
+### Komendy systemowe w czacie (gateway)
+
+Gateway rozpoznaje intencje tekstowe i routuje je do odpowiednich akcji systemowych zamiast workflow refactor/analyze:
+
+| Komenda (przykład) | Akcja |
+|---|---|
+| `Pobierz token GitHub z gh CLI` | `gh2mcp /sync/token` → sync tokenu do `.env` |
+| `Zapisz token github do .env: ghp_xxx` | `env2mcp.EnvConfig` → zapis `GITHUB_PAT` |
+| `Ustaw organizację: semcod` | `gh2mcp /org/set` |
+| `Pokaż listę repo organizacji` | `gh2mcp /org/list` |
+| `Repo: {{pokaż ostatnie repo z github}}` | `gh2mcp /repo/last-pushed` → auto-resolve repo_id |
+
+### Skrypt `refactor-last-repo.sh`
+
+Automatyzuje najczęstszy przepływ: wybór ostatnio pushowanego repo z GitHub → analiza → refactor.
+
+```bash
+bash scripts/refactor-last-repo.sh                          # analyze-only
+bash scripts/refactor-last-repo.sh --execute --push --pr    # pełny cykl
+bash scripts/refactor-last-repo.sh --repo owner/repo --execute --task "Etap 2"
+```
+
+Wyniki zapisywane do `output/refactor-last-repo-<timestamp>/`.
 
 ## OpenWebUI
 
@@ -198,6 +231,9 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 - Opcjonalny commit + test + push + draft branch + draft PR przez prompt (`Execute`/`Push`/`Draft`/`PR`).
 - Multi-tenant auth + audit.
 - Generowanie i testowanie repo demo przez system (`make generate-demo-repos`) pod scenariusze produktu.
+- Skrypt `refactor-last-repo.sh` do automatycznego workflow: ostatnie repo → analiza → refactor → push → PR.
+- Komendy systemowe w czacie: sync/zapis tokenu, zarządzanie organizacjami, auto-resolve repo.
+- Serwis `mcp-docs` (port 8093) z dokumentacją i playbookami chat.
 
 ### Co działa przez MCP WebUI (`http://localhost:8092/github`)
 

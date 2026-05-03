@@ -4,6 +4,9 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 
+# Configure git to trust all directories (needed for Docker volume mounts with different ownership)
+RUN git config --global --add safe.directory '*'
+
 COPY mcp-git-proxy/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 

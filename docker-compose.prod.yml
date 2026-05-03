@@ -1,7 +1,7 @@
 # Production overlay: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 # - removes dev source mounts (services run only baked images)
 # - removes public ports for internal services
-# - keeps public ports only for gateway, webui, openwebui
+# - keeps public ports only for gateway, webui, openwebui, docs
 services:
   mcp-git-proxy:
     ports: []

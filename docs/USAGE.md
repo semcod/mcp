@@ -1,10 +1,11 @@
 # MCP Skills — Scenariusze użycia
 
-Ten dokument pokazuje 9 konkretnych przepływów end-to-end. Wszystkie używają OpenRouter (`LLM_MODEL=openrouter/x-ai/grok-code-fast-1`), bez Ollama.
+Ten dokument pokazuje 10 konkretnych przepływów end-to-end. Wszystkie używają OpenRouter (`LLM_MODEL=openrouter/x-ai/grok-code-fast-1`), bez Ollama.
 
 Powiązane dokumenty:
 - `docs/PRODUCT.md` — architektura i deployment
 - `docs/USE_CASES.md` — gotowe use-case (refactor/migration/integration)
+- `docs/CHAT_PLAYBOOKS.md` — szczegółowe dialogi chat-playbook (multi-project/migration/integration/modularization)
 - `git2mcp/examples/README.md` — przykłady CLI
 - `env2mcp/README.md` — zarządzanie konfiguracją
 - OpenWebUI docs:
@@ -36,6 +37,7 @@ Po starcie:
 - `mcp-gateway`     → http://localhost:9000        (publiczny, OpenAI-compat)
 - `mcp-webui`       → http://localhost:8092        (panel testowy)
   - `/github`       → konfiguracja GitHub i zarządzanie repo
+- `mcp-docs`        → http://localhost:8093        (dokumentacja projektu + playbooki chat)
 - `openwebui`       → http://localhost:3000        (frontend dla użytkowników)
 - `mcp-git-proxy`   → http://localhost:8081        (dev only)
 - `gh2mcp-agent`    → http://localhost:8079        (sync tokenu `gh` -> `.env`)
@@ -75,8 +77,9 @@ OpenWebUI w naszym compose jest już skonfigurowany przez env (`OPENAI_API_BASE_
    Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
    ```
 
-4. Otrzymasz odpowiedź JSON z `job_id`, statusem `checkpoint`, analizą i planem.
-5. Diff możesz obejrzeć w `mcp-webui` na http://localhost:8092/diff?repo_id=team/code2schema-demo
+4. Otrzymasz czytelny plan w formie tekstu/Markdown (bez surowego JSON w treści czatu).
+5. Surowy JSON debug (workflow payload) jest dostępny przez `GET /jobs/{job_id}` na `mcp-gateway`.
+6. Diff możesz obejrzeć w `mcp-webui` na http://localhost:8092/diff?repo_id=team/code2schema-demo
 
 > Uwaga (stan obecny): gateway wykonuje **sync + analyze + zapis artefaktów planu** (`.mcp/refactor-plan.json`, `.mcp/refactor-summary.md`) i opcjonalnie `commit/push`, ale nie wykonuje jeszcze automatycznych zmian kodu źródłowego modułów.
 
@@ -482,6 +485,9 @@ zamiast uruchamiać workflow refactor/analyze dla repo.
 Oddzielne komendy systemowe (chat / OpenWebUI):
 - `Pobierz token github` → pobranie przez `gh2mcp` (`gh auth token`) i sync do `.env`.
 - `Zapisz token github do .env: ghp_xxx...` → bezpośredni zapis przez `env2mcp` (`EnvConfig`) do `GITHUB_PAT`.
+- `Ustaw organizację: semcod` → `gh2mcp /org/set` — ustawia domyślną organizację GitHub.
+- `Pokaż listę repo organizacji` → `gh2mcp /org/list` — zwraca organizacje i ich repo.
+- `Repo: {{pokaż ostatnie repo z github}}` → `gh2mcp /repo/last-pushed` — gateway automatycznie rozpoznaje szablon `{{ ... }}` w polu `Repo` i odpytuje gh2mcp, żeby wybrać ostatnio pushowane repo.
 
 Token jest zapisywany do `.env` (`/app/.env` w kontenerach), z którego korzystają
 inne usługi stacku, m.in. `mcp-gateway`, `mcp-webui` oraz workflow LLM (`llm-agent`).
@@ -495,7 +501,85 @@ W praktyce Docker:
 - `make start` próbuje pobrać `GH_TOKEN` z hostowego `gh auth token` i przekazuje go do `gh2mcp-agent`,
 - dzięki temu `gh auth token` w kontenerze zwraca aktualny token, nawet jeśli hostowy `gh` używa keyring.
 
-### Jak czytać wynik JSON
+### Jak czytać wynik w czacie
+
+Gateway zwraca **czytelny Markdown** zamiast surowego JSON w treści wiadomości czatu:
+
+- `analyze` → nagłówek `# Analiza repo`, sekcje `## Metryki`, `## Proponowane etapy`.
+- `refactor` → nagłówek `# Plan refaktoryzacji`, sekcje `## Status wykonania`, `## Push/PR`.
+- komendy systemowe (token, org) → krótki status inline.
+
+**Surowy JSON** (pełny payload) jest dostępny przez:
+```bash
+curl http://localhost:9000/jobs/{job_id}
+```
+
+### Tryb asynchroniczny (Redis/RQ)
+
+Gateway obsługuje tryb background-jobs dla modeli `mcp-skills/analyze` i `mcp-skills/refactor`.
+
+Warunki:
+- `MCP_ASYNC_ENABLED=true`
+- działające usługi `redis` i `mcp-gateway-worker`
+
+W tym trybie `/v1/chat/completions` zwraca szybko status `queued` i `job_id`, a workflow wykonuje się w tle.
+
+Przykład API:
+
+```bash
+curl -sS http://localhost:9000/v1/chat/completions \
+  -H 'Authorization: Bearer sk-mcp-default-dev-key' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "mcp-skills/refactor",
+    "messages": [{"role": "user", "content": "Repo: team/code2schema-demo\nSource: /host-semcod/code2schema\nBranch: main\nExecute: false\nZadanie: Zaproponuj kolejne etapy refaktoryzacji."}],
+    "async_mode": true
+  }'
+```
+
+Sprawdzenie statusu:
+
+```bash
+curl -sS -H 'Authorization: Bearer sk-mcp-default-dev-key' \
+  http://localhost:9000/jobs/<job_id> | python3 -m json.tool
+```
+
+Stream statusu (SSE):
+
+```bash
+curl -N -H 'Authorization: Bearer sk-mcp-default-dev-key' \
+  http://localhost:9000/jobs/<job_id>/stream
+```
+
+Typowe fazy:
+- `queued`
+- `analyzing`
+- `refactoring`
+- `testing`
+- `done` / `failed`
+
+### Pola `Repo` i `Repo URL` — kolejność priorytetów
+
+| Pole | Znaczenie |
+|------|-----------|
+| `Repo: owner/repo` | Identyfikator repo (skrócony lub lokalny) |
+| `Repo URL: owner/repo` | Nadpisuje URL sync/push/PR; akceptuje `owner/repo` lub pełny HTTPS |
+| `Repo: {{show last pushed repo from github}}` | Template — gateway odpytuje `gh2mcp /repo/last-pushed` i podstawia wynik |
+
+Jeśli użyjesz template `{{ ... }}` w `Repo:` bez podania `Repo URL:`, gateway **automatycznie pobierze `repo_url`** z metadanych odpowiedzi `gh2mcp` i użyje go do sync/push/PR. Jeśli `Repo URL:` jest podany ręcznie, ma **wyższy priorytet** niż `repo_url` z template.
+
+Przykład — auto-resolve URL z template:
+```text
+Repo: {{show last pushed repo from github owner=semcod}}
+Branch: main
+Execute: true
+Push: true
+PR: true
+PR title: MCP: auto-refactor
+Zadanie: Wdróż Etap 1 planu.
+```
+
+### Jak czytać pola wykonania
 
 - `analysis` — metryki/wzorce/rekomendacje z `mcp-skills`.
 - `plan_preview` — podsumowanie i artefakty planu.
@@ -505,6 +589,7 @@ W praktyce Docker:
 - `execution.draft_branch` — informacje o utworzonym `draft/*` branch (gdy `Draft: true`).
 - `execution.pull_request` — dane PR (lub `skipped` z powodem, gdy PR nie mógł zostać utworzony).
 - `github.configured=true` — token GitHub został zapisany do `.env` podczas wywołania.
+- `repo_selection.strategy` — `last_pushed_repo_from_github` jeśli użyto template `{{ ... }}`.
 
 ### Zasady `Draft` / `PR`
 
@@ -520,6 +605,45 @@ W praktyce Docker:
 3. Bogatsza strategia branch/PR (reviewers/labels/assignees, polityki merge).
 4. Lepsze guard-raile: limity scope zmian, allowlist ścieżek, reguły bezpieczeństwa push.
 5. Trwały storage jobów (Redis/Postgres) zamiast in-memory `JOBS`.
+
+---
+
+## Scenariusz 10 — refactor-last-repo.sh (automatyczny workflow)
+
+**Cel:** automatycznie wybrać ostatnio pushowane repo z GitHub, wykonać analizę i (opcjonalnie) refactor + commit + push + PR — jednym poleceniem.
+
+```bash
+# 1) analyze-only: pokaż ostatnie repo i zaproponuj plan etapowy
+bash scripts/refactor-last-repo.sh
+
+# 2) analyze + execute (commit artefaktów .mcp/*)
+bash scripts/refactor-last-repo.sh --execute
+
+# 3) pełny cykl: analyze + execute + push + PR
+bash scripts/refactor-last-repo.sh --execute --push --pr
+
+# 4) konkretne repo i własne zadanie
+bash scripts/refactor-last-repo.sh --repo semcod/mcp --execute --task "Etap 2 refaktoryzacji gateway"
+
+# 5) z własnym ownerem (inna organizacja)
+bash scripts/refactor-last-repo.sh --owner semcod --execute
+```
+
+Opcje:
+- `--repo owner/repo` — użyj konkretnego repo zamiast auto-wyboru
+- `--owner <owner>` — właściciel dla auto-wyboru (domyślnie: aktualny user `gh`)
+- `--branch <branch>` — branch (domyślnie: `main`)
+- `--task "..."` — zadanie refaktoryzacji
+- `--test "..."` — komenda testowa
+- `--execute` — commit artefaktów
+- `--push` — push (wymaga `--execute`)
+- `--pr` — otwórz PR (wymaga `--execute --push`)
+- `--no-draft` — bez draft branch
+- `--show-top N` — ile repo pokazać w rankingu (domyślnie: 10)
+
+Wyniki zapisywane do `output/refactor-last-repo-<timestamp>/`:
+- `analyze.response.json` / `analyze.result.json`
+- `refactor.response.json` / `refactor.result.json`
 
 ---
 
@@ -540,11 +664,28 @@ curl -o /dev/null -w '%{http_code}\n' http://localhost:3000/   # -> 200
 
 # mcp-webui
 curl -o /dev/null -w '%{http_code}\n' http://localhost:8092/   # -> 200
+
+# mcp-docs
+curl -o /dev/null -w '%{http_code}\n' http://localhost:8093/   # -> 200
 ```
 
 ---
 
 ## FAQ
+
+**Jak uruchomić automatyczny workflow refactor-last-repo?**
+```bash
+bash scripts/refactor-last-repo.sh                          # analyze-only
+bash scripts/refactor-last-repo.sh --execute --push --pr    # pełny cykl
+```
+Więcej opcji: `bash scripts/refactor-last-repo.sh --help`
+
+**Jak użyć szablonu repo w czacie?**
+W polu `Repo:` wpisz template w podwójnych nawiasach:
+```text
+Repo: {{pokaż ostatnie repo z github}}
+```
+Gateway automatycznie odpyta `gh2mcp` i rozwiąże repo_id.
 
 **Jak szybko wygenerować repo demo i uruchomić use-case?**
 ```bash

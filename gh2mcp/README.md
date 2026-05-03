@@ -27,6 +27,7 @@ Kontener uruchamia API:
 - `GET /health`
 - `GET /status`
 - `POST /sync/token`
+- `POST /repo/last-pushed`
 
 
 ## License

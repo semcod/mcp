@@ -75,10 +75,13 @@ def test_is_org_list_command(msg: str, expected: bool):
 
 def test_extract_org_from_text():
     msg = "ustaw organizacje github: semcod"
-    assert gateway._extract_org_from_text(msg, {}) == "github"
+    assert gateway._extract_org_from_text(msg, {}) == "semcod"
 
     msg2 = "set org=my-team"
     assert gateway._extract_org_from_text(msg2, {}) == "my-team"
+
+    assert gateway._extract_org_from_text("ignored", {"repo_url": "owner/repo"}) == "owner"
+    assert gateway._extract_org_from_text("ignored", {"repo_url": "https://github.com/acme/project.git"}) == "acme"
 
 
 class _FakeResponse:
@@ -102,6 +105,8 @@ class _FakeAsyncClient:
         return False
 
     async def post(self, url, json):
+        if url.endswith("/repo/last-pushed"):
+            return _FakeResponse(_FakeAsyncClient.last_repo_payload)
         return _FakeResponse(_FakeAsyncClient.sync_payload)
 
     async def get(self, url):
@@ -133,3 +138,194 @@ def test_sync_github_token_via_gh2mcp_failure_note(monkeypatch):
     assert result["source"] is None
     assert "failed" in result["note"].lower()
     assert "gh auth login" in result["note"]
+
+
+def test_extract_repo_template_expression():
+    expr = gateway._extract_repo_template_expression("{{show last pushed repo from github}}")
+    assert expr == "show last pushed repo from github"
+    assert gateway._extract_repo_template_expression("team/repo") is None
+
+
+@pytest.mark.parametrize(
+    "expression,expected",
+    [
+        ("show last pushed repo from github", True),
+        ("pokaz ostatnio wypchniete repo z github", True),
+        ("show organizations", False),
+    ],
+)
+def test_is_last_pushed_repo_template(expression: str, expected: bool):
+    assert gateway._is_last_pushed_repo_template(expression) is expected
+
+
+def test_resolve_repo_id_template_last_pushed(monkeypatch):
+    _FakeAsyncClient.last_repo_payload = {
+        "success": True,
+        "owner": "semcod",
+        "repo": "semcod/mcp",
+        "repo_url": "https://github.com/semcod/mcp",
+        "pushed_at": "2026-05-03T12:00:00Z",
+        "source": "gh_cli",
+    }
+    monkeypatch.setattr(gateway.httpx, "AsyncClient", _FakeAsyncClient)
+
+    repo_id, meta = asyncio.run(gateway._resolve_repo_id_template("{{show last pushed repo from github}}"))
+    assert repo_id == "semcod/mcp"
+    assert meta is not None
+    assert meta["strategy"] == "last_pushed_repo_from_github"
+    assert meta["owner"] == "semcod"
+
+
+def test_resolve_repo_id_template_last_pushed_repo_url_in_meta(monkeypatch):
+    _FakeAsyncClient.last_repo_payload = {
+        "success": True,
+        "owner": "semcod",
+        "repo": "semcod/mcp",
+        "repo_url": "https://github.com/semcod/mcp",
+        "pushed_at": "2026-05-03T12:00:00Z",
+        "source": "gh_cli",
+    }
+    monkeypatch.setattr(gateway.httpx, "AsyncClient", _FakeAsyncClient)
+
+    repo_id, meta = asyncio.run(gateway._resolve_repo_id_template("{{show last pushed repo from github}}"))
+    assert repo_id == "semcod/mcp"
+    assert meta is not None
+    assert meta["repo_url"] == "https://github.com/semcod/mcp"
+
+    # Simulate the effective_repo_url logic from chat_completions
+    repo_url_input = None
+    resolved_repo_url = (meta or {}).get("repo_url") if not repo_url_input else None
+    effective_repo_url = repo_url_input or resolved_repo_url
+    assert effective_repo_url == "https://github.com/semcod/mcp"
+
+
+def test_resolve_repo_id_template_unsupported():
+    with pytest.raises(ValueError):
+        asyncio.run(gateway._resolve_repo_id_template("{{show org list}}"))
+
+
+# ---------------------------------------------------------------------------
+# effective_repo_url logic (mirrors chat_completions handler)
+# ---------------------------------------------------------------------------
+
+def _compute_effective_repo_url(repo_url: str | None, meta: dict | None) -> str | None:
+    """Mirrors: resolved_repo_url = (repo_selection or {}).get('repo_url') if not repo_url else None
+                effective_repo_url = repo_url or resolved_repo_url"""
+    resolved_repo_url = (meta or {}).get("repo_url") if not repo_url else None
+    return repo_url or resolved_repo_url
+
+
+def test_effective_repo_url_explicit_repo_url_wins(monkeypatch):
+    _FakeAsyncClient.last_repo_payload = {
+        "success": True,
+        "owner": "semcod",
+        "repo": "semcod/mcp",
+        "repo_url": "https://github.com/semcod/mcp",
+        "pushed_at": "2026-05-03T12:00:00Z",
+        "source": "gh_cli",
+    }
+    monkeypatch.setattr(gateway.httpx, "AsyncClient", _FakeAsyncClient)
+
+    _repo_id, meta = asyncio.run(
+        gateway._resolve_repo_id_template("{{show last pushed repo from github}}")
+    )
+    explicit = "https://github.com/other/explicit.git"
+    assert _compute_effective_repo_url(explicit, meta) == explicit
+
+
+def test_effective_repo_url_falls_back_to_resolved(monkeypatch):
+    _FakeAsyncClient.last_repo_payload = {
+        "success": True,
+        "owner": "semcod",
+        "repo": "semcod/mcp",
+        "repo_url": "https://github.com/semcod/mcp",
+        "pushed_at": "2026-05-03T12:00:00Z",
+        "source": "gh_cli",
+    }
+    monkeypatch.setattr(gateway.httpx, "AsyncClient", _FakeAsyncClient)
+
+    _repo_id, meta = asyncio.run(
+        gateway._resolve_repo_id_template("{{show last pushed repo from github}}")
+    )
+    assert _compute_effective_repo_url(None, meta) == "https://github.com/semcod/mcp"
+
+
+def test_effective_repo_url_both_none():
+    assert _compute_effective_repo_url(None, None) is None
+    assert _compute_effective_repo_url(None, {}) is None
+
+
+def test_effective_repo_url_no_template_resolution():
+    assert _compute_effective_repo_url("https://github.com/team/proj.git", None) == "https://github.com/team/proj.git"
+
+
+def test_render_chat_content_analyze_human_readable():
+    result = {
+        "skill": "analyze",
+        "repo_id": "demo/refactor-lab",
+        "branch": "main",
+        "analysis": {
+            "metrics": {"file_count": 12, "total_lines": 420},
+            "recommendations": {
+                "recommendations": [
+                    {"priority": "high", "target": "users", "suggested_action": "Split responsibilities"}
+                ]
+            },
+        },
+    }
+    content = gateway._render_chat_content(result)
+    assert content.startswith("# Analiza repo `demo/refactor-lab`")
+    assert "## Proponowane etapy" in content
+    assert "Split responsibilities" in content
+
+
+def test_render_chat_content_refactor_human_readable():
+    result = {
+        "skill": "refactor",
+        "repo_id": "demo/integration-lab",
+        "branch": "feature/x",
+        "base_branch": "main",
+        "plan_preview": {"summary": "# MCP Refactoring Summary\n\nPlan..."},
+        "execution": {
+            "execute_commit": True,
+            "committed": True,
+            "pushed": False,
+            "tests": {"ok": True},
+            "pull_request": {"skipped": True, "reason": "Push was not executed"},
+        },
+    }
+    content = gateway._render_chat_content(result)
+    assert content.startswith("# Plan refaktoryzacji `demo/integration-lab`")
+    assert "## Status wykonania" in content
+    assert "Committed: `true`" in content
+    assert "PR: pominięto (Push was not executed)" in content
+
+
+def test_render_chat_content_system_human_readable():
+    result = {
+        "skill": "system",
+        "github": {
+            "action": "set-default-github-org",
+            "success": True,
+            "org": "semcod",
+            "note": "Default org updated",
+        },
+    }
+    content = gateway._render_chat_content(result)
+    assert "Operacja systemowa" in content
+    assert "Organizacja domyślna: `semcod`" in content
+
+
+def test_render_chat_content_queued_human_readable():
+    result = {
+        "skill": "queued",
+        "status": "queued",
+        "repo_id": "semcod/mcp",
+        "branch": "main",
+        "job_id": "abc123",
+        "note": "Workflow uruchomiony w tle (Redis/RQ worker).",
+    }
+    content = gateway._render_chat_content(result)
+    assert "Zadanie zakolejkowane" in content
+    assert "`abc123`" in content
+    assert "GET /jobs/abc123" in content

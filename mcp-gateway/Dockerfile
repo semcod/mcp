@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && rm -rf /tmp/env2mcp
 
 COPY mcp-gateway/server.py .
+COPY mcp-gateway/worker.py .
 COPY mcp-gateway/tenants ./tenants
 
 EXPOSE 9000

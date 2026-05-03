@@ -30,6 +30,11 @@ class ListOrgsRequest(BaseModel):
     repos_limit: int = 30
 
 
+class LastPushedRepoRequest(BaseModel):
+    owner: str | None = None
+    limit: int = 100
+
+
 _sync_task: asyncio.Task | None = None
 
 
@@ -83,3 +88,8 @@ def set_org(payload: SetOrgRequest) -> dict:
 @app.post("/org/list")
 def list_orgs(payload: ListOrgsRequest) -> dict:
     return service.list_orgs_and_repos(repos_limit=payload.repos_limit)
+
+
+@app.post("/repo/last-pushed")
+def last_pushed_repo(payload: LastPushedRepoRequest) -> dict:
+    return service.get_last_pushed_repo(owner=payload.owner, limit=payload.limit)

@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-05-03
+
+### Docs
+- Update README.md
+- Update docs/CHAT_PLAYBOOKS.md
+- Update docs/LINKED_EXAMPLES.md
+- Update docs/PRODUCT.md
+- Update docs/USAGE.md
+- Update docs/USE_CASES.md
+- Update gh2mcp/README.md
+
+### Other
+- Update Makefile
+- Update ansible/e2e-gh2mcp.yml
+- Update docker-compose.prod.yml
+- Update gh2mcp/gh2mcp/server.py
+- Update gh2mcp/gh2mcp/sync.py
+- Update gh2mcp/tests/test_gh2mcp.py
+- Update gh2mcp/uv.lock
+- Update img.png
+- Update mcp-docs/Dockerfile
+- Update mcp-docs/requirements.txt
+- ... and 8 more files
+
 ## [0.1.3] - 2026-05-03
 
 ### Docs

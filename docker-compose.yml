@@ -1,4 +1,17 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: mcp-redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - mcp-internal
+    restart: unless-stopped
+
   # MCP Git Proxy - operacje git i cache repozytoriów
   mcp-git-proxy:
     build:
@@ -114,6 +127,9 @@ services:
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
       - SKILLS_URL=http://mcp-skills:8080
       - GH2MCP_URL=http://gh2mcp-agent:8079
+      - MCP_ASYNC_ENABLED=${MCP_ASYNC_ENABLED:-true}
+      - REDIS_URL=redis://redis:6379/0
+      - RQ_QUEUE_NAME=${RQ_QUEUE_NAME:-mcp-jobs}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - LLM_MODEL=${LLM_MODEL:-openrouter/x-ai/grok-code-fast-1}
       - GITHUB_PAT=${GITHUB_PAT:-}
@@ -133,6 +149,8 @@ services:
       timeout: 5s
       retries: 5
     depends_on:
+      redis:
+        condition: service_healthy
       mcp-git-proxy:
         condition: service_healthy
       mcp-skills:
@@ -142,6 +160,43 @@ services:
     networks:
       - mcp-internal
       - mcp-public
+    restart: unless-stopped
+
+  mcp-gateway-worker:
+    build:
+      context: .
+      dockerfile: mcp-gateway/Dockerfile
+    container_name: mcp-gateway-worker
+    command: ["python", "worker.py"]
+    environment:
+      - GIT_PROXY_URL=http://mcp-git-proxy:8080
+      - SKILLS_URL=http://mcp-skills:8080
+      - GH2MCP_URL=http://gh2mcp-agent:8079
+      - MCP_ASYNC_ENABLED=${MCP_ASYNC_ENABLED:-true}
+      - REDIS_URL=redis://redis:6379/0
+      - RQ_QUEUE_NAME=${RQ_QUEUE_NAME:-mcp-jobs}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - LLM_MODEL=${LLM_MODEL:-openrouter/x-ai/grok-code-fast-1}
+      - GITHUB_PAT=${GITHUB_PAT:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GITHUB_API_URL=${GITHUB_API_URL:-https://api.github.com}
+      - MCP_TENANTS_DIR=/app/tenants
+      - MCP_AUDIT_LOG=/audit/audit.jsonl
+    volumes:
+      - ./mcp-gateway/tenants:/app/tenants:ro
+      - ./.env:/app/.env
+      - audit-storage:/audit
+    depends_on:
+      redis:
+        condition: service_healthy
+      mcp-git-proxy:
+        condition: service_healthy
+      mcp-skills:
+        condition: service_healthy
+      gh2mcp-agent:
+        condition: service_healthy
+    networks:
+      - mcp-internal
     restart: unless-stopped
 
   # MCP WebUI - testowy panel dla skills i diff
@@ -168,6 +223,23 @@ services:
         condition: service_healthy
     networks:
       - mcp-internal
+      - mcp-public
+    restart: unless-stopped
+
+  # MCP Docs - dokumentacja projektu i playbooki chat
+  mcp-docs:
+    build:
+      context: .
+      dockerfile: mcp-docs/Dockerfile
+    container_name: mcp-docs
+    ports:
+      - "8093:8090"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    networks:
       - mcp-public
     restart: unless-stopped
 

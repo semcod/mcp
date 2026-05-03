@@ -1,0 +1,329 @@
+---
+- name: Gh2mcp E2E - token sync, org management, last pushed repo
+  hosts: local
+  gather_facts: false
+  vars:
+    gh2mcp_base: "http://localhost:8079"
+    gateway_base: "http://localhost:9000"
+    api_key: "{{ lookup('env', 'WEBUI_API_KEY') | default('sk-mcp-default-dev-key', true) }}"
+
+  tasks:
+
+    # ------------------------------------------------------------------ health
+    - name: Wait for gh2mcp-agent health
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/health"
+        method: GET
+        status_code: 200
+      register: gh2mcp_health
+      retries: 30
+      delay: 2
+      until: gh2mcp_health.status == 200
+
+    - name: Assert gh2mcp health payload
+      ansible.builtin.assert:
+        that:
+          - gh2mcp_health.json.status == 'ok'
+          - gh2mcp_health.json.service == 'gh2mcp'
+
+    # ------------------------------------------------------------------ status
+    - name: GET /status - check initial token state
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/status"
+        method: GET
+        status_code: 200
+      register: gh2mcp_status
+
+    - name: Assert /status response has required keys
+      ansible.builtin.assert:
+        that:
+          - gh2mcp_status.json.configured is defined
+          - gh2mcp_status.json.gh_available is defined
+          - gh2mcp_status.json.env_path is defined
+
+    # ------------------------------------------------------------------ sync/token
+    - name: POST /sync/token - sync from gh CLI (non-forced)
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/sync/token"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          force_gh_cli: false
+          include_token: false
+        status_code: 200
+      register: sync_result
+
+    - name: Assert sync response has success key
+      ansible.builtin.assert:
+        that:
+          - sync_result.json.success is defined
+          - sync_result.json.source is defined or sync_result.json.error is defined
+
+    - name: POST /sync/token - force gh CLI mode
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/sync/token"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          force_gh_cli: true
+          include_token: false
+        status_code: 200
+      register: sync_forced
+      ignore_errors: true
+
+    - name: Assert forced sync returns success or clear gh-cli error
+      ansible.builtin.assert:
+        that:
+          - >-
+            sync_forced.json.success is sameas true
+            or (sync_forced.json.success is sameas false and sync_forced.json.error is defined)
+
+    # ------------------------------------------------------------------ org/set
+    - name: "POST /org/set - set org to 'test-org-e2e'"
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/org/set"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          org: "test-org-e2e"
+        status_code: 200
+      register: org_set_result
+
+    - name: Assert org/set success and correct org value
+      ansible.builtin.assert:
+        that:
+          - org_set_result.json.success is sameas true
+          - org_set_result.json.org == 'test-org-e2e'
+          - org_set_result.json.env_path is defined
+
+    - name: POST /org/set - default org (no org param, resolve from gh user)
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/org/set"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body: {}
+        status_code: 200
+      register: org_set_default
+      ignore_errors: true
+
+    - name: Assert default org set either succeeds with username or returns clear error
+      ansible.builtin.assert:
+        that:
+          - >-
+            (org_set_default.json.success is sameas true and org_set_default.json.org is defined)
+            or (org_set_default.json.success is sameas false and org_set_default.json.error is defined)
+
+    # ------------------------------------------------------------------ org/list
+    - name: POST /org/list - list orgs and repos (limit 5)
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/org/list"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          repos_limit: 5
+        status_code: 200
+      register: org_list_result
+      ignore_errors: true
+
+    - name: Assert org/list response shape
+      ansible.builtin.assert:
+        that:
+          - org_list_result.json.success is defined
+          - >-
+            (org_list_result.json.success is sameas true
+             and org_list_result.json.orgs is defined
+             and org_list_result.json.org_count is defined)
+            or (org_list_result.json.success is sameas false
+                and org_list_result.json.error is defined)
+
+    - name: When org/list succeeds - assert orgs is a list
+      when: org_list_result.json.success is sameas true
+      ansible.builtin.assert:
+        that:
+          - org_list_result.json.orgs | type_debug == 'list'
+          - org_list_result.json.org_count == (org_list_result.json.orgs | length)
+
+    # ------------------------------------------------------------------ repo/last-pushed
+    - name: POST /repo/last-pushed - resolve last pushed repo (default owner)
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/repo/last-pushed"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          limit: 50
+        status_code: 200
+      register: last_pushed_result
+      ignore_errors: true
+
+    - name: Assert repo/last-pushed response shape
+      ansible.builtin.assert:
+        that:
+          - last_pushed_result.json.success is defined
+          - >-
+            (last_pushed_result.json.success is sameas true
+             and last_pushed_result.json.repo is defined
+             and last_pushed_result.json.owner is defined
+             and last_pushed_result.json.source == 'gh_cli')
+            or (last_pushed_result.json.success is sameas false
+                and last_pushed_result.json.error is defined)
+
+    - name: POST /repo/last-pushed - with explicit owner
+      ansible.builtin.uri:
+        url: "{{ gh2mcp_base }}/repo/last-pushed"
+        method: POST
+        headers:
+          Content-Type: application/json
+        body_format: json
+        body:
+          owner: "{{ lookup('env', 'GITHUB_USER') | default('', true) or lookup('env', 'GITHUB_ORG') | default('', true) }}"
+          limit: 10
+        status_code: 200
+      register: last_pushed_explicit
+      when: >-
+        lookup('env', 'GITHUB_USER') | default('', true) != ''
+        or lookup('env', 'GITHUB_ORG') | default('', true) != ''
+      ignore_errors: true
+
+    - name: Assert explicit owner repo/last-pushed response shape
+      when: last_pushed_explicit is not skipped
+      ansible.builtin.assert:
+        that:
+          - last_pushed_explicit.json.success is defined
+          - >-
+            (last_pushed_explicit.json.success is sameas true
+             and last_pushed_explicit.json.repo is defined)
+            or last_pushed_explicit.json.error is defined
+
+    # ------------------------------------------------------------------ gateway chat command: token sync
+    - name: Gateway chat - 'Pobierz token github' command
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/analyze
+          stream: false
+          messages:
+            - role: user
+              content: "Pobierz token github"
+        status_code: 200
+      register: cmd_token_sync
+      ignore_errors: true
+
+    - name: Assert token sync chat command returns non-empty response
+      ansible.builtin.assert:
+        that:
+          - cmd_token_sync.json.choices | length > 0
+          - cmd_token_sync.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ gateway chat command: org set
+    - name: "Gateway chat - 'Ustaw organizacje github: semcod' command"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/analyze
+          stream: false
+          messages:
+            - role: user
+              content: "Ustaw organizacje github: semcod"
+        status_code: 200
+      register: cmd_org_set
+      ignore_errors: true
+
+    - name: Assert org set chat command returns non-empty response
+      ansible.builtin.assert:
+        that:
+          - cmd_org_set.json.choices | length > 0
+          - cmd_org_set.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ gateway chat command: org list
+    - name: Gateway chat - 'Pokaz liste wszystkich organizacji' command
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/analyze
+          stream: false
+          messages:
+            - role: user
+              content: "Pokaz liste wszystkich organizacji"
+        status_code: 200
+      register: cmd_org_list
+      ignore_errors: true
+
+    - name: Assert org list chat command returns non-empty response
+      ansible.builtin.assert:
+        that:
+          - cmd_org_list.json.choices | length > 0
+          - cmd_org_list.json.choices[0].message.content | length > 0
+
+    # ------------------------------------------------------------------ regression: template -> effective_repo_url -> git sync
+    - name: "Gateway chat - Repo template last-pushed (no Repo URL override)"
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/refactor
+          stream: false
+          messages:
+            - role: user
+              content: |
+                Repo: {{ '{{' }}show last pushed repo from github{{ '}}' }}
+                Branch: main
+                Execute: false
+                Push: false
+                PR: false
+                Zadanie: Plan etapowy refaktoryzacji.
+        status_code: 200
+      register: cmd_template_repo
+      ignore_errors: true
+
+    - name: Assert template-resolved Repo did NOT fail with 'repo_url or source_path'
+      ansible.builtin.assert:
+        that:
+          - cmd_template_repo.json.choices | length > 0
+          - "'repo_url or source_path must be provided' not in cmd_template_repo.json.choices[0].message.content"
+          - "'last_pushed_repo_from_github' in cmd_template_repo.json.choices[0].message.content
+             or '# Plan refaktoryzacji' in cmd_template_repo.json.choices[0].message.content
+             or '# Analiza repo' in cmd_template_repo.json.choices[0].message.content"
+        fail_msg: "Template Repo resolution failed - effective_repo_url likely not propagated to git sync"
+
+    # ------------------------------------------------------------------ summary
+    - name: Print gh2mcp E2E summary
+      ansible.builtin.debug:
+        msg:
+          - "gh2mcp health:          {{ gh2mcp_health.json.status }}"
+          - "token configured:       {{ gh2mcp_status.json.configured }}"
+          - "sync (non-forced):      success={{ sync_result.json.success }}, source={{ sync_result.json.source | default('n/a') }}"
+          - "sync (forced):          success={{ sync_forced.json.success | default('skipped') }}"
+          - "org/set test-org-e2e:   success={{ org_set_result.json.success }}, org={{ org_set_result.json.org }}"
+          - "org/list:               success={{ org_list_result.json.success }}, org_count={{ org_list_result.json.org_count | default('n/a') }}"
+          - "repo/last-pushed:       success={{ last_pushed_result.json.success }}, repo={{ last_pushed_result.json.repo | default('n/a') }}"

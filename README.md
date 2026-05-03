@@ -1,13 +1,15 @@
+![img.png](img.png)
+
 # Autonomiczny Agent Refaktoryzacji MCP
 
 
 ## AI Cost Tracking
 
 ![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$3.15-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-5.1h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$3.30-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-5.4h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $3.1500 (21 commits)
-- 👤 **Human dev:** ~$513 (5.1h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $3.3000 (22 commits)
+- 👤 **Human dev:** ~$538 (5.4h @ $100/h, 30min dedup)
 
 Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -46,6 +48,27 @@ export GITHUB_PAT=ghp_xxx
 make ansible-github-test      # weryfikuje token + create-repo + cleanup
 ```
 
+### Szybki workflow: ostatnie repo -> analiza -> refactor
+
+Masz gotowy skrypt automatyzujący najczęstszy przepływ:
+
+```bash
+# 1) tylko analiza i plan kolejnych etapów dla ostatnio aktualizowanego repo GitHub
+bash scripts/refactor-last-repo.sh
+
+# 2) analiza + execute (commit artefaktów przez gateway/git-proxy)
+bash scripts/refactor-last-repo.sh --execute
+
+# 3) analiza + execute + push + PR
+bash scripts/refactor-last-repo.sh --execute --push --pr
+
+# 4) praca na konkretnym repo
+bash scripts/refactor-last-repo.sh --repo semcod/mcp --execute --task "Etap 2 refaktoryzacji gateway"
+```
+
+Skrypt zapisuje odpowiedzi API i wynik JSON do katalogu:
+`output/refactor-last-repo-<timestamp>/`.
+
 `make start` uruchamia także `gh2mcp-agent`, który przy starcie może zsynchronizować token do `.env`
 (`GH2MCP_SYNC_ON_START=true`).
 
@@ -62,11 +85,13 @@ make ansible-github-test      # weryfikuje token + create-repo + cleanup
 | OpenWebUI (chat) | http://localhost:3000 |
 | MCP WebUI (admin) | http://localhost:8092 |
 | MCP WebUI GitHub | http://localhost:8092/github |
+| MCP Docs (playbooki) | http://localhost:8093 |
 | Gateway (API) | http://localhost:9000 |
 | Dashboard | http://localhost:8085 |
 | Git Proxy (dev) | http://localhost:8081 |
 
 Pełne scenariusze użycia: [`docs/USAGE.md`](docs/USAGE.md).
+Dialogi chat-playbook (copy/paste): [`docs/CHAT_PLAYBOOKS.md`](docs/CHAT_PLAYBOOKS.md).
 Architektura produktowa: [`docs/PRODUCT.md`](docs/PRODUCT.md).
 Plan refaktoryzacji: [`REFACTORING_PLAN.md`](REFACTORING_PLAN.md).
 
@@ -217,13 +242,22 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 │   ├── pyproject.toml
 │   └── README.md
 │
+├── mcp-docs/                # Serwis dokumentacji (Docker, port 8093)
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   └── server.py
+│
 ├── docs/                       # Dokumentacja produktowa
 │   ├── PRODUCT.md            # Architektura produktowa
-│   └── USAGE.md              # Scenariusze użycia
+│   ├── USAGE.md              # Scenariusze użycia (10 przepływów)
+│   ├── USE_CASES.md          # Gotowe use-case + prompty
+│   └── CHAT_PLAYBOOKS.md     # Dialogi chat jako playbook operacyjny
 │
 ├── scripts/
 │   ├── deploy.sh
-│   └── test.sh
+│   ├── test.sh
+│   ├── generate_demo_repos.sh  # Generowanie repo demo (GitHub/local)
+│   └── refactor-last-repo.sh  # Auto workflow: last repo → analyze → refactor
 │
 ├── repos/                      # Repo hosta (read-only mount)
 └── output/                     # Wyniki analizy (volume)
@@ -237,7 +271,9 @@ OpenAI-compatible HTTP API shim dla integracji z zewnętrznymi klientami:
 - **Autoryzacja**: Bearer token (per-tenant API keys)
 - **Multi-tenant**: Konfiguracja przez `tenants/*.yaml`
 - **Audit logging**: JSONL logi w wolumenie `audit-storage`
-- **Prompt parsing**: Automatyczne parsowanie pól (Repo, Repo URL, Source, Branch, Execute, Push, Draft, PR, Test, Remote, Zadanie)
+- **Prompt parsing**: Automatyczne parsowanie pól (Repo, Repo URL, Source, Branch, Execute, Push, Draft, PR, Test, Remote, Zadanie, GitHub Token)
+- **Komendy systemowe**: sync/zapis tokenu, zarządzanie organizacjami, auto-resolve repo z szablonu `{{...}}`
+- **Repo template**: `Repo: {{pokaż ostatnie repo z github}}` → auto-resolve przez gh2mcp
 
 ### MCP WebUI - Panel Testowy
 FastAPI + HTMX + Tailwind dla QA i administratorów:
@@ -504,6 +540,7 @@ PYTHONPATH=.. python agent_git2mcp.py --repo test/sample-project --source-path .
 
 - **[docs/USAGE.md](docs/USAGE.md)** - Pełne scenariusze użycia (9 przepływów end-to-end)
 - **[docs/USE_CASES.md](docs/USE_CASES.md)** - Gotowe use-case i prompty dla refactor/migration/integration
+- **[docs/CHAT_PLAYBOOKS.md](docs/CHAT_PLAYBOOKS.md)** - Szczegółowe dialogi chat jako playbook operacyjny
 - **[docs/PRODUCT.md](docs/PRODUCT.md)** - Architektura produktowa, multi-tenant, bezpieczeństwo
 - **[env2mcp/README.md](env2mcp/README.md)** - Konfiguracja `.env` i integracja GitHub (`gh`/PAT)
 - **[REFACTORING_PLAN.md](REFACTORING_PLAN.md)** - Plan refaktoryzacji i roadmap
