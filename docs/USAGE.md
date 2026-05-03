@@ -358,6 +358,28 @@ Test: python3 -m compileall -q .
 Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
 ```
 
+### Konfiguracja GitHub bezpośrednio z OpenWebUI (`localhost:3000`)
+
+Możesz ustawić token GitHub bez wychodzenia z OpenWebUI, dodając w prompt:
+
+```text
+GitHub Token: ghp_xxx... lub github_pat_xxx...
+```
+
+Gateway zapisze token do `.env` przez `env2mcp` i użyje go do:
+
+- klonowania/sync repo GitHub,
+- push,
+- tworzenia PR.
+
+Następnie możesz używać skrótu repo bez pełnego URL:
+
+```text
+Repo URL: owner/repo
+```
+
+Gateway zamieni to na `https://github.com/owner/repo.git` i automatycznie wstrzyknie token.
+
 ### Jak czytać wynik JSON
 
 - `analysis` — metryki/wzorce/rekomendacje z `mcp-skills`.
@@ -367,6 +389,7 @@ Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie,
 - `execution.pushed=true` — push wykonany (gdy `Push: true` i feature `push` jest włączony dla tenant).
 - `execution.draft_branch` — informacje o utworzonym `draft/*` branch (gdy `Draft: true`).
 - `execution.pull_request` — dane PR (lub `skipped` z powodem, gdy PR nie mógł zostać utworzony).
+- `github.configured=true` — token GitHub został zapisany do `.env` podczas wywołania.
 
 ### Zasady `Draft` / `PR`
 

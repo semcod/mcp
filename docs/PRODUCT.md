@@ -73,6 +73,7 @@ Gateway parsuje z promptu (lub z `extra_body`) pola:
 
 - `Repo`
 - `Repo URL` (opcjonalnie)
+- `GitHub Token` (opcjonalnie, zapisywany do `.env` przez `env2mcp`)
 - `Source` (opcjonalnie)
 - `Branch`
 - `Execute` (`true/false`)
@@ -93,6 +94,9 @@ Przy `Push: true` wykonuje push tylko gdy:
 
 Przy `Draft: true` (domyślnie dla `Push: true`) gateway tworzy branch `draft/*` przed commitem.
 Przy `PR: true` gateway próbuje utworzyć draft PR przez GitHub API (wymaga `GITHUB_TOKEN` lub `GITHUB_PAT` i repo URL wskazującego na GitHub).
+Przy podaniu `GitHub Token: ...` gateway zapisuje token do `.env` i używa go przy kolejnych synchronizacjach GitHub.
+
+`Repo URL` wspiera również skrót `owner/repo` (mapowany do `https://github.com/owner/repo.git`).
 
 ## OpenWebUI
 

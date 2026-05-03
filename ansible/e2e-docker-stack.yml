@@ -117,7 +117,8 @@
           - refactor_message_payload.skill == 'refactor'
           - refactor_message_payload.repo_id == 'team/code2schema-demo'
           - refactor_message_payload.source_path == '/host-semcod/code2schema'
-          - refactor_message_payload.branch == 'main'
+          - refactor_message_payload.base_branch == 'main'
+          - refactor_message_payload.branch is match('^draft/')
 
     - name: Assert refactor execute path committed artifacts and ran tests
       ansible.builtin.assert:

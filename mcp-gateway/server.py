@@ -27,6 +27,13 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+try:
+    from env2mcp import EnvConfig, GitHubCLI
+
+    ENV2MCP_AVAILABLE = True
+except Exception:
+    ENV2MCP_AVAILABLE = False
+
 
 TENANTS_DIR = Path(os.getenv("MCP_TENANTS_DIR", "/app/tenants"))
 AUDIT_LOG = Path(os.getenv("MCP_AUDIT_LOG", "/audit/audit.jsonl"))
@@ -34,6 +41,7 @@ GIT_PROXY_URL = os.getenv("GIT_PROXY_URL", "http://mcp-git-proxy:8080")
 SKILLS_URL = os.getenv("SKILLS_URL", "http://mcp-skills:8080")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "openrouter/x-ai/grok-code-fast-1")
+MCP_ENV_FILE = Path(os.getenv("MCP_ENV_FILE", "/app/.env"))
 GITHUB_PAT = os.getenv("GITHUB_PAT", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
 GITHUB_API_URL = os.getenv("GITHUB_API_URL", "https://api.github.com")
@@ -54,6 +62,7 @@ def load_tenants() -> dict[str, dict]:
 PROMPT_FIELD_REGEX = {
     "repo_id": re.compile(r"^\s*Repo\s*:\s*(.+?)\s*$", re.IGNORECASE),
     "repo_url": re.compile(r"^\s*Repo\s*URL\s*:\s*(.+?)\s*$", re.IGNORECASE),
+    "github_token": re.compile(r"^\s*(?:GitHub\s*Token|Github\s*Token|Token)\s*:\s*(.+?)\s*$", re.IGNORECASE),
     "source_path": re.compile(r"^\s*Source\s*:\s*(.+?)\s*$", re.IGNORECASE),
     "branch": re.compile(r"^\s*Branch\s*:\s*(.+?)\s*$", re.IGNORECASE),
     "task": re.compile(r"^\s*Zadanie\s*:\s*(.+?)\s*$", re.IGNORECASE),
@@ -114,6 +123,97 @@ def parse_bool(value: str | None, default: bool = False) -> bool:
     return default
 
 
+def _load_env_file_values(env_path: Path) -> dict[str, str]:
+    if not env_path.exists():
+        return {}
+    values: dict[str, str] = {}
+    for raw in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:]
+        match = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$", line)
+        if not match:
+            continue
+        key, value = match.groups()
+        if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+            value = value[1:-1]
+        values[key] = value
+    return values
+
+
+def _runtime_github_token() -> str:
+    file_values = _load_env_file_values(MCP_ENV_FILE)
+    return (
+        file_values.get("GITHUB_TOKEN")
+        or file_values.get("GITHUB_PAT")
+        or os.getenv("GITHUB_TOKEN", "")
+        or os.getenv("GITHUB_PAT", "")
+    )
+
+
+def _save_github_token(token: str) -> dict[str, Any]:
+    cleaned = token.strip()
+    if not cleaned:
+        raise ValueError("GitHub token is empty")
+    if not ENV2MCP_AVAILABLE:
+        raise ValueError("env2mcp is not available in mcp-gateway")
+
+    cfg = EnvConfig(MCP_ENV_FILE)
+    cfg["GITHUB_PAT"] = cleaned
+    cfg.remove("GITHUB_TOKEN")
+
+    github_user: str | None = None
+    try:
+        gh = GitHubCLI()
+        if gh.is_available():
+            os.environ["GITHUB_TOKEN"] = cleaned
+            github_user = gh.get_user()
+            if github_user:
+                cfg["GITHUB_USER"] = github_user
+    except Exception:
+        github_user = None
+
+    cfg.save()
+    return {
+        "configured": True,
+        "env_file": str(MCP_ENV_FILE),
+        "github_user": github_user,
+    }
+
+
+def _normalize_repo_url(repo_url: str | None) -> str | None:
+    if not repo_url:
+        return None
+    value = repo_url.strip()
+    if re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", value):
+        return f"https://github.com/{value}.git"
+    return value
+
+
+def _inject_github_token(repo_url: str | None) -> str | None:
+    if not repo_url:
+        return repo_url
+    parsed = urlparse(repo_url)
+    if (parsed.scheme or "").lower() != "https":
+        return repo_url
+    if (parsed.hostname or "").lower() != "github.com":
+        return repo_url
+    if parsed.username:
+        return repo_url
+
+    token = _runtime_github_token()
+    if not token:
+        return repo_url
+
+    if parsed.port:
+        netloc = f"{token}@{parsed.hostname}:{parsed.port}"
+    else:
+        netloc = f"{token}@{parsed.hostname}"
+    return parsed._replace(netloc=netloc).geturl()
+
+
 def _redact_repo_url(repo_url: str | None) -> str | None:
     if not repo_url:
         return repo_url
@@ -135,10 +235,11 @@ def _default_draft_name(repo_id: str) -> str:
 
 
 def _github_repo_from_url(repo_url: str | None) -> tuple[str, str] | None:
-    if not repo_url:
+    normalized_url = _normalize_repo_url(repo_url)
+    if not normalized_url:
         return None
 
-    value = repo_url.strip()
+    value = normalized_url.strip()
     if value.startswith("git@github.com:"):
         path = value.split(":", 1)[1]
     else:
@@ -192,7 +293,7 @@ async def _create_github_pr(
     body: str,
     draft: bool,
 ) -> dict[str, Any]:
-    token = GITHUB_TOKEN or GITHUB_PAT
+    token = _runtime_github_token()
     if not token:
         raise ValueError("GitHub token not configured (set GITHUB_TOKEN or GITHUB_PAT)")
 
@@ -352,6 +453,7 @@ class ChatCompletionRequest(BaseModel):
     stream: bool = False
     repo_id: str | None = None
     repo_url: str | None = None
+    github_token: str | None = None
     source_path: str | None = None
     branch: str = "main"
     execute: bool | None = None
@@ -411,6 +513,7 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     tenant_id = tenant["tenant_id"]
     repo_id = req.repo_id or prompt_ctx.get("repo_id") or f"{tenant_id}/default"
     repo_url = req.repo_url or prompt_ctx.get("repo_url")
+    github_token = req.github_token or prompt_ctx.get("github_token")
     source_path = req.source_path or prompt_ctx.get("source_path")
     branch = req.branch
     if branch == "main" and prompt_ctx.get("branch"):
@@ -435,6 +538,7 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
                 tenant=tenant,
                 repo_id=repo_id,
                 repo_url=repo_url,
+                github_token=github_token,
                 source_path=source_path,
                 branch=branch,
                 user_request=user_request,
@@ -528,6 +632,7 @@ async def dispatch_skill(
     tenant: dict,
     repo_id: str,
     repo_url: str | None,
+    github_token: str | None,
     source_path: str | None,
     branch: str,
     user_request: str,
@@ -543,7 +648,12 @@ async def dispatch_skill(
     push_remote: str,
 ) -> dict:
     tenant_id = tenant["tenant_id"]
-    safe_repo_url = _redact_repo_url(repo_url)
+    github_config_result: dict[str, Any] | None = None
+    if github_token:
+        github_config_result = _save_github_token(github_token)
+
+    normalized_repo_url = _normalize_repo_url(repo_url)
+    safe_repo_url = _redact_repo_url(normalized_repo_url)
     async with httpx.AsyncClient(timeout=300.0) as client:
         sync_payload: dict[str, Any] = {
             "repo_id": repo_id,
@@ -551,8 +661,8 @@ async def dispatch_skill(
         }
         if source_path:
             sync_payload["source_path"] = source_path
-        if repo_url:
-            sync_payload["repo_url"] = repo_url
+        if normalized_repo_url:
+            sync_payload["repo_url"] = _inject_github_token(normalized_repo_url)
 
         sync = await _expect_json(
             await client.post(f"{GIT_PROXY_URL}/repos/sync", json=sync_payload),
@@ -570,6 +680,7 @@ async def dispatch_skill(
                 "source_path": source_path,
                 "branch": branch,
                 "sync": sync,
+                "github": github_config_result,
                 "analysis": analysis,
                 "note": "Analyze workflow executed through mcp-skills HTTP API.",
             }
@@ -717,6 +828,7 @@ async def dispatch_skill(
                 "base_branch": base_branch,
                 "user_request": user_request,
                 "sync": sync,
+                "github": github_config_result,
                 "checkpoint": ckpt,
                 "analysis": analysis,
                 "plan_preview": {

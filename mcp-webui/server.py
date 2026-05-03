@@ -215,16 +215,24 @@ async def github_page(request: Request):
 @app.post("/github/configure")
 async def github_configure(request: Request, token: str = Form(""), action: str = Form("")):
     """Configure or clear GitHub token."""
+    env_path = Path(__file__).parent.parent / ".env"
+
     if action == "clear":
-        # Clear from environment (we can only suggest this)
-        # In practice, user needs to remove from .env manually or restart
+        if ENV2MCP_AVAILABLE:
+            try:
+                cfg = EnvConfig(env_path)
+                cfg.remove("GITHUB_PAT")
+                cfg.remove("GITHUB_TOKEN")
+                cfg.remove("GITHUB_USER")
+                cfg.save()
+            except Exception as exc:
+                return RedirectResponse(url=f"/github?error={str(exc)}", status_code=303)
         return RedirectResponse(url="/github?cleared=1", status_code=303)
 
     if token:
         # Save to .env file using env2mcp
         if ENV2MCP_AVAILABLE:
             try:
-                env_path = Path(__file__).parent.parent / ".env"
                 cfg = EnvConfig(env_path)
                 cfg["GITHUB_PAT"] = token
 
@@ -240,6 +248,8 @@ async def github_configure(request: Request, token: str = Form(""), action: str 
                 cfg.save()
             except Exception as e:
                 return RedirectResponse(url=f"/github?error={str(e)}", status_code=303)
+        else:
+            return RedirectResponse(url="/github?error=env2mcp_not_available", status_code=303)
 
     return RedirectResponse(url="/github?configured=1", status_code=303)
 

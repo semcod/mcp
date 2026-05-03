@@ -95,6 +95,7 @@ services:
       - MCP_AUDIT_LOG=/audit/audit.jsonl
     volumes:
       - ./mcp-gateway/tenants:/app/tenants:ro
+      - ./.env:/app/.env:ro
       - audit-storage:/audit
     ports:
       - "9000:9000"
@@ -123,6 +124,8 @@ services:
       - GATEWAY_URL=http://mcp-gateway:9000
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
       - WEBUI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
+    volumes:
+      - ./.env:/app/.env
     ports:
       - "8092:8090"
     depends_on:
