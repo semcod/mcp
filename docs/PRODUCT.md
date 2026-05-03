@@ -2,6 +2,8 @@
 
 Pakiet usług dla klientów: `mcp-skills` jako serwis SaaS, sterowany przez własnego LLM-agenta poprzez `git2mcp`, dostępny dla użytkowników końcowych przez OpenWebUI.
 
+Praktyczne use-case i gotowe prompty (refactor/migration/integration): `docs/USE_CASES.md`.
+
 ## Architektura runtime
 
 ```
@@ -14,6 +16,13 @@ Pakiet usług dla klientów: `mcp-skills` jako serwis SaaS, sterowany przez wła
 |                 |  Auth  |  + auth +      |        |  metryki)     |
 |                 |  SSE   |  multi-tenant) |        +---------------+
 +-----------------+        +-------+--------+
+                                   |
+                                   v
+                           +----------------+
+                           |  gh2mcp-agent  |
+                           | (gh token sync |
+                           |   to .env)     |
+                           +----------------+
                                    |
                                    v
                            +----------------+
@@ -66,6 +75,60 @@ Wystarczy dodać plik i restart `mcp-gateway`.
 - `POST /v1/chat/completions` — OpenAI-compatible (Bearer auth, SSE supported)
 - `GET /jobs/{job_id}` — status zadania
 - `GET /audit/tail?limit=N` — JSONL audit log
+
+## Endpointy mcp-git-proxy (port 8081)
+
+**Repo:**
+- `GET /health`
+- `GET /repos` — lista lokalnych repo
+- `POST /repos/sync` — klonuj lub sync repo (z URL lub source_path)
+- `POST /repos/{id}/sync-pull` — pull z remote
+- `POST /repos/{id}/commit` — commit zmian
+- `POST /repos/{id}/push` — push do remote
+- `POST /repos/{id}/run-tests` — uruchom testy
+- `POST /repos/{id}/worktree/read|write` — odczyt/zapis pliku
+- `POST /repos/{id}/worktree/diff` — diff roboczy
+- `POST /repos/{id}/branch/draft` — stwórz draft branch
+- `POST /repos/{id}/checkpoint` — snapshot worktree
+- `POST /repos/{id}/checkpoint/restore` — przywróć snapshot
+- `POST /repos/{id}/patch/apply` — aplikuj patch
+- `POST /repos/{id}/stage` — staging plików
+- `POST /repos/{id}/stash/save|pop` — stash
+
+**GitHub API (przez mcp-git-proxy):**
+- `POST /github/create-repo` — stwórz nowe repo na GitHubie + opcjonalne klonowanie lokalne
+
+  ```json
+  {
+    "name": "nowe-repo",
+    "description": "opis",
+    "private": true,
+    "auto_clone": true,
+    "branch": "main",
+    "github_token": "ghp_..."
+  }
+  ```
+  Token można przekazać w body lub ustawić `GITHUB_PAT` w env kontenera.
+
+## Endpointy mcp-webui (port 8092)
+
+- `GET /` — dashboard
+- `GET /repos` — lista + sync form
+- `GET /github` — konfiguracja GitHub (token, create-repo, clone, sync)
+- `POST /github/fetch-token-from-cli` — pobierz token z `gh auth token` i zapisz do `.env`
+- `POST /github/configure` — zapisz/usuń token ręcznie
+- `POST /github/create-repo` — utwórz nowe repo (przez mcp-git-proxy)
+- `POST /github/clone` — sklonuj repo
+- `POST /github/sync` — pull updates
+- `GET /skills` — invoke modeli przez gateway
+- `GET /playground` — free-form prompt
+- `GET /diff` — worktree diff
+
+## Endpointy gh2mcp-agent (port 8079)
+
+- `GET /health` — status usługi
+- `GET /status` — status tokenu (`configured`, `user`, `token_hint`)
+- `POST /sync/token` — wymuś synchronizację tokenu do `.env`
 
 ### Prompt contract dla `mcp-skills/refactor`
 
@@ -134,6 +197,16 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 - Analiza repo przez `mcp-skills` (metrics/patterns/recommendations).
 - Opcjonalny commit + test + push + draft branch + draft PR przez prompt (`Execute`/`Push`/`Draft`/`PR`).
 - Multi-tenant auth + audit.
+- Generowanie i testowanie repo demo przez system (`make generate-demo-repos`) pod scenariusze produktu.
+
+### Co działa przez MCP WebUI (`http://localhost:8092/github`)
+
+- **Konfiguracja GitHub tokenu** — 3 metody: gh CLI jednym kliknięciem, PAT ręcznie, lub `.env`.
+- **Pobieranie tokenu z gh CLI** — `POST /github/fetch-token-from-cli` odczytuje `gh auth token` i zapisuje do `.env`.
+- **Tworzenie nowego repo na GitHubie** — formularz + `POST /github/create-repo` przez `mcp-git-proxy`.
+- **Klonowanie repo** — `owner/repo` lub pełny URL z automatycznym wstrzyknięciem tokenu.
+- **Sync/pull** istniejących lokalnych repo.
+- **Test integracji GitHub** — `make ansible-github-test` (weryfikacja tokenu + create-repo + cleanup).
 
 ### Co jeszcze wymaga pracy do pełnego „auto-refactor + GitHub update”
 

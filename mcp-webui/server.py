@@ -24,15 +24,23 @@ from fastapi.templating import Jinja2Templates
 try:
     import sys
     sys.path.insert(0, str(Path(__file__).parent.parent / "env2mcp"))
-    from env2mcp import EnvConfig, GitHubCLI, get_github_token
+    from env2mcp import EnvConfig, GitHubCLI
     ENV2MCP_AVAILABLE = True
 except ImportError:
     ENV2MCP_AVAILABLE = False
+
+# Import gh2mcp if available (for token sync helper)
+try:
+    from gh2mcp import GitHubTokenSyncService
+    GH2MCP_AVAILABLE = True
+except ImportError:
+    GH2MCP_AVAILABLE = False
 
 
 GATEWAY_URL = os.getenv("GATEWAY_URL", "http://mcp-gateway:9000")
 GIT_PROXY_URL = os.getenv("GIT_PROXY_URL", "http://mcp-git-proxy:8080")
 WEBUI_API_KEY = os.getenv("WEBUI_API_KEY", "sk-mcp-default-dev-key")
+GH2MCP_URL = os.getenv("GH2MCP_URL", "http://gh2mcp-agent:8079")
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -140,6 +148,46 @@ async def playground(request: Request):
 
 # GitHub Configuration Endpoints
 
+def _resolve_github_token() -> str | None:
+    token = os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
+    if token:
+        return token
+
+    if ENV2MCP_AVAILABLE:
+        try:
+            cfg = EnvConfig(Path(__file__).parent.parent / ".env")
+            token = cfg.get("GITHUB_PAT") or cfg.get("GITHUB_TOKEN")
+            if token:
+                return token
+        except Exception:
+            pass
+
+    if GH2MCP_AVAILABLE:
+        try:
+            svc = GitHubTokenSyncService(Path(__file__).parent.parent / ".env")
+            status = svc.get_status()
+            if status.get("configured"):
+                synced = svc.sync_token(force_gh_cli=False)
+                if synced.get("success"):
+                    return os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
+        except Exception:
+            pass
+
+    return None
+
+
+def _read_gh2mcp_status() -> dict | None:
+    if not GH2MCP_URL:
+        return None
+    try:
+        with httpx.Client(timeout=2.0) as client:
+            response = client.get(f"{GH2MCP_URL}/status")
+            if response.status_code == 200:
+                return response.json()
+    except Exception:
+        return None
+    return None
+
 def _get_github_config():
     """Get GitHub configuration status."""
     config = {
@@ -150,10 +198,18 @@ def _get_github_config():
     }
 
     # Check environment variables
-    token = os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
+    token = _resolve_github_token()
     if token:
         config["configured"] = True
         config["token_hint"] = token[:8] + "..." if len(token) > 8 else "***"
+
+    gh2mcp_status = _read_gh2mcp_status()
+    if gh2mcp_status and gh2mcp_status.get("configured"):
+        config["configured"] = True
+        if not config["token_hint"]:
+            config["token_hint"] = gh2mcp_status.get("token_hint")
+        if not config["user"]:
+            config["user"] = gh2mcp_status.get("user")
 
     # Try env2mcp for more details
     if ENV2MCP_AVAILABLE:
@@ -207,7 +263,9 @@ async def github_page(request: Request):
             "my_repos": github_config["my_repos"],
             "repos": repos,
             "clone_result": None,
-            "sync_result": None
+            "sync_result": None,
+            "create_result": None,
+            "cli_fetch_result": None,
         }
     )
 
@@ -254,6 +312,132 @@ async def github_configure(request: Request, token: str = Form(""), action: str 
     return RedirectResponse(url="/github?configured=1", status_code=303)
 
 
+@app.post("/github/fetch-token-from-cli")
+async def github_fetch_token_from_cli(request: Request):
+    """Read GitHub token from gh CLI (via env2mcp) and save to .env."""
+    env_path = Path(__file__).parent.parent / ".env"
+    result = {"success": False, "error": None, "user": None, "token_hint": None}
+
+    if GH2MCP_URL:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    f"{GH2MCP_URL}/sync/token",
+                    json={"force_gh_cli": True},
+                )
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success"):
+                    result["success"] = True
+                    result["user"] = data.get("user")
+                    result["token_hint"] = data.get("token_hint")
+                else:
+                    result["error"] = data.get("error") or "gh2mcp sync failed"
+            else:
+                result["error"] = f"gh2mcp HTTP {response.status_code}: {response.text}"
+        except Exception as exc:
+            result["error"] = str(exc)
+
+        if result["success"]:
+            github_config = _get_github_config()
+            repos = []
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                try:
+                    repos = (await client.get(f"{GIT_PROXY_URL}/repos")).json()
+                except Exception:
+                    pass
+
+            return templates.TemplateResponse(
+                "github.html",
+                {
+                    "request": request,
+                    "github_configured": github_config["configured"],
+                    "github_user": github_config["user"],
+                    "github_token_hint": github_config["token_hint"],
+                    "my_repos": github_config["my_repos"],
+                    "repos": repos,
+                    "clone_result": None,
+                    "sync_result": None,
+                    "create_result": None,
+                    "cli_fetch_result": result,
+                }
+            )
+
+    if not ENV2MCP_AVAILABLE:
+        result["error"] = "env2mcp not available"
+        return templates.TemplateResponse(
+            "github.html", {**await _github_page_ctx(request), "cli_fetch_result": result}
+        )
+
+    try:
+        gh = GitHubCLI()
+        if not gh.is_available():
+            result["error"] = "gh CLI nie jest zainstalowane. Zainstaluj z https://cli.github.com/"
+        else:
+            token = gh.get_token()
+            if not token:
+                result["error"] = "gh CLI jest zainstalowane, ale nie jesteś zalogowany. Uruchom: gh auth login"
+            else:
+                user = gh.get_user()
+                cfg = EnvConfig(env_path)
+                cfg["GITHUB_PAT"] = token
+                if user:
+                    cfg["GITHUB_USER"] = user
+                cfg.save()
+                os.environ["GITHUB_PAT"] = token
+                result["success"] = True
+                result["user"] = user
+                result["token_hint"] = token[:8] + "..."
+    except Exception as exc:
+        result["error"] = str(exc)
+
+    github_config = _get_github_config()
+    repos = []
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            repos = (await client.get(f"{GIT_PROXY_URL}/repos")).json()
+        except Exception:
+            pass
+
+    return templates.TemplateResponse(
+        "github.html",
+        {
+            "request": request,
+            "github_configured": github_config["configured"],
+            "github_user": github_config["user"],
+            "github_token_hint": github_config["token_hint"],
+            "my_repos": github_config["my_repos"],
+            "repos": repos,
+            "clone_result": None,
+            "sync_result": None,
+            "create_result": None,
+            "cli_fetch_result": result,
+        }
+    )
+
+
+async def _github_page_ctx(request: Request) -> dict:
+    github_config = _get_github_config()
+    repos = []
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            repos = (await client.get(f"{GIT_PROXY_URL}/repos")).json()
+        except Exception:
+            pass
+    return {
+        "request": request,
+        "github_configured": github_config["configured"],
+        "github_user": github_config["user"],
+        "github_token_hint": github_config["token_hint"],
+        "my_repos": github_config["my_repos"],
+        "repos": repos,
+        "clone_result": None,
+        "sync_result": None,
+        "create_result": None,
+        "cli_fetch_result": None,
+    }
+
+
 def _normalize_github_url(repo_url: str) -> str:
     """Convert owner/repo or URL to clone URL."""
     repo_url = repo_url.strip()
@@ -283,7 +467,7 @@ async def github_clone(
     clone_url = _normalize_github_url(repo_url)
 
     # Add token to URL if available
-    token = os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
+    token = _resolve_github_token()
     if token and clone_url.startswith("https://github.com/"):
         # Insert token into URL: https://token@github.com/...
         clone_url = clone_url.replace("https://", f"https://{token}@")
@@ -328,7 +512,70 @@ async def github_clone(
             "my_repos": github_config["my_repos"],
             "repos": repos,
             "clone_result": result,
-            "sync_result": None
+            "sync_result": None,
+            "create_result": None,
+            "cli_fetch_result": None,
+        }
+    )
+
+
+@app.post("/github/create-repo")
+async def github_create_repo(
+    request: Request,
+    repo_name: str = Form(...),
+    description: str = Form(""),
+    private: bool = Form(False),
+    auto_clone: bool = Form(True),
+):
+    """Create a new repository on GitHub."""
+    token = _resolve_github_token()
+
+    result = {"success": False, "error": None, "html_url": None, "repo_id": None}
+
+    try:
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                f"{GIT_PROXY_URL}/github/create-repo",
+                json={
+                    "name": repo_name,
+                    "description": description,
+                    "private": private,
+                    "auto_clone": auto_clone,
+                    "github_token": token,
+                },
+            )
+            if response.status_code == 200:
+                data = response.json()
+                result["success"] = True
+                result["html_url"] = data.get("html_url")
+                result["repo_id"] = data.get("repo_id")
+                result["github_repo"] = data.get("github_repo")
+            else:
+                result["error"] = f"HTTP {response.status_code}: {response.text}"
+    except Exception as exc:
+        result["error"] = str(exc)
+
+    github_config = _get_github_config()
+    repos = []
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        try:
+            repos = (await client.get(f"{GIT_PROXY_URL}/repos")).json()
+        except Exception:
+            pass
+
+    return templates.TemplateResponse(
+        "github.html",
+        {
+            "request": request,
+            "github_configured": github_config["configured"],
+            "github_user": github_config["user"],
+            "github_token_hint": github_config["token_hint"],
+            "my_repos": github_config["my_repos"],
+            "repos": repos,
+            "clone_result": None,
+            "sync_result": None,
+            "create_result": result,
+            "cli_fetch_result": None,
         }
     )
 
@@ -376,6 +623,8 @@ async def github_sync(
             "my_repos": github_config["my_repos"],
             "repos": repos,
             "clone_result": None,
-            "sync_result": result
+            "sync_result": result,
+            "create_result": None,
+            "cli_fetch_result": None,
         }
     )

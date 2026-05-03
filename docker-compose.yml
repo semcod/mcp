@@ -24,6 +24,32 @@ services:
     networks:
       - mcp-internal
 
+  # gh2mcp Agent - synchronizacja tokenu GitHub (gh CLI -> .env)
+  gh2mcp-agent:
+    build:
+      context: .
+      dockerfile: gh2mcp/Dockerfile
+    container_name: gh2mcp-agent
+    environment:
+      - GH2MCP_ENV_FILE=/app/.env
+      - GH2MCP_SYNC_ON_START=${GH2MCP_SYNC_ON_START:-true}
+      - GH2MCP_SYNC_INTERVAL=${GH2MCP_SYNC_INTERVAL:-0}
+      - GITHUB_PAT=${GITHUB_PAT:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    volumes:
+      - ./.env:/app/.env
+      - ${HOME}/.config/gh:/root/.config/gh:ro
+    ports:
+      - "8079:8079"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8079/health', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mcp-internal
+    restart: unless-stopped
+
   # MCP Skills Server - analiza kodu i metryki
   mcp-skills:
     build: ./mcp-skills
@@ -95,7 +121,7 @@ services:
       - MCP_AUDIT_LOG=/audit/audit.jsonl
     volumes:
       - ./mcp-gateway/tenants:/app/tenants:ro
-      - ./.env:/app/.env:ro
+      - ./.env:/app/.env
       - audit-storage:/audit
     ports:
       - "9000:9000"
@@ -124,6 +150,7 @@ services:
       - GATEWAY_URL=http://mcp-gateway:9000
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
       - WEBUI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
+      - GH2MCP_URL=http://gh2mcp-agent:8079
     volumes:
       - ./.env:/app/.env
     ports:
@@ -132,6 +159,8 @@ services:
       mcp-gateway:
         condition: service_healthy
       mcp-git-proxy:
+        condition: service_healthy
+      gh2mcp-agent:
         condition: service_healthy
     networks:
       - mcp-internal

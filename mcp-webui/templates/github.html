@@ -12,43 +12,77 @@
 <div class="row mb-4">
     <div class="col-md-6">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Authentication Status</h5>
+                {% if github_configured %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Connected</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Not configured</span>
+                {% endif %}
             </div>
             <div class="card-body">
                 {% if github_configured %}
-                    <div class="alert alert-success">
-                        <i class="bi bi-check-circle"></i> GitHub configured
-                        {% if github_user %}
-                            <br><small>User: <strong>{{ github_user }}</strong></small>
-                        {% endif %}
-                    </div>
-                {% else %}
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> GitHub not configured
+                    <div class="alert alert-success py-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Token aktywny
+                        {% if github_user %} — zalogowany jako <strong>{{ github_user }}</strong>{% endif %}
+                        {% if github_token_hint %}<br><small class="text-muted">Token: <code>{{ github_token_hint }}</code></small>{% endif %}
                     </div>
                 {% endif %}
 
-                <form method="post" action="/github/configure">
-                    <div class="mb-3">
-                        <label for="token" class="form-label">GitHub Personal Access Token</label>
-                        <input type="password" class="form-control" id="token" name="token"
-                               placeholder="ghp_xxx or github_pat_xxx"
-                               value="{{ github_token_hint if github_token_hint else '' }}">
-                        <div class="form-text">
-                            Create token at <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a>
-                            with <code>repo</code> scope.
+                {% if cli_fetch_result %}
+                    {% if cli_fetch_result.success %}
+                        <div class="alert alert-success py-2">
+                            <i class="bi bi-check-circle-fill"></i>
+                            Token pobrany z gh CLI — zapisany do <code>.env</code>
+                            {% if cli_fetch_result.user %}<br><strong>{{ cli_fetch_result.user }}</strong>{% endif %}
                         </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save Configuration</button>
-                    {% if github_configured %}
-                        <button type="submit" name="action" value="clear" class="btn btn-outline-danger ms-2">Clear</button>
+                    {% else %}
+                        <div class="alert alert-danger py-2">
+                            <i class="bi bi-x-circle"></i> {{ cli_fetch_result.error }}
+                        </div>
                     {% endif %}
-                </form>
+                {% endif %}
 
-                <hr>
-                <p class="text-muted small mb-1">Or use GitHub CLI:</p>
-                <pre class="bg-dark text-light p-2 rounded"><code>env2mcp github login</code></pre>
+                <!-- Opcja 1: pobierz z gh CLI jednym kliknięciem -->
+                <div class="mb-3 p-3 border rounded bg-light">
+                    <p class="mb-2 fw-semibold"><i class="bi bi-terminal"></i> Opcja 1 — pobierz token z gh CLI (zalecane)</p>
+                    <p class="text-muted small mb-2">
+                        Jeśli masz zainstalowane <code>gh</code> i jesteś zalogowany (<code>gh auth login</code>),
+                        kliknij poniżej — token zostanie automatycznie pobrany i zapisany.
+                    </p>
+                    <form method="post" action="/github/fetch-token-from-cli">
+                        <button type="submit" class="btn btn-dark btn-sm">
+                            <i class="bi bi-download"></i> Pobierz token z gh CLI
+                        </button>
+                    </form>
+                    <div class="mt-2 text-muted small">
+                        Nie masz gh CLI?
+                        <a href="https://cli.github.com/" target="_blank">Zainstaluj</a>,
+                        potem: <code>gh auth login</code>
+                    </div>
+                </div>
+
+                <!-- Opcja 2: wpisz token ręcznie -->
+                <div class="p-3 border rounded">
+                    <p class="mb-2 fw-semibold"><i class="bi bi-key"></i> Opcja 2 — wpisz Personal Access Token</p>
+                    <form method="post" action="/github/configure">
+                        <div class="mb-2">
+                            <input type="password" class="form-control form-control-sm" id="token" name="token"
+                                   placeholder="ghp_xxx... lub github_pat_xxx..."
+                                   autocomplete="off">
+                            <div class="form-text">
+                                Utwórz token na
+                                <a href="https://github.com/settings/tokens/new?scopes=repo,delete_repo" target="_blank">github.com/settings/tokens</a>
+                                z zakresem <code>repo</code> (i opcjonalnie <code>delete_repo</code>).
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Zapisz token</button>
+                        {% if github_configured %}
+                            <button type="submit" name="action" value="clear" class="btn btn-outline-danger btn-sm ms-2">Usuń token</button>
+                        {% endif %}
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -56,31 +90,112 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Quick Setup</h5>
+                <h5 class="mb-0">Instrukcja konfiguracji</h5>
             </div>
             <div class="card-body">
-                <ol class="list-group list-group-numbered">
-                    <li class="list-group-item">
-                        Install GitHub CLI:
-                        <a href="https://cli.github.com/" target="_blank">cli.github.com</a>
-                    </li>
-                    <li class="list-group-item">
-                        Run in terminal:
-                        <code>env2mcp setup-github</code>
-                    </li>
-                    <li class="list-group-item">
-                        Token will be saved to <code>.env</code> automatically
-                    </li>
+                <h6 class="text-success">Metoda A — gh CLI (najszybsza)</h6>
+                <pre class="bg-dark text-light p-2 rounded small"><code># 1. Zainstaluj gh CLI (raz)
+# https://cli.github.com/
+
+# 2. Zaloguj się
+gh auth login
+
+# 3. Kliknij "Pobierz token z gh CLI" powyżej
+# lub w terminalu:
+make setup-github</code></pre>
+
+                <h6 class="text-primary mt-3">Metoda B — Personal Access Token</h6>
+                <ol class="small ps-3">
+                    <li>Wejdź na <a href="https://github.com/settings/tokens/new?scopes=repo,delete_repo" target="_blank">github.com/settings/tokens</a></li>
+                    <li>Kliknij <strong>Generate new token (classic)</strong></li>
+                    <li>Zaznacz scope: <code>repo</code> + <code>delete_repo</code> (opcjonalnie)</li>
+                    <li>Skopiuj token i wklej w Opcji 2</li>
                 </ol>
 
-                <div class="mt-3">
-                    <a href="https://github.com/settings/tokens" target="_blank" class="btn btn-outline-secondary btn-sm">
-                        Create GitHub Token
-                    </a>
-                    <a href="https://cli.github.com/" target="_blank" class="btn btn-outline-secondary btn-sm ms-2">
-                        Install gh CLI
-                    </a>
+                <h6 class="text-secondary mt-3">Metoda C — zmienna środowiskowa</h6>
+                <pre class="bg-dark text-light p-2 rounded small"><code>echo "GITHUB_PAT=ghp_xxx" >> .env
+# lub
+export GITHUB_PAT=ghp_xxx
+make restart</code></pre>
+
+                <div class="mt-3 text-muted small">
+                    Token jest zapisywany do <code>.env</code> jako <code>GITHUB_PAT</code>
+                    i współdzielony między <code>mcp-gateway</code> i <code>mcp-webui</code>.
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create New Repository -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Repository on GitHub</h5>
+            </div>
+            <div class="card-body">
+                {% if not github_configured %}
+                    <div class="alert alert-warning">
+                        Configure GitHub token above before creating repositories.
+                    </div>
+                {% endif %}
+                <form method="post" action="/github/create-repo">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="repo_name" class="form-label">Repository Name</label>
+                            <input type="text" class="form-control" id="repo_name" name="repo_name"
+                                   placeholder="my-new-project" required
+                                   {% if not github_configured %}disabled{% endif %}>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="create_description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="create_description" name="description"
+                                   placeholder="Optional description"
+                                   {% if not github_configured %}disabled{% endif %}>
+                        </div>
+                        <div class="col-md-2 d-flex flex-column justify-content-end">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="private" name="private" value="true"
+                                       {% if not github_configured %}disabled{% endif %}>
+                                <label class="form-check-label" for="private">Private</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="auto_clone" name="auto_clone" value="true" checked
+                                       {% if not github_configured %}disabled{% endif %}>
+                                <label class="form-check-label" for="auto_clone">Clone locally</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success w-100"
+                                    {% if not github_configured %}disabled{% endif %}>
+                                <i class="bi bi-plus-circle"></i> Create
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if create_result %}
+                    <div class="mt-3">
+                        {% if create_result.success %}
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle"></i>
+                                Repository created: <strong>{{ create_result.github_repo }}</strong>
+                                <br>
+                                <a href="{{ create_result.html_url }}" target="_blank">{{ create_result.html_url }}</a>
+                                {% if create_result.repo_id %}
+                                    <br><small>Sklonowano lokalnie jako: <code>{{ create_result.repo_id }}</code> →
+                                    <a href="/repos">View in Repos</a></small>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="bi bi-x-circle"></i>
+                                Create failed: {{ create_result.error }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>

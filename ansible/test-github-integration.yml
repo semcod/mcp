@@ -1,0 +1,189 @@
+---
+- name: Test GitHub Integration (token + create-repo)
+  hosts: local
+  gather_facts: false
+  vars:
+    git_proxy_base: "http://localhost:8081"
+    webui_base: "http://localhost:8092"
+    github_token: "{{ lookup('env', 'GITHUB_PAT') | default(lookup('env', 'GITHUB_TOKEN'), true) }}"
+    test_repo_name: "mcp-e2e-test-{{ ansible_date_time.epoch | default('0') }}"
+    delete_after_test: true
+
+  tasks:
+
+    # ── 1. Warunki wstępne ─────────────────────────────────────────────────────
+
+    - name: Assert GITHUB_PAT or GITHUB_TOKEN is set
+      ansible.builtin.assert:
+        that:
+          - github_token | length > 0
+        fail_msg: >
+          Ustaw zmienną środowiskową GITHUB_PAT lub GITHUB_TOKEN przed uruchomieniem.
+          Przykład: export GITHUB_PAT=ghp_xxx && make ansible-github-test
+
+    - name: Wait for mcp-git-proxy health
+      ansible.builtin.uri:
+        url: "{{ git_proxy_base }}/health"
+        method: GET
+        status_code: 200
+      register: git_proxy_health
+      retries: 15
+      delay: 2
+      until: git_proxy_health.status == 200
+
+    - name: Wait for mcp-webui health
+      ansible.builtin.uri:
+        url: "{{ webui_base }}/"
+        method: GET
+        status_code: 200
+      register: webui_health
+      retries: 15
+      delay: 2
+      until: webui_health.status == 200
+
+    # ── 2. Sprawdź token przez GitHub API bezpośrednio ──────────────────────────
+
+    - name: Verify GitHub token via API (GET /user)
+      ansible.builtin.uri:
+        url: "https://api.github.com/user"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ github_token }}"
+          Accept: "application/vnd.github+json"
+        status_code: 200
+      register: github_user_response
+
+    - name: Show authenticated GitHub user
+      ansible.builtin.debug:
+        msg: "Zalogowany jako: {{ github_user_response.json.login }} ({{ github_user_response.json.name | default('no name') }})"
+
+    - name: Assert token has correct login
+      ansible.builtin.assert:
+        that:
+          - github_user_response.json.login | length > 0
+        fail_msg: "Token jest nieprawidłowy lub wygasł"
+
+    # ── 3. Sprawdź czy mcp-git-proxy widzi token (przez env) ───────────────────
+
+    - name: Get GitHub token via mcp-webui /github page (check configured status)
+      ansible.builtin.uri:
+        url: "{{ webui_base }}/github"
+        method: GET
+        status_code: 200
+      register: webui_github_page
+
+    - name: Check if webui sees token as configured
+      ansible.builtin.debug:
+        msg: >
+          mcp-webui /github status={{ webui_github_page.status }}.
+          Strona zawiera 'GitHub configured': {{ 'GitHub configured' in webui_github_page.content | string }}
+
+    # ── 4. Utwórz nowe repo przez mcp-git-proxy (direct API test) ──────────────
+
+    - name: Create GitHub repo via mcp-git-proxy POST /github/create-repo
+      ansible.builtin.uri:
+        url: "{{ git_proxy_base }}/github/create-repo"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ test_repo_name }}"
+          description: "Automated E2E test repo - safe to delete"
+          private: true
+          auto_clone: true
+          branch: "main"
+          github_token: "{{ github_token }}"
+        status_code: 200
+        timeout: 60
+      register: create_repo_response
+
+    - name: Show created repo details
+      ansible.builtin.debug:
+        msg:
+          - "GitHub repo: {{ create_repo_response.json.github_repo }}"
+          - "URL: {{ create_repo_response.json.html_url }}"
+          - "Sklonowano lokalnie: {{ create_repo_response.json.cloned_locally }}"
+          - "Local repo_id: {{ create_repo_response.json.repo_id | default('N/A') }}"
+
+    - name: Assert repo was created on GitHub
+      ansible.builtin.assert:
+        that:
+          - create_repo_response.json.github_repo is defined
+          - create_repo_response.json.html_url is match('https://github.com/')
+        fail_msg: "Tworzenie repo nie powiodło się: {{ create_repo_response.json }}"
+
+    - name: Assert repo was cloned locally
+      ansible.builtin.assert:
+        that:
+          - create_repo_response.json.cloned_locally == true
+          - create_repo_response.json.repo_id == test_repo_name
+        fail_msg: "Repo nie zostało sklonowane lokalnie"
+
+    # ── 5. Sprawdź czy repo widoczne w /repos ──────────────────────────────────
+
+    - name: List repos in mcp-git-proxy
+      ansible.builtin.uri:
+        url: "{{ git_proxy_base }}/repos"
+        method: GET
+        status_code: 200
+      register: repos_list
+
+    - name: Assert new repo appears in /repos list
+      ansible.builtin.assert:
+        that:
+          - repos_list.json | selectattr('repo_id', 'equalto', test_repo_name) | list | length > 0
+        fail_msg: "Repo {{ test_repo_name }} nie pojawia się w /repos"
+
+    - name: Show all local repos
+      ansible.builtin.debug:
+        msg: "Lokalne repo: {{ repos_list.json | map(attribute='repo_id') | list }}"
+
+    # ── 6. Utwórz repo przez mcp-webui (form POST) ─────────────────────────────
+
+    - name: Create GitHub repo via mcp-webui form POST
+      ansible.builtin.uri:
+        url: "{{ webui_base }}/github/create-repo"
+        method: POST
+        headers:
+          Content-Type: "application/x-www-form-urlencoded"
+        body: "repo_name={{ test_repo_name }}-webui&description=webui+test&auto_clone=true"
+        status_code: 200
+        timeout: 60
+      register: webui_create_response
+      ignore_errors: true
+
+    - name: Show webui create result
+      ansible.builtin.debug:
+        msg: "mcp-webui create status={{ webui_create_response.status }}, zawiera 'Create failed': {{ 'Create failed' in webui_create_response.content | string }}"
+
+    # ── 7. Cleanup: usuń testowe repo z GitHuba ────────────────────────────────
+
+    - name: Delete test repo from GitHub (cleanup)
+      ansible.builtin.uri:
+        url: "https://api.github.com/repos/{{ github_user_response.json.login }}/{{ test_repo_name }}"
+        method: DELETE
+        headers:
+          Authorization: "Bearer {{ github_token }}"
+          Accept: "application/vnd.github+json"
+        status_code: [204, 404]
+      when: delete_after_test
+
+    - name: Delete webui test repo from GitHub (cleanup)
+      ansible.builtin.uri:
+        url: "https://api.github.com/repos/{{ github_user_response.json.login }}/{{ test_repo_name }}-webui"
+        method: DELETE
+        headers:
+          Authorization: "Bearer {{ github_token }}"
+          Accept: "application/vnd.github+json"
+        status_code: [204, 404]
+      when: delete_after_test
+      ignore_errors: true
+
+    - name: Summary
+      ansible.builtin.debug:
+        msg:
+          - "✓ Token GitHub prawidłowy: {{ github_user_response.json.login }}"
+          - "✓ mcp-git-proxy /github/create-repo działa"
+          - "✓ Repo sklonowane lokalnie jako: {{ test_repo_name }}"
+          - "✓ Cleanup: repo usunięte z GitHub"

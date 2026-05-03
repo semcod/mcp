@@ -7,6 +7,10 @@ import tarfile
 from io import BytesIO
 from pathlib import Path
 
+import urllib.request
+import urllib.error
+import json as _json
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -101,6 +105,15 @@ class CheckpointRestoreRequest(BaseModel):
 
 class SyncPullRequest(BaseModel):
     branch: str = "main"
+
+
+class CreateGithubRepoRequest(BaseModel):
+    name: str
+    description: str = ""
+    private: bool = False
+    auto_clone: bool = True
+    branch: str = "main"
+    github_token: str | None = None
 
 
 app = FastAPI(title="mcp-git-proxy", version="0.1.0")
@@ -300,6 +313,65 @@ def run_tests(repo_id: str, request: RunTestsRequest):
         "stderr": process.stderr,
         "ok": process.returncode == 0,
     }
+
+
+@app.post("/github/create-repo")
+def github_create_repo(request: CreateGithubRepoRequest):
+    """Create a new repository on GitHub via REST API, then optionally clone it locally."""
+    token = request.github_token or os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
+    if not token:
+        raise HTTPException(status_code=400, detail="No GitHub token available. Set GITHUB_PAT or pass github_token.")
+
+    payload = _json.dumps({
+        "name": request.name,
+        "description": request.description,
+        "private": request.private,
+        "auto_init": True,
+    }).encode()
+
+    api_url = os.getenv("GITHUB_API_URL", "https://api.github.com")
+    req = urllib.request.Request(
+        f"{api_url}/user/repos",
+        data=payload,
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.github+json",
+            "Content-Type": "application/json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            repo_data = _json.loads(resp.read())
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode(errors="replace")
+        raise HTTPException(status_code=exc.code, detail=f"GitHub API error: {body}") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    result = {
+        "github_repo": repo_data.get("full_name"),
+        "html_url": repo_data.get("html_url"),
+        "clone_url": repo_data.get("clone_url"),
+        "private": repo_data.get("private"),
+        "cloned_locally": False,
+        "repo_id": None,
+    }
+
+    if request.auto_clone:
+        clone_url = repo_data.get("clone_url", "")
+        if clone_url.startswith("https://"):
+            clone_url = clone_url.replace("https://", f"https://{token}@")
+        repo_id = request.name
+        try:
+            manager.sync_repo(repo_id=repo_id, repo_url=clone_url, branch=request.branch)
+            result["cloned_locally"] = True
+            result["repo_id"] = repo_id
+        except Exception as exc:
+            result["clone_error"] = str(exc)
+
+    return result
 
 
 @app.post("/repos/{repo_id:path}/sync-pull")

@@ -4,6 +4,7 @@ Ten dokument pokazuje 9 konkretnych przepływów end-to-end. Wszystkie używają
 
 Powiązane dokumenty:
 - `docs/PRODUCT.md` — architektura i deployment
+- `docs/USE_CASES.md` — gotowe use-case (refactor/migration/integration)
 - `git2mcp/examples/README.md` — przykłady CLI
 - `env2mcp/README.md` — zarządzanie konfiguracją
 - OpenWebUI docs:
@@ -37,6 +38,7 @@ Po starcie:
   - `/github`       → konfiguracja GitHub i zarządzanie repo
 - `openwebui`       → http://localhost:3000        (frontend dla użytkowników)
 - `mcp-git-proxy`   → http://localhost:8081        (dev only)
+- `gh2mcp-agent`    → http://localhost:8079        (sync tokenu `gh` -> `.env`)
 - `dashboard`       → http://localhost:8085
 
 Wewnętrzne usługi (`mcp-skills`, `llm-agent`) nie są publiczne.
@@ -82,66 +84,138 @@ OpenWebUI w naszym compose jest już skonfigurowany przez env (`OPENAI_API_BASE_
 
 ## Scenariusz 2 — konfiguracja GitHub i zarządzanie repo
 
-**Cel:** skonfigurować GitHub (token lub gh CLI), sklonować repo i synchronizować je.
+**Cel:** skonfigurować GitHub (token lub gh CLI), sklonować istniejące repo, utworzyć nowe repo i synchronizować je.
 
-### 2.1 Konfiguracja GitHub (shell)
+### 2.1 Konfiguracja GitHub — 3 metody
+
+#### Metoda A — gh CLI (zalecana, 2 kroki)
 
 ```bash
-# Instalacja env2mcp i konfiguracja GitHub
+# 1. Zaloguj się przez gh CLI (raz)
+gh auth login
+
+# 2. Pobierz i zapisz token do .env automatycznie
 make setup-github
-
-# Lub ręcznie
-pip install -e ./env2mcp
-env2mcp setup-github
+# lub: env2mcp setup-github
 ```
 
-Komenda sprawdzi czy masz `gh` CLI:
-- Jeśli tak → zaloguje i pobierze token automatycznie
-- Jeśli nie → poprosi o wprowadzenie Personal Access Token
-
-Token zostanie zapisany w `.env` jako `GITHUB_PAT`.
-
-Alternatywnie - bezpośrednio w shell:
-
-```bash
-env2mcp github login              # Interaktywna autentykacja
-env2mcp github status            # Sprawdź status
-env2mcp github repos --limit 5   # Lista Twoich repo
-env2mcp env show                 # Pokaż wszystkie zmienne
-```
-
-### 2.2 Zarządzanie repo przez MCP WebUI
-
+Jeśli masz już uruchomiony stack, możesz pobrać token **bezpośrednio z WebUI**:
 1. Otwórz http://localhost:8092/github
-2. W sekcji **GitHub Configuration**:
-   - Wprowadź token (jeśli nie skonfigurowany przez CLI)
-   - Kliknij **Save Configuration**
-3. W sekcji **Clone Repository**:
-   - Repository URL: `owner/repo` (np. `semcod/mcp`)
-   - Local Repo ID: unikalna nazwa (np. `mcp-main`)
-   - Branch: `main`
-   - Kliknij **Clone**
-4. W sekcji **Sync Repository**:
-   - Wybierz repo z listy
-   - Kliknij **Pull Updates** aby pobrać najnowsze zmiany
+2. Kliknij **"Pobierz token z gh CLI"** — token zostanie odczytany z `gh auth token`
+   i zapisany do `.env` bez ponownego logowania.
 
-### 2.3 Zarządzanie repo przez API
+Weryfikacja:
+```bash
+env2mcp github status     # czy token jest w .env
+env2mcp github repos -L 5 # lista twoich repo
+gh auth status            # status gh CLI
+make gh2mcp-status        # status agenta sync tokenu
+```
+
+#### Metoda B — Personal Access Token (ręcznie)
+
+1. Wejdź na https://github.com/settings/tokens/new?scopes=repo,delete_repo
+2. Zaznacz scope: `repo` (obowiązkowy) + `delete_repo` (opcjonalnie, do testów)
+3. Skopiuj token
+
+Zapisz token — jeden z wariantów:
+```bash
+# a) przez WebUI
+# http://localhost:8092/github → sekcja "Opcja 2" → wpisz token → "Zapisz token"
+
+# b) przez CLI
+env2mcp env set GITHUB_PAT ghp_twoj_token
+
+# c) ręcznie w .env
+echo "GITHUB_PAT=ghp_twoj_token" >> .env
+```
+
+#### Metoda C — zmienna środowiskowa (tymczasowa)
 
 ```bash
-# Klonowanie repo
+export GITHUB_PAT=ghp_twoj_token
+# Token dostępny dla make setup-github i ansible-github-test,
+# ale nie zapisany trwale — zniknie po restart terminalu.
+```
+
+### 2.2 Zarządzanie repo przez MCP WebUI (http://localhost:8092/github)
+
+Po skonfigurowaniu tokenu strona pokazuje status **"Connected"** z nazwą użytkownika.
+
+#### Tworzenie nowego repo na GitHubie
+
+1. Sekcja **"Create New Repository on GitHub"** (zielona)
+2. Wypełnij: nazwa, opis, private/public, opcja "Clone locally"
+3. Kliknij **Create** — repo zostanie:
+   - utworzone na GitHubie przez API,
+   - sklonowane lokalnie do `mcp-git-proxy` (jeśli "Clone locally" zaznaczone).
+
+#### Klonowanie istniejącego repo
+
+1. Sekcja **"Clone Repository from GitHub"**
+2. Repository URL: `owner/repo` (np. `semcod/mcp`) lub pełny URL
+3. Local Repo ID: unikalna nazwa lokalna (np. `mcp-main`)
+4. Branch: `main`
+5. Kliknij **Clone**
+
+#### Synchronizacja (pull)
+
+1. Sekcja **"Sync Repository"**
+2. Wybierz repo z listy → **Pull Updates**
+
+#### Przeglądanie sklonowanych repo
+
+Sklonowane repo pojawiają się na http://localhost:8092/repos i http://localhost:8081/repos
+
+### 2.3 Zarządzanie repo przez API (curl / shell)
+
+```bash
+# Weryfikacja tokenu bezpośrednio
+curl -sS -H "Authorization: Bearer $GITHUB_PAT" \
+  https://api.github.com/user | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['login'])"
+
+# Tworzenie nowego repo przez mcp-git-proxy
+curl -sS -X POST http://localhost:8081/github/create-repo \
+  -H 'Content-Type: application/json' \
+  -d "{
+    \"name\": \"moje-nowe-repo\",
+    \"description\": \"Opis repo\",
+    \"private\": true,
+    \"auto_clone\": true,
+    \"github_token\": \"$GITHUB_PAT\"
+  }" | python3 -m json.tool
+
+# Klonowanie istniejącego repo
 curl -X POST http://localhost:8081/repos/sync \
   -H 'Content-Type: application/json' \
-  -d '{
-    "repo_id": "my-project",
-    "repo_url": "https://TOKEN@github.com/owner/repo.git",
-    "branch": "main"
-  }'
+  -d "{
+    \"repo_id\": \"my-project\",
+    \"repo_url\": \"https://$GITHUB_PAT@github.com/owner/repo.git\",
+    \"branch\": \"main\"
+  }"
 
 # Synchronizacja (pull)
 curl -X POST http://localhost:8081/repos/my-project/sync-pull \
   -H 'Content-Type: application/json' \
   -d '{"branch": "main"}'
+
+# Lista lokalnych repo
+curl -sS http://localhost:8081/repos | python3 -m json.tool
 ```
+
+### 2.4 Test integracji GitHub przez Ansible
+
+```bash
+export GITHUB_PAT=ghp_twoj_token
+make ansible-github-test
+```
+
+Playbook `ansible/test-github-integration.yml` weryfikuje:
+- poprawność tokenu (wywołanie `GET /user` na GitHub API),
+- działanie `POST /github/create-repo` przez `mcp-git-proxy`,
+- sklonowanie repo lokalnie,
+- widoczność w `/repos`,
+- i usuwa testowe repo po teście (cleanup).
 
 ---
 
@@ -431,22 +505,60 @@ curl -o /dev/null -w '%{http_code}\n' http://localhost:8092/   # -> 200
 
 ## FAQ
 
-**Jak skonfigurować GitHub?**
+**Jak szybko wygenerować repo demo i uruchomić use-case?**
 ```bash
-make setup-github
+make generate-demo-repos
 ```
-Lub ręcznie:
-1. Zainstaluj `gh` CLI: https://cli.github.com/
-2. Uruchom `env2mcp github login`
-3. Token zostanie zapisany w `.env` jako `GITHUB_PAT`
+Szczegółowe prompty i scenariusze: `docs/USE_CASES.md`.
 
-Alternatywnie, możesz wpisać token ręcznie w http://localhost:8092/github
+**Jak skonfigurować GitHub?**
+
+Najszybciej (jeśli masz `gh` zainstalowane):
+```bash
+gh auth login          # jednorazowe logowanie przez przeglądarkę
+make setup-github      # pobiera token z gh i zapisuje do .env
+```
+Alternatywnie przez WebUI: http://localhost:8092/github → **"Pobierz token z gh CLI"**
+
+Bez `gh` CLI:
+```bash
+# Wejdź na https://github.com/settings/tokens/new?scopes=repo,delete_repo
+# Skopiuj token, następnie:
+env2mcp env set GITHUB_PAT ghp_twoj_token
+# lub wpisz ręcznie w http://localhost:8092/github
+```
+
+**Jak pobrać aktualny token jeśli jestem zalogowany przez gh?**
+```bash
+gh auth token               # wyświetl aktualny token
+gh auth status              # sprawdź status logowania
+make setup-github           # pobierz i zapisz do .env
+```
+Przez WebUI: http://localhost:8092/github → **"Pobierz token z gh CLI"** — jeden klik.
+
+**Jak przetestować czy token i create-repo działają?**
+```bash
+export GITHUB_PAT=ghp_twoj_token
+make ansible-github-test
+```
+Playbook weryfikuje token, tworzy testowe repo, sprawdza klonowanie i usuwa repo po teście.
 
 **Skąd wziąć GitHub Personal Access Token?**
-1. Wejdź na https://github.com/settings/tokens
-2. Generate new token (classic)
-3. Zaznacz scope `repo` (dostęp do repozytoriów)
-4. Skopiuj token i wpisz w `.env` jako `GITHUB_PAT` lub przez WebUI
+1. Wejdź na https://github.com/settings/tokens/new?scopes=repo,delete_repo
+2. Kliknij **Generate new token (classic)**
+3. Zaznacz scope: `repo` (obowiązkowy) + `delete_repo` (do testów z cleanup)
+4. Skopiuj token i zapisz w `.env` jako `GITHUB_PAT` lub przez WebUI
+
+**Jak utworzyć nowe repo na GitHubie?**
+
+Przez WebUI: http://localhost:8092/github → sekcja **"Create New Repository on GitHub"**
+
+Przez API:
+```bash
+curl -X POST http://localhost:8081/github/create-repo \
+  -H 'Content-Type: application/json' \
+  -d "{\"name\":\"nowe-repo\",\"private\":true,\"auto_clone\":true,\"github_token\":\"$GITHUB_PAT\"}"
+```
 
 **Jak włączyć/wyłączyć skill dla tenanta?**
 W `mcp-gateway/tenants/<tenant>.yaml` w sekcji `features`. Po zmianie restart gateway.

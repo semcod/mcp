@@ -4,10 +4,10 @@
 ## AI Cost Tracking
 
 ![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$2.70-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-4.3h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$2.85-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-4.3h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $2.7000 (18 commits)
-- 👤 **Human dev:** ~$426 (4.3h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $2.8500 (19 commits)
+- 👤 **Human dev:** ~$428 (4.3h @ $100/h, 30min dedup)
 
 Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -19,23 +19,52 @@ System autonomicznej refaktoryzacji kodu oparty na Model Context Protocol (MCP),
 - **LLM Agent (`git2mcp`)** - planowanie refaktoryzacji i commitowanie zmian przez proxy git
 - **MCP Gateway** - publiczny shim OpenAI-compatible (auth, multi-tenant, SSE) do integracji z OpenWebUI
 - **MCP WebUI** - panel testowy QA / admin dla `mcp-skills`
+- **gh2mcp Agent** - synchronizacja tokenu GitHub z `gh` CLI do `.env` (autostart w Docker)
 
 ## Quick start
 
 ```bash
-cp .env.example .env   # ustaw OPENROUTER_API_KEY i WEBUI_API_KEY
-make setup-github      # opcjonalnie: konfiguracja GitHub PAT przez env2mcp
-make start             # killuje porty hostowe i uruchamia cały stack
-# make stop            # zatrzymuje wszystko
-# make smoke           # szybki test API gateway/webui
-# make help            # pełna lista targetów
+cp .env.example .env          # ustaw OPENROUTER_API_KEY i WEBUI_API_KEY
+make start                    # killuje porty hostowe i uruchamia cały stack
 ```
 
-- OpenWebUI:  http://localhost:3000
-- MCP WebUI:  http://localhost:8092
-- MCP WebUI GitHub: http://localhost:8092/github
-- Gateway:    http://localhost:9000
-- Dashboard:  http://localhost:8085
+### Konfiguracja GitHub (opcjonalna, wymagana do clone/push/create-repo)
+
+```bash
+# Metoda A — gh CLI (zalecana)
+gh auth login                 # jednorazowe logowanie
+make setup-github             # pobiera token z gh i zapisuje do .env
+
+# Metoda B — przez WebUI (po make start)
+# http://localhost:8092/github → "Pobierz token z gh CLI"
+
+# Metoda C — ręcznie
+echo "GITHUB_PAT=ghp_xxx" >> .env
+
+# Test integracji GitHub
+export GITHUB_PAT=ghp_xxx
+make ansible-github-test      # weryfikuje token + create-repo + cleanup
+```
+
+`make start` uruchamia także `gh2mcp-agent`, który przy starcie może zsynchronizować token do `.env`
+(`GH2MCP_SYNC_ON_START=true`).
+
+```bash
+# make stop                   # zatrzymuje wszystko
+# make smoke                  # szybki test API gateway/webui
+# make generate-demo-repos    # tworzy 3 repo demo (refactor/migration/integration)
+# make ansible-e2e            # E2E test całego stacku
+# make help                   # pełna lista targetów
+```
+
+| Serwis | URL |
+|---|---|
+| OpenWebUI (chat) | http://localhost:3000 |
+| MCP WebUI (admin) | http://localhost:8092 |
+| MCP WebUI GitHub | http://localhost:8092/github |
+| Gateway (API) | http://localhost:9000 |
+| Dashboard | http://localhost:8085 |
+| Git Proxy (dev) | http://localhost:8081 |
 
 Pełne scenariusze użycia: [`docs/USAGE.md`](docs/USAGE.md).
 Architektura produktowa: [`docs/PRODUCT.md`](docs/PRODUCT.md).
@@ -136,6 +165,15 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 │   ├── pyproject.toml
 │   └── README.md
 │
+├── gh2mcp/                   # NOWOŚĆ: agent sync tokenu GitHub (gh -> .env)
+│   ├── gh2mcp/
+│   │   ├── sync.py
+│   │   ├── server.py
+│   │   └── cli.py
+│   ├── Dockerfile
+│   ├── pyproject.toml
+│   └── README.md
+│
 ├── mcp-skills/               # MCP Skills Server - analiza kodu
 │   ├── Dockerfile
 │   ├── requirements.txt
@@ -168,7 +206,8 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 │
 ├── ansible/                  # NOWOŚĆ: Ansible E2E tests
 │   ├── inventory.ini
-│   └── e2e-docker-stack.yml
+│   ├── e2e-docker-stack.yml
+│   └── test-github-integration.yml
 │
 ├── env2mcp/                  # NOWOŚĆ: konfiguracja .env i GitHub auth helper
 │   ├── env2mcp/
@@ -464,6 +503,7 @@ PYTHONPATH=.. python agent_git2mcp.py --repo test/sample-project --source-path .
 ## Dokumentacja Projektu
 
 - **[docs/USAGE.md](docs/USAGE.md)** - Pełne scenariusze użycia (9 przepływów end-to-end)
+- **[docs/USE_CASES.md](docs/USE_CASES.md)** - Gotowe use-case i prompty dla refactor/migration/integration
 - **[docs/PRODUCT.md](docs/PRODUCT.md)** - Architektura produktowa, multi-tenant, bezpieczeństwo
 - **[env2mcp/README.md](env2mcp/README.md)** - Konfiguracja `.env` i integracja GitHub (`gh`/PAT)
 - **[REFACTORING_PLAN.md](REFACTORING_PLAN.md)** - Plan refaktoryzacji i roadmap
