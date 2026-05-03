@@ -4,10 +4,10 @@
 ## AI Cost Tracking
 
 ![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$2.25-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-3.9h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$2.40-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-4.0h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $2.2500 (15 commits)
-- 👤 **Human dev:** ~$394 (3.9h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $2.4000 (16 commits)
+- 👤 **Human dev:** ~$395 (4.0h @ $100/h, 30min dedup)
 
 Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -24,6 +24,7 @@ System autonomicznej refaktoryzacji kodu oparty na Model Context Protocol (MCP),
 
 ```bash
 cp .env.example .env   # ustaw OPENROUTER_API_KEY i WEBUI_API_KEY
+make setup-github      # opcjonalnie: konfiguracja GitHub PAT przez env2mcp
 make start             # killuje porty hostowe i uruchamia cały stack
 # make stop            # zatrzymuje wszystko
 # make smoke           # szybki test API gateway/webui
@@ -32,6 +33,7 @@ make start             # killuje porty hostowe i uruchamia cały stack
 
 - OpenWebUI:  http://localhost:3000
 - MCP WebUI:  http://localhost:8092
+- MCP WebUI GitHub: http://localhost:8092/github
 - Gateway:    http://localhost:9000
 - Dashboard:  http://localhost:8085
 
@@ -168,6 +170,14 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 │   ├── inventory.ini
 │   └── e2e-docker-stack.yml
 │
+├── env2mcp/                  # NOWOŚĆ: konfiguracja .env i GitHub auth helper
+│   ├── env2mcp/
+│   │   ├── cli.py
+│   │   ├── config.py
+│   │   └── github_cli.py
+│   ├── pyproject.toml
+│   └── README.md
+│
 ├── docs/                       # Dokumentacja produktowa
 │   ├── PRODUCT.md            # Architektura produktowa
 │   └── USAGE.md              # Scenariusze użycia
@@ -188,7 +198,7 @@ OpenAI-compatible HTTP API shim dla integracji z zewnętrznymi klientami:
 - **Autoryzacja**: Bearer token (per-tenant API keys)
 - **Multi-tenant**: Konfiguracja przez `tenants/*.yaml`
 - **Audit logging**: JSONL logi w wolumenie `audit-storage`
-- **Prompt parsing**: Automatyczne parsowanie pól (Repo, Source, Branch, Execute, Push, Test, Zadanie)
+- **Prompt parsing**: Automatyczne parsowanie pól (Repo, Repo URL, Source, Branch, Execute, Push, Draft, PR, Test, Remote, Zadanie)
 
 ### MCP WebUI - Panel Testowy
 FastAPI + HTMX + Tailwind dla QA i administratorów:
@@ -197,6 +207,7 @@ FastAPI + HTMX + Tailwind dla QA i administratorów:
 - Uruchamianie skilli przez gateway
 - Podgląd diffów
 - Playground dla free-form promptów
+- Konfiguracja GitHub i zarządzanie repo na `/github`
 - **URL**: http://localhost:8092
 
 ### OpenWebUI - Dla Użytkowników Końcowych
@@ -315,6 +326,25 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 
 ## Workflow Autonomicznej Refaktoryzacji
 
+### Nowy Gateway Workflow (via OpenWebUI lub API)
+
+1. **Prompt** - Użytkownik wysyła prompt przez OpenWebUI (lub API) z polami:
+   - `Repo: team/project`, `Source: /path`, `Branch: main`
+   - `Execute: true` (opcjonalnie wykonaj commit)
+   - `Push: true` (opcjonalnie wypchnij)
+   - `Zadanie: Przeanalizuj i zaproponuj refaktor...`
+
+2. **Gateway Processing**:
+   - Parsuje prompt i routing do `mcp-git-proxy` (sync repo)
+   - Wywołuje `mcp-skills` HTTP API (analyze, metrics, patterns)
+   - Generuje plan refaktoryzacji (`.mcp/refactor-plan.json`)
+   - Tworzy summary (`.mcp/refactor-summary.md`)
+   - Jeśli `Execute=true`: commit artefaktów + test + push (jeśli `Push=true`)
+
+3. **Wynik** - JSON z analizą, planem i statusem wykonania.
+
+### Tradycyjny Agent Workflow
+
 1. **Sync Git** - `mcp-git-proxy` pobiera/aktualizuje repo do własnego volume.
 2. **Cache Skills** - `git2mcp` eksportuje paczkę repo i odświeża cache w skills.
 3. **Analiza** - agent liczy metryki i wykrywa wzorce.
@@ -322,6 +352,31 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 5. **Commit via MCP** - zmiany idą jako payload do `/commit`, bez ręcznej edycji plików przez shell.
 6. **Test lokalny** - `/run-tests` w izolowanym repo git proxy.
 7. **Push (opcjonalny)** - tylko po przejściu testów.
+
+## Użycie z Makefile (Zalecane)
+
+```bash
+# Start całego stacku (zabija porty, build, up, smoke-test)
+make start
+
+# Sprawdź status
+make ps
+
+# Logi w czasie rzeczywistym
+make logs
+
+# Smoke test API
+make smoke
+
+# Stop wszystkiego
+make stop
+
+# Produkcja (bez dev mountów)
+make prod-up
+
+# Więcej opcji
+make help
+```
 
 ## Dashboard - Wizualizacja Wyników
 
@@ -406,11 +461,22 @@ pip install -r requirements.txt
 PYTHONPATH=.. python agent_git2mcp.py --repo test/sample-project --source-path ../repos/test/sample-project
 ```
 
-## Dokumentacja MCP
+## Dokumentacja Projektu
+
+- **[docs/USAGE.md](docs/USAGE.md)** - Pełne scenariusze użycia (9 przepływów end-to-end)
+- **[docs/PRODUCT.md](docs/PRODUCT.md)** - Architektura produktowa, multi-tenant, bezpieczeństwo
+- **[env2mcp/README.md](env2mcp/README.md)** - Konfiguracja `.env` i integracja GitHub (`gh`/PAT)
+- **[REFACTORING_PLAN.md](REFACTORING_PLAN.md)** - Plan refaktoryzacji i roadmap
+- **[git2mcp/README.md](git2mcp/README.md)** - Dokumentacja pakietu git2mcp
+- **[CHANGELOG.md](CHANGELOG.md)** - Historia zmian
+- **[TODO.md](TODO.md)** - Zadania do zrobienia i product roadmap
+
+## Dokumentacja Zewnętrzna (MCP)
 
 - [Model Context Protocol](https://modelcontextprotocol.io/)
 - [MCP GitHub Server](https://github.com/github/github-mcp-server)
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
+- [OpenWebUI Documentation](https://docs.openwebui.com/)
 
 ## Licencja
 

@@ -77,6 +77,10 @@ Gateway parsuje z promptu (lub z `extra_body`) pola:
 - `Branch`
 - `Execute` (`true/false`)
 - `Push` (`true/false`)
+- `Draft` (`true/false`)
+- `Draft name` (opcjonalnie)
+- `PR` (`true/false`)
+- `PR title` / `PR body` / `PR base` (opcjonalnie)
 - `Test`
 - `Remote`
 - `Zadanie`
@@ -86,6 +90,9 @@ Przy `Push: true` wykonuje push tylko gdy:
 
 1. tenant ma `features.push: true`,
 2. testy zwrócą `ok: true`.
+
+Przy `Draft: true` (domyślnie dla `Push: true`) gateway tworzy branch `draft/*` przed commitem.
+Przy `PR: true` gateway próbuje utworzyć draft PR przez GitHub API (wymaga `GITHUB_TOKEN` lub `GITHUB_PAT` i repo URL wskazującego na GitHub).
 
 ## OpenWebUI
 
@@ -121,13 +128,13 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 - Wywołanie `mcp-skills/refactor` i `mcp-skills/analyze` przez OpenAI-compatible API.
 - Sync repo (`Repo URL` lub `Source`) do `mcp-git-proxy`.
 - Analiza repo przez `mcp-skills` (metrics/patterns/recommendations).
-- Opcjonalny commit + test + push przez prompt (`Execute`/`Push`).
+- Opcjonalny commit + test + push + draft branch + draft PR przez prompt (`Execute`/`Push`/`Draft`/`PR`).
 - Multi-tenant auth + audit.
 
 ### Co jeszcze wymaga pracy do pełnego „auto-refactor + GitHub update”
 
 1. Automatyczna modyfikacja kodu źródłowego (obecnie commitowane są artefakty planu `.mcp/*`).
 2. Iteracyjny loop patchowania z rollbackiem checkpointów i polityką retry.
-3. Wsparcie PR workflow (branch naming, otwarcie PR przez GitHub API, template opisu).
+3. Rozszerzenie PR workflow (reviewers/labels/assignees, polityki merge i approval gates).
 4. Dodatkowe guard-raile produkcyjne (approval gates, repo allowlist, limits na zakres zmian).
 5. Trwała kolejka i storage jobów (`Redis/Postgres`) zamiast in-memory `JOBS`.

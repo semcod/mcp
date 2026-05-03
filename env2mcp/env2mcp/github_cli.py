@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Dict, Optional, Tuple
@@ -228,8 +229,6 @@ def configure_github(env_path: str | Path = ".env", interactive: bool = True) ->
 
     Returns configuration result with status and saved values.
     """
-    import os
-
     config = EnvConfig(env_path)
     gh = GitHubCLI()
     result = {

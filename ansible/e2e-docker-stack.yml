@@ -15,6 +15,9 @@
       Branch: main
       Execute: true
       Push: false
+      Draft: true
+      Draft name: e2e-refactor-utils
+      PR: false
       Test: python3 -m compileall -q .
       Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
     sample_prompt_analyze: |
@@ -123,6 +126,7 @@
           - refactor_message_payload.execution.committed is sameas true
           - refactor_message_payload.execution.tests.ok is sameas true
           - refactor_message_payload.execution.pushed is sameas false
+          - refactor_message_payload.execution.draft_branch.branch is match('^draft/')
 
     - name: Run sample analyze prompt via gateway
       ansible.builtin.uri:
@@ -160,5 +164,5 @@
           - "curl -sS -H 'Authorization: Bearer {{ api_key }}' {{ gateway_base }}/v1/models"
           - >-
             curl -sS -H 'Authorization: Bearer {{ api_key }}' -H 'Content-Type: application/json'
-            -d '{"model":"mcp-skills/refactor","stream":false,"messages":[{"role":"user","content":"Repo: team/code2schema-demo\\nSource: /host-semcod/code2schema\\nBranch: main\\nExecute: true\\nPush: false\\nTest: python3 -m compileall -q .\\nZadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego."}]}'
+            -d '{"model":"mcp-skills/refactor","stream":false,"messages":[{"role":"user","content":"Repo: team/code2schema-demo\\nSource: /host-semcod/code2schema\\nBranch: main\\nExecute: true\\nPush: false\\nDraft: true\\nDraft name: e2e-refactor-utils\\nPR: false\\nTest: python3 -m compileall -q .\\nZadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego."}]}'
             {{ gateway_base }}/v1/chat/completions

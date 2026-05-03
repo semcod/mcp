@@ -1,6 +1,6 @@
 # MCP Skills — Scenariusze użycia
 
-Ten dokument pokazuje konkretnych przepływów end-to-end. Wszystkie używają OpenRouter (`LLM_MODEL=openrouter/x-ai/grok-code-fast-1`), bez Ollama.
+Ten dokument pokazuje 9 konkretnych przepływów end-to-end. Wszystkie używają OpenRouter (`LLM_MODEL=openrouter/x-ai/grok-code-fast-1`), bez Ollama.
 
 Powiązane dokumenty:
 - `docs/PRODUCT.md` — architektura i deployment
@@ -145,7 +145,7 @@ curl -X POST http://localhost:8081/repos/my-project/sync-pull \
 
 ---
 
-## Scenariusz 4 — QA / developer w `mcp-webui`
+## Scenariusz 3 — QA / developer w `mcp-webui`
 
 **Cel:** szybki test usług bez OpenWebUI, na panelu admina.
 
@@ -164,7 +164,7 @@ curl -X POST http://localhost:8081/repos/my-project/sync-pull \
 
 ---
 
-## Scenariusz 5 — developer lokalny z `git2mcp` (CLI)
+## Scenariusz 4 — developer lokalny z `git2mcp` (CLI)
 
 **Cel:** developer chce ręcznie zlecać sync/commit/test do MCP, bez UI.
 
@@ -200,7 +200,7 @@ python3 git2mcp/examples/05_local_iterate.py \
 
 ---
 
-## Scenariusz 6 — programatyczne użycie OpenAI SDK przez `mcp-gateway`
+## Scenariusz 5 — programatyczne użycie OpenAI SDK przez `mcp-gateway`
 
 **Cel:** integracja z istniejącym narzędziem (Codex, Continue.dev, własny skrypt).
 
@@ -228,7 +228,7 @@ print(resp.choices[0].message.content)
 
 ---
 
-## Scenariusz 7 — wdrożenie u klienta (multi-tenant)
+## Scenariusz 6 — wdrożenie u klienta (multi-tenant)
 
 **Cel:** dodać nowego klienta jako tenanta z osobnym kluczem i quotami.
 
@@ -269,7 +269,7 @@ print(resp.choices[0].message.content)
 
 ---
 
-## Scenariusz 8 — bezpieczne iterowanie LLM-em bez śmiecenia historii
+## Scenariusz 7 — bezpieczne iterowanie LLM-em bez śmiecenia historii
 
 **Cel:** LLM próbuje refaktoryzacji wielokrotnie; tylko sukces ląduje w historii Git.
 
@@ -303,7 +303,7 @@ curl -X POST http://localhost:8081/repos/team/code2schema-demo/checkpoint/restor
 
 ---
 
-## Scenariusz 9 — E2E między usługami przez Ansible
+## Scenariusz 8 — E2E między usługami przez Ansible
 
 **Cel:** automatycznie sprawdzić połączenia `openwebui -> gateway -> git-proxy/skills`, wykonać sample prompty i asercje na odpowiedziach.
 
@@ -316,13 +316,13 @@ Playbook `ansible/e2e-docker-stack.yml` wykonuje:
 - `docker-compose up -d --build` (profil `openwebui`),
 - health-check `gateway`, `openwebui`, `mcp-webui`,
 - walidację `/v1/models` z auth,
-- prompt `mcp-skills/refactor` z polami `Repo/Source/Branch/Zadanie`,
+- prompt `mcp-skills/refactor` z polami `Repo/Source/Branch/Execute/Push/Test/Zadanie`,
 - prompt `mcp-skills/analyze`,
 - asercję, że routing używa `team/code2schema-demo` i `/host-semcod/code2schema`.
 
 ---
 
-## Scenariusz 10 — OpenWebUI: refactor + commit + push
+## Scenariusz 9 — OpenWebUI: refactor + commit + push
 
 **Cel:** wywołać refaktoryzację z OpenWebUI i automatycznie wykonać commit oraz (opcjonalnie) push.
 
@@ -334,8 +334,11 @@ Source: /host-semcod/code2schema
 Branch: main
 Execute: true
 Push: false
-Test: python3 -m compileall -q .
 Remote: origin
+Draft: true
+Draft name: refactor-utils
+PR: false
+Test: python3 -m compileall -q .
 Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
 ```
 
@@ -348,6 +351,9 @@ Branch: main
 Execute: true
 Push: true
 Remote: origin
+Draft: true
+Draft name: refactor-utils
+PR: false
 Test: python3 -m compileall -q .
 Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
 ```
@@ -359,12 +365,21 @@ Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie,
 - `execution.committed=true` — commit utworzony przez `mcp-git-proxy`.
 - `execution.tests.ok=true` — test command przeszedł.
 - `execution.pushed=true` — push wykonany (gdy `Push: true` i feature `push` jest włączony dla tenant).
+- `execution.draft_branch` — informacje o utworzonym `draft/*` branch (gdy `Draft: true`).
+- `execution.pull_request` — dane PR (lub `skipped` z powodem, gdy PR nie mógł zostać utworzony).
+
+### Zasady `Draft` / `PR`
+
+1. `Draft: true` tworzy branch `draft/<nazwa>` przed commitem (domyślnie przy `Push: true`).
+2. `PR: true` działa tylko gdy push się powiedzie.
+3. PR jest tworzony tylko dla repo GitHub (`Repo URL: https://github.com/...` albo `git@github.com:...`).
+4. Gateway używa `GITHUB_TOKEN` lub `GITHUB_PAT` z environment.
 
 ### Co jest jeszcze do zrobienia, aby mieć „pełny auto-refactor kodu”
 
 1. Generowanie i aplikacja patchy kodu (nie tylko artefaktów `.mcp/*`).
 2. Iteracyjna pętla: patch -> test -> rollback/checkpoint restore -> kolejna próba.
-3. Strategia branch/PR (np. `draft/*`) i automatyczne otwieranie PR na GitHub.
+3. Bogatsza strategia branch/PR (reviewers/labels/assignees, polityki merge).
 4. Lepsze guard-raile: limity scope zmian, allowlist ścieżek, reguły bezpieczeństwa push.
 5. Trwały storage jobów (Redis/Postgres) zamiast in-memory `JOBS`.
 

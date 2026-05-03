@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-05-03
+
+### Docs
+- Update README.md
+- Update docs/ENV2MCP.md
+- Update docs/PRODUCT.md
+- Update docs/USAGE.md
+
+### Other
+- Update ansible/e2e-docker-stack.yml
+- Update env2mcp/env2mcp/github_cli.py
+- Update env2mcp/uv.lock
+- Update mcp-gateway/server.py
+
 ## [0.1.3] - 2026-05-03
 
 ### Docs
