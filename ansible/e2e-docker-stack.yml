@@ -1,0 +1,153 @@
+---
+- name: MCP Docker inter-service E2E
+  hosts: local
+  gather_facts: false
+  vars:
+    project_root: "{{ playbook_dir | dirname }}"
+    compose_cmd: "docker-compose --profile openwebui"
+    gateway_base: "http://localhost:9000"
+    webui_base: "http://localhost:8092"
+    openwebui_base: "http://localhost:3000"
+    api_key: "{{ lookup('env', 'WEBUI_API_KEY') | default('sk-mcp-default-dev-key', true) }}"
+    sample_prompt_refactor: |
+      Repo: team/code2schema-demo
+      Source: /host-semcod/code2schema
+      Branch: main
+      Zadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego.
+    sample_prompt_analyze: |
+      Repo: team/code2schema-demo
+      Source: /host-semcod/code2schema
+      Branch: main
+      Zadanie: Zrób szybki przegląd struktury kodu i wskaż 3 największe ryzyka maintainability.
+
+  tasks:
+    - name: Build and start stack
+      ansible.builtin.command: "{{ compose_cmd }} up -d --build"
+      args:
+        chdir: "{{ project_root }}"
+
+    - name: Wait for gateway health
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/health"
+        method: GET
+        status_code: 200
+      register: gateway_health
+      retries: 30
+      delay: 2
+      until: gateway_health.status == 200
+
+    - name: Assert gateway has tenants
+      ansible.builtin.assert:
+        that:
+          - gateway_health.json.status == 'ok'
+          - gateway_health.json.tenants | length > 0
+
+    - name: Wait for OpenWebUI
+      ansible.builtin.uri:
+        url: "{{ openwebui_base }}/"
+        method: GET
+        status_code: 200
+      register: openwebui_health
+      retries: 30
+      delay: 2
+      until: openwebui_health.status == 200
+
+    - name: Wait for MCP WebUI
+      ansible.builtin.uri:
+        url: "{{ webui_base }}/"
+        method: GET
+        status_code: 200
+      register: mcp_webui_health
+      retries: 30
+      delay: 2
+      until: mcp_webui_health.status == 200
+
+    - name: Validate models endpoint with auth
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/models"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+        status_code: 200
+      register: models_response
+
+    - name: Assert required skills are exposed as models
+      ansible.builtin.assert:
+        that:
+          - "'mcp-skills/refactor' in (models_response.json.data | map(attribute='id') | list)"
+          - "'mcp-skills/analyze' in (models_response.json.data | map(attribute='id') | list)"
+
+    - name: Run sample refactor prompt via gateway
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/refactor
+          stream: false
+          messages:
+            - role: user
+              content: "{{ sample_prompt_refactor }}"
+        status_code: 200
+      register: refactor_completion
+
+    - name: Assert refactor completion payload
+      ansible.builtin.assert:
+        that:
+          - refactor_completion.json.object == 'chat.completion'
+          - refactor_completion.json.choices | length > 0
+          - refactor_completion.json.job_id is defined
+
+    - name: Parse refactor message content JSON
+      ansible.builtin.set_fact:
+        refactor_message_payload: "{{ refactor_completion.json.choices[0].message.content | from_json }}"
+
+    - name: Assert refactor uses requested repo/source/branch
+      ansible.builtin.assert:
+        that:
+          - refactor_message_payload.skill == 'refactor'
+          - refactor_message_payload.repo_id == 'team/code2schema-demo'
+          - refactor_message_payload.source_path == '/host-semcod/code2schema'
+          - refactor_message_payload.branch == 'main'
+
+    - name: Run sample analyze prompt via gateway
+      ansible.builtin.uri:
+        url: "{{ gateway_base }}/v1/chat/completions"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ api_key }}"
+          Content-Type: application/json
+        body_format: json
+        body:
+          model: mcp-skills/analyze
+          stream: false
+          messages:
+            - role: user
+              content: "{{ sample_prompt_analyze }}"
+        status_code: 200
+      register: analyze_completion
+
+    - name: Parse analyze message content JSON
+      ansible.builtin.set_fact:
+        analyze_message_payload: "{{ analyze_completion.json.choices[0].message.content | from_json }}"
+
+    - name: Assert analyze payload routing
+      ansible.builtin.assert:
+        that:
+          - analyze_message_payload.skill == 'analyze'
+          - analyze_message_payload.repo_id == 'team/code2schema-demo'
+          - analyze_message_payload.source_path == '/host-semcod/code2schema'
+          - analyze_message_payload.branch == 'main'
+
+    - name: Print sample commands for manual verification
+      ansible.builtin.debug:
+        msg:
+          - "curl -sS {{ gateway_base }}/health"
+          - "curl -sS -H 'Authorization: Bearer {{ api_key }}' {{ gateway_base }}/v1/models"
+          - >-
+            curl -sS -H 'Authorization: Bearer {{ api_key }}' -H 'Content-Type: application/json'
+            -d '{"model":"mcp-skills/refactor","stream":false,"messages":[{"role":"user","content":"Repo: team/code2schema-demo\\nSource: /host-semcod/code2schema\\nBranch: main\\nZadanie: Zaproponuj refaktor modułu utils, popraw nazewnictwo, dodaj typowanie, nie zmieniaj API publicznego."}]}'
+            {{ gateway_base }}/v1/chat/completions

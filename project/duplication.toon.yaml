@@ -1,0 +1,62 @@
+# redup/duplication | 4 groups | 19f 3746L | 2026-05-03
+
+SUMMARY:
+  files_scanned: 19
+  total_lines:   3746
+  dup_groups:    4
+  dup_fragments: 10
+  saved_lines:   61
+  scan_ms:       6961
+
+HOTSPOTS[3] (files with most duplication):
+  llm-agent/agent.py  dup=41L  groups=2  frags=2  (1.1%)
+  llm-agent/agent_standalone.py  dup=41L  groups=2  frags=2  (1.1%)
+  mcp-git-proxy/server.py  dup=30L  groups=2  frags=6  (0.8%)
+
+DUPLICATES[4] (ranked by impact):
+  [aea4a7a9526a2ad3]   EXAC  _mock_llm_response  L=30 N=2 saved=30 sim=1.00
+      llm-agent/agent.py:232-261  (_mock_llm_response)
+      llm-agent/agent_standalone.py:405-434  (_mock_llm_response)
+  [d7672c451ace4405]   STRU  worktree_diff  L=5 N=4 saved=15 sim=1.00
+      mcp-git-proxy/server.py:213-217  (worktree_diff)
+      mcp-git-proxy/server.py:229-233  (stage)
+      mcp-git-proxy/server.py:237-241  (stash_save)
+      mcp-git-proxy/server.py:261-265  (checkpoint_create)
+  [5865906155183adc]   EXAC  _mock_llm_response_from_prompt  L=11 N=2 saved=11 sim=1.00
+      llm-agent/agent.py:263-273  (_mock_llm_response_from_prompt)
+      llm-agent/agent_standalone.py:436-446  (_mock_llm_response_from_prompt)
+  [796eb26d67b6a889]   STRU  push  L=5 N=2 saved=5 sim=1.00
+      mcp-git-proxy/server.py:179-183  (push)
+      mcp-git-proxy/server.py:253-257  (branch_draft)
+
+REFACTOR[4] (ranked by priority):
+  [1] ○ extract_class      → llm-agent/utils/_mock_llm_response.py
+      WHY: 2 occurrences of 30-line block across 2 files — saves 30 lines
+      FILES: llm-agent/agent.py, llm-agent/agent_standalone.py
+  [2] ○ extract_function   → mcp-git-proxy/utils/worktree_diff.py
+      WHY: 4 occurrences of 5-line block across 1 files — saves 15 lines
+      FILES: mcp-git-proxy/server.py
+  [3] ○ extract_class      → llm-agent/utils/_mock_llm_response_from_prompt.py
+      WHY: 2 occurrences of 11-line block across 2 files — saves 11 lines
+      FILES: llm-agent/agent.py, llm-agent/agent_standalone.py
+  [4] ○ extract_function   → mcp-git-proxy/utils/push.py
+      WHY: 2 occurrences of 5-line block across 1 files — saves 5 lines
+      FILES: mcp-git-proxy/server.py
+
+QUICK_WINS[3] (low risk, high savings — do first):
+  [1] extract_class      saved=30L  → llm-agent/utils/_mock_llm_response.py
+      FILES: agent.py, agent_standalone.py
+  [2] extract_function   saved=15L  → mcp-git-proxy/utils/worktree_diff.py
+      FILES: server.py
+  [3] extract_class      saved=11L  → llm-agent/utils/_mock_llm_response_from_prompt.py
+      FILES: agent.py, agent_standalone.py
+
+EFFORT_ESTIMATE (total ≈ 2.0h):
+  medium _mock_llm_response                  saved=30L  ~60min
+  medium worktree_diff                       saved=15L  ~30min
+  easy   _mock_llm_response_from_prompt      saved=11L  ~22min
+  easy   push                                saved=5L  ~10min
+
+METRICS-TARGET:
+  dup_groups:  4 → 0
+  saved_lines: 61 lines recoverable

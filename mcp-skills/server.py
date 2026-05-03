@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import httpx
+import uvicorn
+from fastapi import FastAPI, HTTPException
 
 from mcp.server import Server
 from mcp.server import NotificationOptions
@@ -27,7 +29,7 @@ from mcp.types import (
     INVALID_PARAMS,
     INTERNAL_ERROR,
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -630,10 +632,122 @@ class MCPSkillsServer:
             )
 
 
-async def main():
-    server = MCPSkillsServer()
-    await server.run()
+class SyncRepoRequest(BaseModel):
+    repo_id: str
+    ref: str = "HEAD"
+
+
+class AnalyzeStructureRequest(BaseModel):
+    repo_id: str
+    paths: list[str]
+    base_path: str | None = None
+
+
+class RepoMetricsRequest(BaseModel):
+    repo_id: str
+    base_path: str | None = None
+    extensions: list[str] = Field(default_factory=lambda: [".py"])
+
+
+class PatternDetectionRequest(BaseModel):
+    repo_id: str
+    base_path: str | None = None
+    pattern_types: list[str] = Field(default_factory=lambda: ["complexity", "imports"])
+
+
+class RecommendRefactoringRequest(BaseModel):
+    repo_id: str
+    target_paths: list[str] = Field(default_factory=list)
+    goal: str = "maintainability"
+    base_path: str | None = None
+
+
+def _parse_tool_result(result: list[TextContent]) -> Any:
+    if not result:
+        return {}
+    text = result[0].text
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return {"raw": text}
+
+
+skills_server = MCPSkillsServer()
+app = FastAPI(title="mcp-skills", version="0.1.0")
+
+
+@app.get("/health")
+async def health() -> dict[str, Any]:
+    return {
+        "status": "ok",
+        "service": "mcp-skills",
+        "repo_base": str(skills_server.repo_base),
+        "git_proxy_url": skills_server.git_proxy_url,
+    }
+
+
+@app.post("/sync")
+async def sync_repo(request: SyncRepoRequest) -> dict[str, Any]:
+    try:
+        return await skills_server._sync_from_git_proxy(request.repo_id, request.ref)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/analyze/structure")
+async def analyze_code_structure(request: AnalyzeStructureRequest) -> Any:
+    try:
+        result = await skills_server._analyze_code_structure(
+            request.model_dump(exclude_none=True)
+        )
+        return _parse_tool_result(result)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/analyze/metrics")
+async def compute_metrics(request: RepoMetricsRequest) -> Any:
+    try:
+        result = await skills_server._compute_metrics_for_repo(
+            request.model_dump(exclude_none=True)
+        )
+        return _parse_tool_result(result)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/analyze/patterns")
+async def detect_patterns(request: PatternDetectionRequest) -> Any:
+    try:
+        result = await skills_server._detect_code_patterns(
+            request.model_dump(exclude_none=True)
+        )
+        return _parse_tool_result(result)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/refactor/recommend")
+async def recommend_refactoring(request: RecommendRefactoringRequest) -> Any:
+    try:
+        result = await skills_server._recommend_refactoring(
+            request.model_dump(exclude_none=True)
+        )
+        return _parse_tool_result(result)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def main() -> None:
+    transport = os.getenv("MCP_SKILLS_TRANSPORT", "http").strip().lower()
+    if transport == "stdio":
+        asyncio.run(skills_server.run())
+        return
+
+    host = os.getenv("MCP_SKILLS_HTTP_HOST", "0.0.0.0")
+    port = int(os.getenv("MCP_SKILLS_HTTP_PORT", "8080"))
+    uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

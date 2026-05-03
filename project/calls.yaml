@@ -1,0 +1,316 @@
+project: /home/tom/github/semcod/mcp
+generated_from: code2llm call graph analysis
+stats:
+  total_nodes: 13
+  total_edges: 9
+  modules_count: 9
+nodes:
+  llm-agent.agent_standalone.main:
+    name: main
+    module: llm-agent.agent_standalone
+    line: 494
+    cyclomatic_complexity: 2
+    calls_out: 21
+    calls_in: 0
+  git2mcp.examples.03_agent_git2mcp.main:
+    name: main
+    module: git2mcp.examples.03_agent_git2mcp
+    line: 9
+    cyclomatic_complexity: 4
+    calls_out: 19
+    calls_in: 0
+  git2mcp.examples.02_fragment_sync_to_skills.main:
+    name: main
+    module: git2mcp.examples.02_fragment_sync_to_skills
+    line: 12
+    cyclomatic_complexity: 1
+    calls_out: 15
+    calls_in: 0
+  dashboard.server.main:
+    name: main
+    module: dashboard.server
+    line: 172
+    cyclomatic_complexity: 2
+    calls_out: 10
+    calls_in: 0
+  scripts.test.print:
+    name: print
+    module: scripts.test
+    line: 166
+    cyclomatic_complexity: 0
+    calls_out: 0
+    calls_in: 26
+  git2mcp.examples.01_sync_and_commit.main:
+    name: main
+    module: git2mcp.examples.01_sync_and_commit
+    line: 11
+    cyclomatic_complexity: 1
+    calls_out: 18
+    calls_in: 0
+  mcp-webui.server.gateway_headers:
+    name: gateway_headers
+    module: mcp-webui.server
+    line: 32
+    cyclomatic_complexity: 1
+    calls_out: 0
+    calls_in: 2
+  llm-agent.agent.main:
+    name: main
+    module: llm-agent.agent
+    line: 333
+    cyclomatic_complexity: 2
+    calls_out: 16
+    calls_in: 0
+  mcp-gateway.server.find_tenant_by_key:
+    name: find_tenant_by_key
+    module: mcp-gateway.server
+    line: 52
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  mcp-gateway.server.chat_completions:
+    name: chat_completions
+    module: mcp-gateway.server
+    line: 127
+    cyclomatic_complexity: 6
+    calls_out: 26
+    calls_in: 0
+  mcp-gateway.server.authenticate:
+    name: authenticate
+    module: mcp-gateway.server
+    line: 59
+    cyclomatic_complexity: 4
+    calls_out: 8
+    calls_in: 0
+  mcp-webui.server.index:
+    name: index
+    module: mcp-webui.server
+    line: 37
+    cyclomatic_complexity: 3
+    calls_out: 10
+    calls_in: 0
+  mcp-gateway.server.audit:
+    name: audit
+    module: mcp-gateway.server
+    line: 69
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 1
+edges:
+- caller: git2mcp.examples.02_fragment_sync_to_skills.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: mcp-webui.server.index
+  callee: mcp-webui.server.gateway_headers
+  call_type: resolved
+- caller: git2mcp.examples.03_agent_git2mcp.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: git2mcp.examples.01_sync_and_commit.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: dashboard.server.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: llm-agent.agent.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: llm-agent.agent_standalone.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: mcp-gateway.server.authenticate
+  callee: mcp-gateway.server.find_tenant_by_key
+  call_type: resolved
+- caller: mcp-gateway.server.chat_completions
+  callee: mcp-gateway.server.audit
+  call_type: resolved
+modules:
+  dashboard.server:
+  - dashboard.server.main
+  git2mcp.examples.01_sync_and_commit:
+  - git2mcp.examples.01_sync_and_commit.main
+  git2mcp.examples.02_fragment_sync_to_skills:
+  - git2mcp.examples.02_fragment_sync_to_skills.main
+  git2mcp.examples.03_agent_git2mcp:
+  - git2mcp.examples.03_agent_git2mcp.main
+  llm-agent.agent:
+  - llm-agent.agent.main
+  llm-agent.agent_standalone:
+  - llm-agent.agent_standalone.main
+  mcp-gateway.server:
+  - mcp-gateway.server.audit
+  - mcp-gateway.server.authenticate
+  - mcp-gateway.server.chat_completions
+  - mcp-gateway.server.find_tenant_by_key
+  mcp-webui.server:
+  - mcp-webui.server.gateway_headers
+  - mcp-webui.server.index
+  scripts.test:
+  - scripts.test.print
+entry_points:
+- dashboard.server.DashboardHandler.do_GET
+- dashboard.server.DashboardHandler.end_headers
+- dashboard.server.DashboardHandler.get_analyses
+- dashboard.server.DashboardHandler.get_analysis
+- dashboard.server.DashboardHandler.get_content_type
+- dashboard.server.DashboardHandler.get_repos
+- dashboard.server.DashboardHandler.get_status
+- dashboard.server.DashboardHandler.send_json
+- dashboard.server.DashboardHandler.serve_file
+- dashboard.server.main
+- git2mcp.examples.01_sync_and_commit.main
+- git2mcp.examples.02_fragment_sync_to_skills.main
+- git2mcp.examples.03_agent_git2mcp.main
+- git2mcp.examples.04_dry_run_vs_execute.main
+- git2mcp.examples.05_local_iterate.main
+- git2mcp.git2mcp.client.Git2MCPClient.__init__
+- git2mcp.git2mcp.client.Git2MCPClient._request
+- git2mcp.git2mcp.client.Git2MCPClient.branch_draft
+- git2mcp.git2mcp.client.Git2MCPClient.checkpoint_create
+- git2mcp.git2mcp.client.Git2MCPClient.checkpoint_restore
+- git2mcp.git2mcp.client.Git2MCPClient.commit_changes
+- git2mcp.git2mcp.client.Git2MCPClient.export_package
+- git2mcp.git2mcp.client.Git2MCPClient.health
+- git2mcp.git2mcp.client.Git2MCPClient.list_repos
+- git2mcp.git2mcp.client.Git2MCPClient.patch_apply
+- git2mcp.git2mcp.client.Git2MCPClient.push
+- git2mcp.git2mcp.client.Git2MCPClient.reset
+- git2mcp.git2mcp.client.Git2MCPClient.run_tests
+- git2mcp.git2mcp.client.Git2MCPClient.stage
+- git2mcp.git2mcp.client.Git2MCPClient.stash_pop
+- git2mcp.git2mcp.client.Git2MCPClient.stash_save
+- git2mcp.git2mcp.client.Git2MCPClient.sync_repo
+- git2mcp.git2mcp.client.Git2MCPClient.worktree_diff
+- git2mcp.git2mcp.client.Git2MCPClient.worktree_read
+- git2mcp.git2mcp.client.Git2MCPClient.worktree_write
+- git2mcp.git2mcp.proxy.GitProxyManager.__init__
+- git2mcp.git2mcp.proxy.GitProxyManager._allow_local_repo_url
+- git2mcp.git2mcp.proxy.GitProxyManager._ensure_parent
+- git2mcp.git2mcp.proxy.GitProxyManager._repo_path
+- git2mcp.git2mcp.proxy.GitProxyManager.branch_draft
+- git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_create
+- git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_restore
+- git2mcp.git2mcp.proxy.GitProxyManager.commit_changes
+- git2mcp.git2mcp.proxy.GitProxyManager.export_fragments
+- git2mcp.git2mcp.proxy.GitProxyManager.export_package
+- git2mcp.git2mcp.proxy.GitProxyManager.list_repos
+- git2mcp.git2mcp.proxy.GitProxyManager.patch_apply
+- git2mcp.git2mcp.proxy.GitProxyManager.push
+- git2mcp.git2mcp.proxy.GitProxyManager.reset
+- git2mcp.git2mcp.proxy.GitProxyManager.stage
+- git2mcp.git2mcp.proxy.GitProxyManager.stash_pop
+- git2mcp.git2mcp.proxy.GitProxyManager.stash_save
+- git2mcp.git2mcp.proxy.GitProxyManager.sync_repo
+- git2mcp.git2mcp.proxy.GitProxyManager.worktree_diff
+- git2mcp.git2mcp.proxy.GitProxyManager.worktree_read
+- git2mcp.git2mcp.proxy.GitProxyManager.worktree_write
+- git2mcp.project.map.toon._create_sample_repo_source
+- git2mcp.project.map.toon._load_proxy_app
+- git2mcp.project.map.toon.test_git_proxy_e2e_push_to_bare_remote
+- git2mcp.project.map.toon.test_git_proxy_e2e_sync_export_commit_and_tests
+- llm-agent.agent.RefactoringAgent.__init__
+- llm-agent.agent.RefactoringAgent._build_refactoring_prompt
+- llm-agent.agent.RefactoringAgent._call_ollama
+- llm-agent.agent.RefactoringAgent._call_openai
+- llm-agent.agent.RefactoringAgent._mock_llm_response
+- llm-agent.agent.RefactoringAgent._mock_llm_response_from_prompt
+- llm-agent.agent.RefactoringAgent.analyze_repository
+- llm-agent.agent.RefactoringAgent.close
+- llm-agent.agent.RefactoringAgent.connect_git_mcp
+- llm-agent.agent.RefactoringAgent.connect_skills
+- llm-agent.agent.RefactoringAgent.execute_refactoring_workflow
+- llm-agent.agent.RefactoringAgent.generate_refactoring_plan
+- llm-agent.agent.main
+- llm-agent.agent_git2mcp.CachedCodeAnalyzer.__init__
+- llm-agent.agent_git2mcp.CachedCodeAnalyzer._repo_path
+- llm-agent.agent_git2mcp.CachedCodeAnalyzer.compute_metrics
+- llm-agent.agent_git2mcp.CachedCodeAnalyzer.detect_patterns
+- llm-agent.agent_git2mcp.CachedCodeAnalyzer.import_package
+- llm-agent.agent_git2mcp.CachedCodeAnalyzer.recommend_refactoring
+- llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.__init__
+- llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.analyze
+- llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.build_commit_changes
+- llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.execute
+- llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.generate_plan
+- llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.sync_and_cache_repo
+- llm-agent.agent_git2mcp.main
+- llm-agent.agent_standalone.LocalCodeAnalyzer.__init__
+- llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure
+- llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo
+- llm-agent.agent_standalone.LocalCodeAnalyzer.detect_code_patterns
+- llm-agent.agent_standalone.LocalCodeAnalyzer.recommend_refactoring
+- llm-agent.agent_standalone.RefactoringAgent.__init__
+- llm-agent.agent_standalone.RefactoringAgent._build_refactoring_prompt
+- llm-agent.agent_standalone.RefactoringAgent._call_openai_sync
+- llm-agent.agent_standalone.RefactoringAgent._mock_llm_response
+- llm-agent.agent_standalone.RefactoringAgent._mock_llm_response_from_prompt
+- llm-agent.agent_standalone.RefactoringAgent.analyze_repository
+- llm-agent.agent_standalone.RefactoringAgent.execute_refactoring_workflow
+- llm-agent.agent_standalone.RefactoringAgent.generate_refactoring_plan
+- llm-agent.agent_standalone.main
+- mcp-gateway.server.audit_tail
+- mcp-gateway.server.authenticate
+- mcp-gateway.server.chat_completions
+- mcp-gateway.server.get_job
+- mcp-gateway.server.health
+- mcp-gateway.server.list_models
+- mcp-gateway.server.load_tenants
+- mcp-git-proxy.server.branch_draft
+- mcp-git-proxy.server.checkpoint_create
+- mcp-git-proxy.server.checkpoint_restore
+- mcp-git-proxy.server.commit
+- mcp-git-proxy.server.export_fragments
+- mcp-git-proxy.server.export_package
+- mcp-git-proxy.server.health
+- mcp-git-proxy.server.import_package
+- mcp-git-proxy.server.list_repos
+- mcp-git-proxy.server.patch_apply
+- mcp-git-proxy.server.push
+- mcp-git-proxy.server.reset
+- mcp-git-proxy.server.run_tests
+- mcp-git-proxy.server.stage
+- mcp-git-proxy.server.stash_pop
+- mcp-git-proxy.server.stash_save
+- mcp-git-proxy.server.sync_repo
+- mcp-git-proxy.server.worktree_diff
+- mcp-git-proxy.server.worktree_read
+- mcp-git-proxy.server.worktree_write
+- mcp-skills.server.MCPSkillsServer.__init__
+- mcp-skills.server.MCPSkillsServer._analyze_code_structure
+- mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo
+- mcp-skills.server.MCPSkillsServer._detect_code_patterns
+- mcp-skills.server.MCPSkillsServer._handle_call_tool
+- mcp-skills.server.MCPSkillsServer._handle_list_tools
+- mcp-skills.server.MCPSkillsServer._recommend_refactoring
+- mcp-skills.server.MCPSkillsServer._setup_handlers
+- mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
+- mcp-skills.server.MCPSkillsServer._sync_repo_tool
+- mcp-skills.server.MCPSkillsServer.run
+- mcp-skills.server.main
+- mcp-webui.server.diff_page
+- mcp-webui.server.index
+- mcp-webui.server.playground
+- mcp-webui.server.repos_page
+- mcp-webui.server.repos_sync
+- mcp-webui.server.skills_page
+- mcp-webui.server.skills_run
+- scripts.deploy.build_images
+- scripts.deploy.check_requirements
+- scripts.deploy.health_check
+- scripts.deploy.main
+- scripts.deploy.setup_directories
+- scripts.deploy.setup_env
+- scripts.deploy.start_services
+- scripts.test.__init__
+- scripts.test._transform
+- scripts.test.build_payload
+- scripts.test.function_
+- scripts.test.main
+- scripts.test.process
+- scripts.test.test_docker
+- scripts.test.test_git2mcp_workflow
+- scripts.test.test_pytest_e2e
+- scripts.test.test_python_syntax
+- scripts.test.test_repo_setup
+- scripts.test.test_semcod_fragment_transfer
+- scripts.test.test_structure

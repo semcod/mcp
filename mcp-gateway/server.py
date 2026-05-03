@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import time
 import uuid
 from pathlib import Path
@@ -44,6 +45,47 @@ def load_tenants() -> dict[str, dict]:
         tenant_id = data.get("tenant_id") or path.stem
         tenants[tenant_id] = data
     return tenants
+
+
+PROMPT_FIELD_REGEX = {
+    "repo_id": re.compile(r"^\s*Repo\s*:\s*(.+?)\s*$", re.IGNORECASE),
+    "source_path": re.compile(r"^\s*Source\s*:\s*(.+?)\s*$", re.IGNORECASE),
+    "branch": re.compile(r"^\s*Branch\s*:\s*(.+?)\s*$", re.IGNORECASE),
+    "task": re.compile(r"^\s*Zadanie\s*:\s*(.+?)\s*$", re.IGNORECASE),
+}
+
+
+def message_content_to_text(content: Any) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                text = item.get("text")
+                if isinstance(text, str):
+                    parts.append(text)
+                elif item.get("type") == "text" and isinstance(item.get("content"), str):
+                    parts.append(item["content"])
+        return "\n".join(p for p in parts if p)
+    if isinstance(content, dict):
+        if isinstance(content.get("text"), str):
+            return content["text"]
+        if isinstance(content.get("content"), str):
+            return content["content"]
+    return str(content)
+
+
+def parse_prompt_context(user_msg: str) -> dict[str, str]:
+    parsed: dict[str, str] = {}
+    for line in user_msg.splitlines():
+        for key, regex in PROMPT_FIELD_REGEX.items():
+            match = regex.match(line)
+            if match:
+                parsed[key] = match.group(1).strip()
+    return parsed
 
 
 TENANTS = load_tenants()
@@ -88,7 +130,7 @@ SKILL_MODELS = {
 
 class ChatMessage(BaseModel):
     role: str
-    content: str
+    content: Any
 
 
 class ChatCompletionRequest(BaseModel):
@@ -136,35 +178,85 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     JOBS[job_id] = {"status": "pending", "tenant": tenant["tenant_id"], "skill": skill}
     audit({"event": "chat_completions", "tenant": tenant["tenant_id"], "model": req.model, "job_id": job_id})
 
-    user_msg = next((m.content for m in reversed(req.messages) if m.role == "user"), "")
+    user_msg = next(
+        (message_content_to_text(m.content) for m in reversed(req.messages) if m.role == "user"),
+        "",
+    )
+    prompt_ctx = parse_prompt_context(user_msg)
+
+    tenant_id = tenant["tenant_id"]
+    repo_id = req.repo_id or prompt_ctx.get("repo_id") or f"{tenant_id}/default"
+    source_path = req.source_path or prompt_ctx.get("source_path")
+    branch = req.branch
+    if branch == "main" and prompt_ctx.get("branch"):
+        branch = prompt_ctx["branch"]
+
+    user_request = prompt_ctx.get("task") or user_msg
 
     async def runner() -> dict:
         try:
-            return await dispatch_skill(skill, tenant, req, user_msg)
+            return await dispatch_skill(skill, tenant, repo_id, source_path, branch, user_request)
         except Exception as exc:
             return {"error": str(exc)}
 
+    completion_id = f"chatcmpl-{job_id}"
+    created = int(time.time())
+
     if req.stream:
         async def event_stream():
-            yield {"event": "start", "data": json.dumps({"job_id": job_id, "skill": skill})}
             task = asyncio.create_task(runner())
-            while not task.done():
-                await asyncio.sleep(0.5)
-                yield {"event": "ping", "data": json.dumps({"status": JOBS[job_id]["status"]})}
-            result = task.result()
+            yield {
+                "data": json.dumps(
+                    {
+                        "id": completion_id,
+                        "object": "chat.completion.chunk",
+                        "created": created,
+                        "model": req.model,
+                        "choices": [{"index": 0, "delta": {"role": "assistant"}, "finish_reason": None}],
+                    },
+                    ensure_ascii=False,
+                )
+            }
+
+            result = await task
             JOBS[job_id]["status"] = "done"
             JOBS[job_id]["result"] = result
-            yield {"event": "result", "data": json.dumps(result)}
-            yield {"event": "done", "data": "[DONE]"}
+
+            content = json.dumps(result, ensure_ascii=False)
+            yield {
+                "data": json.dumps(
+                    {
+                        "id": completion_id,
+                        "object": "chat.completion.chunk",
+                        "created": created,
+                        "model": req.model,
+                        "choices": [{"index": 0, "delta": {"content": content}, "finish_reason": None}],
+                    },
+                    ensure_ascii=False,
+                )
+            }
+            yield {
+                "data": json.dumps(
+                    {
+                        "id": completion_id,
+                        "object": "chat.completion.chunk",
+                        "created": created,
+                        "model": req.model,
+                        "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+                    },
+                    ensure_ascii=False,
+                )
+            }
+            yield {"data": "[DONE]"}
         return EventSourceResponse(event_stream())
 
     result = await runner()
     JOBS[job_id]["status"] = "done"
     JOBS[job_id]["result"] = result
     return {
-        "id": f"chatcmpl-{job_id}",
+        "id": completion_id,
         "object": "chat.completion",
-        "created": int(time.time()),
+        "created": created,
         "model": req.model,
         "choices": [
             {
@@ -178,26 +270,36 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     }
 
 
-async def dispatch_skill(skill: str, tenant: dict, req: ChatCompletionRequest, user_msg: str) -> dict:
+async def dispatch_skill(
+    skill: str,
+    tenant: dict,
+    repo_id: str,
+    source_path: str | None,
+    branch: str,
+    user_request: str,
+) -> dict:
     tenant_id = tenant["tenant_id"]
-    repo_id = req.repo_id or f"{tenant_id}/default"
     async with httpx.AsyncClient(timeout=300.0) as client:
-        if req.source_path:
-            await client.post(
+        if source_path:
+            sync = await client.post(
                 f"{GIT_PROXY_URL}/repos/sync",
                 json={
                     "repo_id": repo_id,
-                    "source_path": req.source_path,
-                    "branch": req.branch,
+                    "source_path": source_path,
+                    "branch": branch,
                 },
             )
+            if sync.status_code != 200:
+                raise ValueError(f"Sync failed: {sync.status_code} {sync.text}")
 
         if skill == "analyze":
             return {
                 "skill": "analyze",
                 "tenant": tenant_id,
                 "repo_id": repo_id,
-                "message": user_msg,
+                "message": user_request,
+                "source_path": source_path,
+                "branch": branch,
                 "note": "Analyze workflow stub: wire to mcp-skills HTTP API",
             }
 
@@ -214,7 +316,9 @@ async def dispatch_skill(skill: str, tenant: dict, req: ChatCompletionRequest, u
                 "skill": "refactor",
                 "tenant": tenant_id,
                 "repo_id": repo_id,
-                "user_request": user_msg,
+                "source_path": source_path,
+                "branch": branch,
+                "user_request": user_request,
                 "checkpoint": ckpt.json() if ckpt.status_code == 200 else None,
                 "current_diff": diff.json().get("diff", "") if diff.status_code == 200 else "",
                 "note": "MVP dispatcher: integrates checkpoint + diff; LLM patch loop wired in stage 5.",

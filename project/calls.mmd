@@ -1,0 +1,37 @@
+flowchart LR
+    subgraph dashboard__server
+        dashboard__server__main["main"]
+    end
+    subgraph git2mcp__examples
+        git2mcp__examples__03_agent_git2mcp__main["main"]
+        git2mcp__examples__02_fragment_sync_to_skills__main["main"]
+        git2mcp__examples__01_sync_and_commit__main["main"]
+    end
+    subgraph llm_agent__agent
+        llm_agent__agent__main["main"]
+    end
+    subgraph llm_agent__agent_standalone
+        llm_agent__agent_standalone__main["main"]
+    end
+    subgraph mcp_gateway__server
+        mcp_gateway__server__find_tenant_by_key["find_tenant_by_key"]
+        mcp_gateway__server__chat_completions["chat_completions"]
+        mcp_gateway__server__authenticate["authenticate"]
+        mcp_gateway__server__audit["audit"]
+    end
+    subgraph mcp_webui__server
+        mcp_webui__server__gateway_headers["gateway_headers"]
+        mcp_webui__server__index["index"]
+    end
+    subgraph scripts__test
+        scripts__test__print["print"]
+    end
+    git2mcp__examples__02_fragment_sync_to_skills__main --> scripts__test__print
+    mcp_webui__server__index --> mcp_webui__server__gateway_headers
+    git2mcp__examples__03_agent_git2mcp__main --> scripts__test__print
+    git2mcp__examples__01_sync_and_commit__main --> scripts__test__print
+    dashboard__server__main --> scripts__test__print
+    llm_agent__agent__main --> scripts__test__print
+    llm_agent__agent_standalone__main --> scripts__test__print
+    mcp_gateway__server__authenticate --> mcp_gateway__server__find_tenant_by_key
+    mcp_gateway__server__chat_completions --> mcp_gateway__server__audit

@@ -1,0 +1,29 @@
+// LESS format — define @variables here as needed
+
+app {
+  name: mcp;
+  version: 0.1.0;
+}
+
+interface[type="api"] {
+  type: rest;
+  framework: fastapi;
+}
+
+integration[name="github"] {
+  type: scm;
+}
+
+deploy {
+  target: docker-compose;
+  compose_file: docker-compose.yml;
+}
+
+environment[name="local"] {
+  runtime: docker-compose;
+  env_file: .env;
+}
+
+environment[name="prod"] {
+  runtime: docker-compose;
+}

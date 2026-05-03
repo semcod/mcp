@@ -1,0 +1,66 @@
+# code2llm call graph | /home/tom/github/semcod/mcp
+# nodes: 13 | edges: 9 | modules: 9
+# CC̄=2.9
+
+HUBS[20]:
+  scripts.test.print
+    CC=0  in:26  out:0  total:26
+  mcp-gateway.server.chat_completions
+    CC=6  in:0  out:26  total:26
+  llm-agent.agent_standalone.main
+    CC=2  in:0  out:21  total:21
+  git2mcp.examples.03_agent_git2mcp.main
+    CC=4  in:0  out:19  total:19
+  git2mcp.examples.01_sync_and_commit.main
+    CC=1  in:0  out:18  total:18
+  llm-agent.agent.main
+    CC=2  in:0  out:16  total:16
+  git2mcp.examples.02_fragment_sync_to_skills.main
+    CC=1  in:0  out:15  total:15
+  dashboard.server.main
+    CC=2  in:0  out:10  total:10
+  mcp-webui.server.index
+    CC=3  in:0  out:10  total:10
+  mcp-gateway.server.authenticate
+    CC=4  in:0  out:8  total:8
+  mcp-gateway.server.audit
+    CC=1  in:1  out:5  total:6
+  mcp-gateway.server.find_tenant_by_key
+    CC=3  in:1  out:2  total:3
+  mcp-webui.server.gateway_headers
+    CC=1  in:2  out:0  total:2
+
+MODULES:
+  dashboard.server  [1 funcs]
+    main  CC=2  out:10
+  git2mcp.examples.01_sync_and_commit  [1 funcs]
+    main  CC=1  out:18
+  git2mcp.examples.02_fragment_sync_to_skills  [1 funcs]
+    main  CC=1  out:15
+  git2mcp.examples.03_agent_git2mcp  [1 funcs]
+    main  CC=4  out:19
+  llm-agent.agent  [1 funcs]
+    main  CC=2  out:16
+  llm-agent.agent_standalone  [1 funcs]
+    main  CC=2  out:21
+  mcp-gateway.server  [4 funcs]
+    audit  CC=1  out:5
+    authenticate  CC=4  out:8
+    chat_completions  CC=6  out:26
+    find_tenant_by_key  CC=3  out:2
+  mcp-webui.server  [2 funcs]
+    gateway_headers  CC=1  out:0
+    index  CC=3  out:10
+  scripts.test  [1 funcs]
+    print  CC=0  out:0
+
+EDGES:
+  git2mcp.examples.02_fragment_sync_to_skills.main → scripts.test.print
+  mcp-webui.server.index → mcp-webui.server.gateway_headers
+  git2mcp.examples.03_agent_git2mcp.main → scripts.test.print
+  git2mcp.examples.01_sync_and_commit.main → scripts.test.print
+  dashboard.server.main → scripts.test.print
+  llm-agent.agent.main → scripts.test.print
+  llm-agent.agent_standalone.main → scripts.test.print
+  mcp-gateway.server.authenticate → mcp-gateway.server.find_tenant_by_key
+  mcp-gateway.server.chat_completions → mcp-gateway.server.audit

@@ -10,7 +10,7 @@ if [ ! -f "$PIP" ]; then
     python3 -m venv "$VENV"
 fi
 
-$PIP install -e .
+#$PIP install -e .
 $PIP install regix --upgrade --quiet
 #$PIP install pyqual --upgrade --quiet
 $PIP install prefact --upgrade --quiet

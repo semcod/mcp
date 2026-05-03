@@ -15,6 +15,11 @@ services:
       - ..:/host-semcod:ro
     ports:
       - "8081:8080"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
     networks:
       - mcp-internal
@@ -27,17 +32,21 @@ services:
       - PYTHONUNBUFFERED=1
       - SKILLS_REPO_BASE=/skills-cache
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
+      - MCP_SKILLS_TRANSPORT=http
+      - MCP_SKILLS_HTTP_HOST=0.0.0.0
+      - MCP_SKILLS_HTTP_PORT=8080
     volumes:
       - skills-cache:/skills-cache
       - ./mcp-skills/server.py:/app/server.py:ro
     healthcheck:
-      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
       interval: 30s
       timeout: 10s
       retries: 3
     restart: unless-stopped
     depends_on:
-      - mcp-git-proxy
+      mcp-git-proxy:
+        condition: service_healthy
     networks:
       - mcp-internal
 
@@ -86,9 +95,16 @@ services:
       - audit-storage:/audit
     ports:
       - "9000:9000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/health', timeout=3)"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
     depends_on:
-      - mcp-git-proxy
-      - mcp-skills
+      mcp-git-proxy:
+        condition: service_healthy
+      mcp-skills:
+        condition: service_healthy
     networks:
       - mcp-internal
       - mcp-public
@@ -107,8 +123,10 @@ services:
     ports:
       - "8092:8090"
     depends_on:
-      - mcp-gateway
-      - mcp-git-proxy
+      mcp-gateway:
+        condition: service_healthy
+      mcp-git-proxy:
+        condition: service_healthy
     networks:
       - mcp-internal
       - mcp-public
@@ -127,7 +145,8 @@ services:
     ports:
       - "3000:8080"
     depends_on:
-      - mcp-gateway
+      mcp-gateway:
+        condition: service_healthy
     networks:
       - mcp-public
     restart: unless-stopped

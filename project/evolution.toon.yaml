@@ -1,0 +1,73 @@
+# code2llm/evolution | 145 func | 11f | 2026-05-03
+
+NEXT[8] (ranked by impact):
+  [1] !! SPLIT           mcp-skills/server.py
+      WHY: 639L, 1 classes, max CC=15
+      EFFORT: ~4h  IMPACT: 9585
+
+  [2] !! SPLIT           llm-agent/agent_standalone.py
+      WHY: 540L, 3 classes, max CC=15
+      EFFORT: ~4h  IMPACT: 8100
+
+  [3] !  SPLIT-FUNC      MCPSkillsServer._sync_from_git_proxy  CC=15  fan=30
+      WHY: CC=15 exceeds 15
+      EFFORT: ~1h  IMPACT: 450
+
+  [4] !  SPLIT-FUNC      MCPSkillsServer._compute_metrics_for_repo  CC=15  fan=18
+      WHY: CC=15 exceeds 15
+      EFFORT: ~1h  IMPACT: 270
+
+  [5] !  SPLIT-FUNC      LocalCodeAnalyzer.detect_code_patterns  CC=15  fan=15
+      WHY: CC=15 exceeds 15
+      EFFORT: ~1h  IMPACT: 225
+
+  [6] !  SPLIT-FUNC      CachedCodeAnalyzer.compute_metrics  CC=15  fan=13
+      WHY: CC=15 exceeds 15
+      EFFORT: ~1h  IMPACT: 195
+
+  [7] !  SPLIT-FUNC      MCPSkillsServer._recommend_refactoring  CC=15  fan=13
+      WHY: CC=15 exceeds 15
+      EFFORT: ~1h  IMPACT: 195
+
+  [8] !  SPLIT-FUNC      LocalCodeAnalyzer.compute_metrics_for_repo  CC=15  fan=13
+      WHY: CC=15 exceeds 15
+      EFFORT: ~1h  IMPACT: 195
+
+
+RISKS[2]:
+  ⚠ Splitting mcp-skills/server.py may break 12 import paths
+  ⚠ Splitting llm-agent/agent_standalone.py may break 14 import paths
+
+METRICS-TARGET:
+  CC̄:          3.4 → ≤2.4
+  max-CC:      15 → ≤7
+  god-modules: 2 → 0
+  high-CC(≥15): 6 → ≤3
+  hub-types:   0 → ≤0
+
+PATTERNS (language parser shared logic):
+  _extract_declarations() in base.py — unified extraction for:
+    - TypeScript: interfaces, types, classes, functions, arrow funcs
+    - PHP: namespaces, traits, classes, functions, includes
+    - Ruby: modules, classes, methods, requires
+    - C++: classes, structs, functions, #includes
+    - C#: classes, interfaces, methods, usings
+    - Java: classes, interfaces, methods, imports
+    - Go: packages, functions, structs
+    - Rust: modules, functions, traits, use statements
+
+  Shared regex patterns per language:
+    - import: language-specific import/require/using patterns
+    - class: class/struct/trait declarations with inheritance
+    - function: function/method signatures with visibility
+    - brace_tracking: for C-family languages ({ })
+    - end_keyword_tracking: for Ruby (module/class/def...end)
+
+  Benefits:
+    - Consistent extraction logic across all languages
+    - Reduced code duplication (~70% reduction in parser LOC)
+    - Easier maintenance: fix once, apply everywhere
+    - Standardized FunctionInfo/ClassInfo models
+
+HISTORY:
+  (first run — no previous data)

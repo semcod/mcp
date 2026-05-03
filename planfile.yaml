@@ -1,0 +1,461 @@
+name: Code Quality Improvement
+project_name: ''
+project_type: prefactoring
+domain: dev-tools
+goal: Improve code quality using prefact
+goals:
+- Fix all prefact-detected issues
+- Improve code maintainability
+- Ensure consistent code style
+quality_gates:
+- metric: Prefact Issues
+  threshold: '0'
+sprints:
+- id: sprint-1
+  name: Code Quality Improvements
+  duration: 2 weeks
+  objectives:
+  - Fix code quality issues
+  task_patterns:
+  - id: ticket-fdfba7d4
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in git2mcp/client.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/client.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6313e5f3
+    name: Fix smart-return-type issues
+    description: Resolve 5 smart-return-type issues in dashboard/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - dashboard/server.py
+    rule_id: smart-return-type
+    count: 5
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-928c5400
+    name: Fix unused-imports issues
+    description: Resolve 4 unused-imports issues in dashboard/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - dashboard/server.py
+    rule_id: unused-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b6593aec
+    name: Fix magic-numbers issues
+    description: Resolve 5 magic-numbers issues in dashboard/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - dashboard/server.py
+    rule_id: magic-numbers
+    count: 5
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-fcba60ab
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in dashboard/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - dashboard/server.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d35d216a
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in git2mcp/proxy.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/proxy.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-45359d32
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in git2mcp/git2mcp/client.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/git2mcp/client.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-87699e4f
+    name: Fix string-concat issues
+    description: Resolve 4 string-concat issues in llm-agent/agent_git2mcp.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - llm-agent/agent_git2mcp.py
+    rule_id: string-concat
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-2ddf582d
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in llm-agent/agent_git2mcp.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - llm-agent/agent_git2mcp.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-69f2c3b8
+    name: Fix magic-numbers issues
+    description: Resolve 6 magic-numbers issues in llm-agent/agent_git2mcp.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - llm-agent/agent_git2mcp.py
+    rule_id: magic-numbers
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a6c471f1
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in llm-agent/agent_git2mcp.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - llm-agent/agent_git2mcp.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-92938213
+    name: Fix string-concat issues
+    description: Resolve 2 string-concat issues in git2mcp/git2mcp/proxy.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/git2mcp/proxy.py
+    rule_id: string-concat
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7e35be8b
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in git2mcp/git2mcp/proxy.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/git2mcp/proxy.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5913b7f3
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in git2mcp/git2mcp/proxy.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - git2mcp/git2mcp/proxy.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-bb62a236
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in llm-agent/agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - llm-agent/agent.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-40b916af
+    name: Fix unused-imports issues
+    description: Resolve 8 unused-imports issues in llm-agent/agent.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - llm-agent/agent.py
+    rule_id: unused-imports
+    count: 8
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-005461f1
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in llm-agent/agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - llm-agent/agent.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a1fde1a4
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in llm-agent/agent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - llm-agent/agent.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-db1f528c
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in llm-agent/agent_standalone.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - llm-agent/agent_standalone.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-34d377d2
+    name: Fix unused-imports issues
+    description: Resolve 4 unused-imports issues in llm-agent/agent_standalone.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - llm-agent/agent_standalone.py
+    rule_id: unused-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ad0519cd
+    name: Fix magic-numbers issues
+    description: Resolve 12 magic-numbers issues in llm-agent/agent_standalone.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - llm-agent/agent_standalone.py
+    rule_id: magic-numbers
+    count: 12
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7d10a462
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in llm-agent/agent_standalone.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - llm-agent/agent_standalone.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5f3404cc
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-webui/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-webui/server.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e5772246
+    name: Fix magic-numbers issues
+    description: Resolve 6 magic-numbers issues in mcp-webui/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - mcp-webui/server.py
+    rule_id: magic-numbers
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7e98a837
+    name: Fix unused-imports issues
+    description: Resolve 28 unused-imports issues in mcp-skills/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - mcp-skills/server.py
+    rule_id: unused-imports
+    count: 28
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ef188d05
+    name: Fix magic-numbers issues
+    description: Resolve 14 magic-numbers issues in mcp-skills/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - mcp-skills/server.py
+    rule_id: magic-numbers
+    count: 14
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ff0b426c
+    name: Fix ai-boilerplate issues
+    description: Resolve 2 ai-boilerplate issues in mcp-skills/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-skills/server.py
+    rule_id: ai-boilerplate
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d2460285
+    name: Fix smart-return-type issues
+    description: Resolve 20 smart-return-type issues in mcp-git-proxy/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - mcp-git-proxy/server.py
+    rule_id: smart-return-type
+    count: 20
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8364f04b
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-git-proxy/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-git-proxy/server.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d4b8a8e5
+    name: Fix magic-numbers issues
+    description: Resolve 20 magic-numbers issues in mcp-git-proxy/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - mcp-git-proxy/server.py
+    rule_id: magic-numbers
+    count: 20
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b824928c
+    name: Fix smart-return-type issues
+    description: Resolve 4 smart-return-type issues in mcp-gateway/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - mcp-gateway/server.py
+    rule_id: smart-return-type
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a8af84e6
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in mcp-gateway/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/server.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-2d0dea29
+    name: Fix unused-imports issues
+    description: Resolve 6 unused-imports issues in mcp-gateway/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - mcp-gateway/server.py
+    rule_id: unused-imports
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4ee2ec52
+    name: Fix magic-numbers issues
+    description: Resolve 10 magic-numbers issues in mcp-gateway/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - mcp-gateway/server.py
+    rule_id: magic-numbers
+    count: 10
+    model_hints:
+      planning: balanced
+      implementation: balanced

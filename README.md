@@ -17,6 +17,27 @@ System autonomicznej refaktoryzacji kodu oparty na Model Context Protocol (MCP),
 - **MCP Git Proxy** - izolowany serwis git z osobnym volume i API do sync/commit/test/push
 - **MCP Skills Server** - analiza kodu i metryki na cache repozytoriów
 - **LLM Agent (`git2mcp`)** - planowanie refaktoryzacji i commitowanie zmian przez proxy git
+- **MCP Gateway** - publiczny shim OpenAI-compatible (auth, multi-tenant, SSE) do integracji z OpenWebUI
+- **MCP WebUI** - panel testowy QA / admin dla `mcp-skills`
+
+## Quick start
+
+```bash
+cp .env.example .env   # ustaw OPENROUTER_API_KEY i WEBUI_API_KEY
+make start             # killuje porty hostowe i uruchamia cały stack
+# make stop            # zatrzymuje wszystko
+# make smoke           # szybki test API gateway/webui
+# make help            # pełna lista targetów
+```
+
+- OpenWebUI:  http://localhost:3000
+- MCP WebUI:  http://localhost:8092
+- Gateway:    http://localhost:9000
+- Dashboard:  http://localhost:8085
+
+Pełne scenariusze użycia: [`docs/USAGE.md`](docs/USAGE.md).
+Architektura produktowa: [`docs/PRODUCT.md`](docs/PRODUCT.md).
+Plan refaktoryzacji: [`REFACTORING_PLAN.md`](REFACTORING_PLAN.md).
 
 ## Architektura
 
