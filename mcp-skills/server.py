@@ -696,17 +696,17 @@ SUPPORTED_TOOLS: dict[str, dict[str, Any]] = {
         "package": "sumd",
         "binary": "sumd",
         "description": "SUMD - Structured Unified Markdown Descriptor (project doc generator)",
-        "default_subcommand": "map",
-        "default_args": ["."],
-        "pre_commands": [["touch_marker"]],
-        "post_commands": [["scan", ".", "--fix", "--workspace-mode", "--profile", "refactor"]],
+        "default_subcommand": "scan",
+        "default_args": [".", "--fix", "--workspace-mode", "--profile", "refactor"],
+        "fallback_subcommand": "map",
+        "fallback_args": ["."],
         "key_outputs": [
             "SUMD.md",
-            "project/map.toon.yaml",
             "SUMR.md",
+            "project/map.toon.yaml",
             "SUMR.json",
         ],
-        "summary_files": ["SUMD.md", "project/map.toon.yaml"],
+        "summary_files": ["SUMR.md", "SUMD.md", "project/map.toon.yaml"],
     },
     "code2llm": {
         "package": "code2llm",
@@ -1097,7 +1097,31 @@ async def _run_tool_against_repo(request: ToolRunRequest) -> dict[str, Any]:
 
     run_result = await loop.run_in_executor(None, _run)
 
-    # 3b. Run post_commands (e.g. sumd scan after sumd map) if main command succeeded.
+    # 3b. Fallback: if main command failed and spec defines fallback_subcommand,
+    # run fallback (e.g. sumd map), touch a project marker, then retry main command.
+    if not run_result.get("ok") and spec.get("fallback_subcommand"):
+        fb_cmd = [binary_path, spec["fallback_subcommand"]] + [str(a) for a in spec.get("fallback_args", [])]
+
+        def _run_fallback(c: list[str] = fb_cmd) -> dict[str, Any]:
+            try:
+                p = subprocess.run(c, cwd=str(repo_path), capture_output=True, text=True, timeout=request.timeout, env=env)
+                return {"ok": p.returncode == 0, "stdout": p.stdout or "", "stderr": p.stderr or ""}
+            except Exception as exc:
+                return {"ok": False, "stdout": "", "stderr": str(exc)}
+
+        fb_result = await loop.run_in_executor(None, _run_fallback)
+        # Touch key_outputs[0] as project marker so scan can find it.
+        key_outputs = spec.get("key_outputs", [])
+        if key_outputs:
+            marker = repo_path / key_outputs[0]
+            if not marker.exists():
+                marker.parent.mkdir(parents=True, exist_ok=True)
+                marker.touch()
+        # Retry main command now that the marker exists.
+        retry_result = await loop.run_in_executor(None, _run)
+        combined_fb_stdout = (fb_result.get("stdout") or "").rstrip("\n") + "\n\n" + (retry_result.get("stdout") or "")
+        run_result = {**retry_result, "stdout": combined_fb_stdout}
+
     post_stdout_parts: list[str] = []
     if run_result.get("ok") and spec.get("post_commands"):
         for post_args in spec["post_commands"]:

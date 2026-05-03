@@ -245,7 +245,7 @@ def index() -> str:
         <span>•</span>
         <a href=\"/api/docs\">API list</a>
         <span>•</span>
-        <a href=\"http://localhost:3000/\" target=\"_blank\">🚀 OpenWebUI</a>
+        <a href=\"{openwebui_url}\" target=\"_blank\">🚀 OpenWebUI</a>
       </div>
       <h1>Dokumentacja projektu i playbooki</h1>
       <p class=\"muted\">Osobna usługa Docker udostępniająca dokumentację projektu oraz gotowe dialogi chat do refaktoryzacji, migracji, integracji i modularyzacji.</p>
