@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - MCP WebUI{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">MCP Skills Dashboard</h1>
+<section class="grid grid-cols-2 gap-6">
+  <div class="bg-white rounded shadow p-4">
+    <h2 class="font-semibold mb-2">Gateway health</h2>
+    <pre class="bg-slate-50 p-2 text-xs overflow-x-auto">{{ health | tojson(indent=2) }}</pre>
+  </div>
+  <div class="bg-white rounded shadow p-4">
+    <h2 class="font-semibold mb-2">Available models (skills)</h2>
+    <pre class="bg-slate-50 p-2 text-xs overflow-x-auto">{{ models | tojson(indent=2) }}</pre>
+  </div>
+</section>
+{% endblock %}

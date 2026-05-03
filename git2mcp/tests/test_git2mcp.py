@@ -106,6 +106,150 @@ def test_git_proxy_e2e_sync_export_commit_and_tests(tmp_path):
     assert tests_payload["ok"] is True
 
 
+def test_git_proxy_local_operations(tmp_path):
+    repo_root = tmp_path / "git-repos"
+    cache_root = tmp_path / "git-cache"
+    app = _load_proxy_app(repo_root, cache_root)
+    client = TestClient(app)
+
+    source_repo = tmp_path / "source" / "local-ops"
+    _create_sample_repo_source(source_repo)
+
+    repo_id = "team/local-ops"
+
+    sync = client.post(
+        "/repos/sync",
+        json={"repo_id": repo_id, "source_path": str(source_repo), "branch": "main"},
+    )
+    assert sync.status_code == 200
+
+    # worktree write + read
+    write = client.post(
+        f"/repos/{repo_id}/worktree/write",
+        json={"path": "notes/local.txt", "content": "hello local"},
+    )
+    assert write.status_code == 200
+    read = client.post(
+        f"/repos/{repo_id}/worktree/read",
+        json={"path": "notes/local.txt"},
+    )
+    assert read.status_code == 200
+    assert read.json()["content"] == "hello local"
+
+    # path traversal must be blocked
+    bad = client.post(
+        f"/repos/{repo_id}/worktree/write",
+        json={"path": "../escape.txt", "content": "x"},
+    )
+    assert bad.status_code == 400
+
+    # checkpoint create -> modify -> restore
+    ckpt = client.post(f"/repos/{repo_id}/checkpoint", json={"label": "before"})
+    assert ckpt.status_code == 200
+    ckpt_id = ckpt.json()["checkpoint_id"]
+    client.post(
+        f"/repos/{repo_id}/worktree/write",
+        json={"path": "notes/local.txt", "content": "MUTATED"},
+    )
+    restore = client.post(
+        f"/repos/{repo_id}/checkpoint/restore",
+        json={"checkpoint_id": ckpt_id},
+    )
+    assert restore.status_code == 200
+    after = client.post(
+        f"/repos/{repo_id}/worktree/read",
+        json={"path": "notes/local.txt"},
+    )
+    assert after.json()["content"] == "hello local"
+
+    # patch apply via git diff
+    diff_text = (
+        "diff --git a/main.py b/main.py\n"
+        "--- a/main.py\n"
+        "+++ b/main.py\n"
+        "@@ -1,2 +1,2 @@\n"
+        " def greet(name: str) -> str:\n"
+        "-    return f'Hello {name}'\n"
+        "+    return f'Hi {name}'\n"
+    )
+    apply = client.post(
+        f"/repos/{repo_id}/patch/apply",
+        json={"patch": diff_text},
+    )
+    assert apply.status_code == 200
+    main_after = client.post(
+        f"/repos/{repo_id}/worktree/read",
+        json={"path": "main.py"},
+    )
+    assert "Hi {name}" in main_after.json()["content"]
+
+    # diff endpoint reflects unstaged change
+    diff = client.post(f"/repos/{repo_id}/worktree/diff", json={"staged": False})
+    assert diff.status_code == 200
+    assert "Hi {name}" in diff.json()["diff"]
+
+    # draft branch
+    draft = client.post(
+        f"/repos/{repo_id}/branch/draft",
+        json={"name": "task-123"},
+    )
+    assert draft.status_code == 200
+    assert draft.json()["branch"] == "draft/task-123"
+
+    # stash save/pop
+    save = client.post(f"/repos/{repo_id}/stash/save", json={"message": "wip"})
+    assert save.status_code == 200
+    pop = client.post(f"/repos/{repo_id}/stash/pop")
+    assert pop.status_code == 200
+
+
+def test_git_proxy_e2e_commit_and_reset(tmp_path):
+    repo_root = tmp_path / "git-repos"
+    cache_root = tmp_path / "git-cache"
+    app = _load_proxy_app(repo_root, cache_root)
+    client = TestClient(app)
+
+    source_repo = tmp_path / "source" / "reset-project"
+    _create_sample_repo_source(source_repo)
+
+    repo_id = "team/reset-demo"
+
+    sync = client.post(
+        "/repos/sync",
+        json={"repo_id": repo_id, "source_path": str(source_repo), "branch": "main"},
+    )
+    assert sync.status_code == 200
+    initial_head = sync.json()["head"]
+
+    commit = client.post(
+        f"/repos/{repo_id}/commit",
+        json={
+            "message": "test: broken refactor",
+            "changes": [
+                {
+                    "path": ".mcp/should-be-reverted.txt",
+                    "content": "this commit will be reset",
+                    "mode": "update",
+                }
+            ],
+            "author_name": "tester",
+            "author_email": "tester@example.com",
+        },
+    )
+    assert commit.status_code == 200
+    new_head = commit.json()["commit"]
+    assert new_head != initial_head
+
+    reset = client.post(
+        f"/repos/{repo_id}/reset",
+        json={"ref": "HEAD~1", "mode": "hard"},
+    )
+    assert reset.status_code == 200
+    reset_payload = reset.json()
+    assert reset_payload["previous_commit"] == new_head
+    assert reset_payload["current_commit"] == initial_head
+
+
 def test_git_proxy_e2e_push_to_bare_remote(tmp_path):
     repo_root = tmp_path / "git-repos"
     cache_root = tmp_path / "git-cache"

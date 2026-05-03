@@ -288,3 +288,150 @@ class GitProxyManager:
             "branch": branch,
             "result": [info.summary for info in result],
         }
+
+    def worktree_write(self, repo_id: str, path: str, content: str, encoding: str = "utf-8") -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        target = (repo_path / path).resolve()
+        if not str(target).startswith(str(repo_path.resolve())):
+            raise ValueError("Path traversal outside repo is not allowed")
+        self._ensure_parent(target)
+        target.write_text(content, encoding=encoding)
+        return {"repo_id": repo_id, "path": path, "bytes": len(content.encode(encoding))}
+
+    def worktree_read(self, repo_id: str, path: str, encoding: str = "utf-8") -> dict:
+        repo_path = self._repo_path(repo_id)
+        target = (repo_path / path).resolve()
+        if not str(target).startswith(str(repo_path.resolve())):
+            raise ValueError("Path traversal outside repo is not allowed")
+        if not target.exists():
+            raise FileNotFoundError(f"File not found: {path}")
+        return {"repo_id": repo_id, "path": path, "content": target.read_text(encoding=encoding)}
+
+    def worktree_diff(self, repo_id: str, staged: bool = False) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        repo = Repo(repo_path)
+        args = ["--cached"] if staged else []
+        diff_text = repo.git.diff(*args)
+        return {"repo_id": repo_id, "staged": staged, "diff": diff_text}
+
+    def patch_apply(self, repo_id: str, patch: str, check_only: bool = False) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        cmd = ["git", "apply"]
+        if check_only:
+            cmd.append("--check")
+        cmd.append("-")
+        proc = subprocess.run(
+            cmd,
+            cwd=repo_path,
+            input=patch,
+            text=True,
+            capture_output=True,
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(f"git apply failed: {proc.stderr.strip() or proc.stdout.strip()}")
+        return {"repo_id": repo_id, "applied": not check_only, "checked": check_only}
+
+    def stage(self, repo_id: str, paths: list[str] | None = None) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        repo = Repo(repo_path)
+        if paths:
+            repo.index.add(paths)
+        else:
+            repo.git.add(A=True)
+        return {"repo_id": repo_id, "staged": paths or "all"}
+
+    def stash_save(self, repo_id: str, message: str = "git2mcp stash") -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        repo = Repo(repo_path)
+        try:
+            output = repo.git.stash("push", "-u", "-m", message)
+        except Exception as exc:
+            raise RuntimeError(f"git stash failed: {exc}") from exc
+        return {"repo_id": repo_id, "output": output}
+
+    def stash_pop(self, repo_id: str) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        repo = Repo(repo_path)
+        try:
+            output = repo.git.stash("pop")
+        except Exception as exc:
+            raise RuntimeError(f"git stash pop failed: {exc}") from exc
+        return {"repo_id": repo_id, "output": output}
+
+    def branch_draft(self, repo_id: str, name: str, base: str | None = None) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        repo = Repo(repo_path)
+        full_name = name if name.startswith("draft/") else f"draft/{name}"
+        if base:
+            repo.git.checkout("-B", full_name, base)
+        else:
+            repo.git.checkout("-B", full_name)
+        return {"repo_id": repo_id, "branch": full_name, "head": repo.head.commit.hexsha}
+
+    def checkpoint_create(self, repo_id: str, label: str | None = None) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        ckpt_dir = self.cache_dir / "checkpoints" / repo_id
+        ckpt_dir.mkdir(parents=True, exist_ok=True)
+        from datetime import datetime, timezone
+        ckpt_id = label or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
+        archive = ckpt_dir / f"{ckpt_id}.tar"
+        with tarfile.open(archive, "w") as tar:
+            for entry in repo_path.iterdir():
+                if entry.name == ".git":
+                    continue
+                tar.add(entry, arcname=entry.name)
+        return {"repo_id": repo_id, "checkpoint_id": ckpt_id, "archive": str(archive)}
+
+    def checkpoint_restore(self, repo_id: str, checkpoint_id: str) -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+        archive = self.cache_dir / "checkpoints" / repo_id / f"{checkpoint_id}.tar"
+        if not archive.exists():
+            raise FileNotFoundError(f"Checkpoint not found: {checkpoint_id}")
+        for entry in repo_path.iterdir():
+            if entry.name == ".git":
+                continue
+            if entry.is_dir():
+                shutil.rmtree(entry)
+            else:
+                entry.unlink()
+        with tarfile.open(archive, "r") as tar:
+            tar.extractall(repo_path, filter="data")
+        return {"repo_id": repo_id, "restored_from": checkpoint_id}
+
+    def reset(self, repo_id: str, ref: str = "HEAD~1", mode: str = "hard") -> dict:
+        repo_path = self._repo_path(repo_id)
+        if not repo_path.exists():
+            raise FileNotFoundError(f"Repo not found: {repo_id}")
+
+        if mode not in {"hard", "soft", "mixed"}:
+            raise ValueError(f"Unsupported reset mode: {mode}")
+
+        repo = Repo(repo_path)
+        previous = repo.head.commit.hexsha
+        repo.git.reset(f"--{mode}", ref)
+        current = repo.head.commit.hexsha
+        return {
+            "repo_id": repo_id,
+            "mode": mode,
+            "ref": ref,
+            "previous_commit": previous,
+            "current_commit": current,
+        }

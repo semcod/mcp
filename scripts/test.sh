@@ -84,7 +84,7 @@ test_semcod_fragment_transfer() {
     echo -e "${BLUE}Test 7: semcod fragment transfer to mcp-skills${NC}"
 
     cd "$PROJECT_ROOT"
-    docker-compose up -d mcp-git-proxy mcp-skills > /dev/null
+    docker-compose up -d mcp-git-proxy > /dev/null
 
     local semcod_repos=("docs" "code2schema" "taskinity")
 
@@ -102,7 +102,7 @@ test_semcod_fragment_transfer() {
     done
 
     # 2) Transfer to mcp-skills cache via MCP fragment endpoint + path reconstruction
-    docker-compose exec -T mcp-skills python - << 'PY'
+    docker-compose run --rm --entrypoint python mcp-skills - << 'PY'
 import asyncio
 import json
 from server import MCPSkillsServer
@@ -123,7 +123,7 @@ asyncio.run(main())
 PY
 
     # 3) Validate transfer mode and reconstructed files in mcp-skills cache
-    docker-compose exec -T mcp-skills python - << 'PY'
+    docker-compose run --rm --entrypoint python mcp-skills - << 'PY'
 import asyncio
 from pathlib import Path
 from server import MCPSkillsServer
@@ -147,8 +147,28 @@ print("fragment transfer validated")
 PY
     echo -e "  ${GREEN}✓${NC} mcp-skills reconstructed 3 semcod repos from MCP fragments"
 
+    # 3b) Validate diff/migration counters on repeated sync
+    docker-compose run --rm --entrypoint python mcp-skills - << 'PY'
+import asyncio
+from server import MCPSkillsServer
+
+
+async def main():
+    s = MCPSkillsServer()
+    res = await s._sync_from_git_proxy("semcod/docs")
+    assert res.get("transfer_mode") == "fragments", res
+    assert res.get("files_unchanged", 0) > 0, res
+    assert res.get("files_updated", 0) == 0, res
+    assert res.get("files_deleted", 0) == 0, res
+
+
+asyncio.run(main())
+print("fragment diff counters validated")
+PY
+    echo -e "  ${GREEN}✓${NC} mcp-skills detects unchanged files during second fragment sync"
+
     # 4) Assert mcp-skills has no shared /git-repos mount
-    if docker inspect mcp-skills-server | grep -q '"Destination": "/git-repos"'; then
+    if docker-compose run --rm --entrypoint sh mcp-skills -lc "mount | grep -q ' /git-repos '" >/dev/null 2>&1; then
         echo -e "  ${RED}✗ mcp-skills still has shared /git-repos mount${NC}"
         return 1
     fi

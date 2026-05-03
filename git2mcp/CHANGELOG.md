@@ -19,6 +19,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-05-03
+
+### Docs
+- Update README.md
+- Update REFACTORING_PLAN.md
+- Update STATUS.md
+- Update docs/PRODUCT.md
+- Update git2mcp/examples/README.md
+
+### Other
+- Update docker-compose.prod.yml
+- Update docker-compose.yml.bak
+- Update git2mcp/examples/03_agent_git2mcp.py
+- Update git2mcp/examples/04_dry_run_vs_execute.py
+- Update git2mcp/examples/05_local_iterate.py
+- Update git2mcp/git2mcp/client.py
+- Update git2mcp/git2mcp/proxy.py
+- Update git2mcp/tests/test_git2mcp.py
+- Update mcp-gateway/Dockerfile
+- Update mcp-gateway/requirements.txt
+- ... and 13 more files
+
 ## [0.1.7] - 2026-05-03
 
 ### Docs

@@ -59,3 +59,46 @@ class Git2MCPClient:
     async def push(self, repo_id: str, remote: str = "origin", branch: str | None = None):
         payload = {"remote": remote, "branch": branch}
         return await self._request("POST", f"/repos/{repo_id}/push", payload)
+
+    async def reset(self, repo_id: str, ref: str = "HEAD~1", mode: str = "hard"):
+        payload = {"ref": ref, "mode": mode}
+        return await self._request("POST", f"/repos/{repo_id}/reset", payload)
+
+    async def worktree_write(self, repo_id: str, path: str, content: str, encoding: str = "utf-8"):
+        payload = {"path": path, "content": content, "encoding": encoding}
+        return await self._request("POST", f"/repos/{repo_id}/worktree/write", payload)
+
+    async def worktree_read(self, repo_id: str, path: str, encoding: str = "utf-8"):
+        payload = {"path": path, "encoding": encoding}
+        return await self._request("POST", f"/repos/{repo_id}/worktree/read", payload)
+
+    async def worktree_diff(self, repo_id: str, staged: bool = False):
+        payload = {"staged": staged}
+        return await self._request("POST", f"/repos/{repo_id}/worktree/diff", payload)
+
+    async def patch_apply(self, repo_id: str, patch: str, check_only: bool = False):
+        payload = {"patch": patch, "check_only": check_only}
+        return await self._request("POST", f"/repos/{repo_id}/patch/apply", payload)
+
+    async def stage(self, repo_id: str, paths: list[str] | None = None):
+        payload = {"paths": paths}
+        return await self._request("POST", f"/repos/{repo_id}/stage", payload)
+
+    async def stash_save(self, repo_id: str, message: str = "git2mcp stash"):
+        payload = {"message": message}
+        return await self._request("POST", f"/repos/{repo_id}/stash/save", payload)
+
+    async def stash_pop(self, repo_id: str):
+        return await self._request("POST", f"/repos/{repo_id}/stash/pop", {})
+
+    async def branch_draft(self, repo_id: str, name: str, base: str | None = None):
+        payload = {"name": name, "base": base}
+        return await self._request("POST", f"/repos/{repo_id}/branch/draft", payload)
+
+    async def checkpoint_create(self, repo_id: str, label: str | None = None):
+        payload = {"label": label}
+        return await self._request("POST", f"/repos/{repo_id}/checkpoint", payload)
+
+    async def checkpoint_restore(self, repo_id: str, checkpoint_id: str):
+        payload = {"checkpoint_id": checkpoint_id}
+        return await self._request("POST", f"/repos/{repo_id}/checkpoint/restore", payload)

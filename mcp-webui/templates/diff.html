@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Diff - MCP WebUI{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">Worktree diff</h1>
+<form method="get" action="/diff" class="bg-white rounded shadow p-4 mb-4 flex gap-2">
+  <input name="repo_id" value="{{ repo_id }}" placeholder="team/sample" class="border p-1 rounded flex-1">
+  <button class="bg-slate-900 text-white px-4 py-1 rounded">Show</button>
+</form>
+{% if diff %}
+<pre class="bg-slate-900 text-green-200 p-3 text-xs overflow-x-auto rounded">{{ diff }}</pre>
+{% else %}
+<p class="text-sm text-slate-500">no diff</p>
+{% endif %}
+{% endblock %}

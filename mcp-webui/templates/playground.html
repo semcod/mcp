@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Playground - MCP WebUI{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">Free-form playground</h1>
+<form hx-post="/skills/run" hx-target="#out" class="bg-white rounded shadow p-4 grid grid-cols-1 gap-3">
+  <input type="hidden" name="model" value="mcp-skills/refactor">
+  <input name="repo_id" class="border p-1 rounded" placeholder="repo_id (optional)">
+  <input name="source_path" class="border p-1 rounded" placeholder="source_path (optional)">
+  <textarea name="prompt" class="border p-1 rounded h-32" required>Co byś zrefaktoryzował w tym repo i dlaczego?</textarea>
+  <button class="bg-slate-900 text-white px-4 py-1 rounded">Send</button>
+</form>
+<pre id="out" class="mt-4 bg-slate-50 p-3 text-xs overflow-x-auto rounded shadow"></pre>
+{% endblock %}

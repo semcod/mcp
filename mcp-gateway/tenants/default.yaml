@@ -1,0 +1,14 @@
+# Default tenant config (replace with real keys per customer)
+tenant_id: default
+api_keys:
+  - "sk-mcp-default-dev-key"
+quotas:
+  max_repos: 10
+  max_iterations_per_task: 5
+  monthly_llm_usd: 50
+features:
+  refactor: true
+  analyze: true
+  push: false
+audit:
+  enabled: true

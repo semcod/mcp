@@ -1,5 +1,5 @@
 services:
-  # MCP Git Proxy - operacje git i cache repozytoriów
+  # MCP Git Proxy - izolacja operacji git i cache repozytoriów
   mcp-git-proxy:
     build:
       context: .
@@ -17,9 +17,9 @@ services:
       - "8081:8080"
     restart: unless-stopped
     networks:
-      - mcp-internal
+      - mcp-network
 
-  # MCP Skills Server - analiza kodu i metryki
+  # MCP Skills Server - Analiza kodu i metryki
   mcp-skills:
     build: ./mcp-skills
     container_name: mcp-skills-server
@@ -30,6 +30,8 @@ services:
     volumes:
       - skills-cache:/skills-cache
       - ./mcp-skills/server.py:/app/server.py:ro
+    ports:
+      - "8082:8080"
     healthcheck:
       test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
       interval: 30s
@@ -39,9 +41,9 @@ services:
     depends_on:
       - mcp-git-proxy
     networks:
-      - mcp-internal
+      - mcp-network
 
-  # LLM Agent - workflow git2mcp
+  # LLM Agent - Koordynacja refaktoryzacji
   llm-agent:
     build: ./llm-agent
     container_name: llm-agent
@@ -64,77 +66,11 @@ services:
       - mcp-git-proxy
       - mcp-skills
     networks:
-      - mcp-internal
+      - mcp-network
     profiles:
       - agent
 
-  # MCP Gateway - publiczny shim OpenAI-compatible (auth, multi-tenant)
-  mcp-gateway:
-    build:
-      context: .
-      dockerfile: mcp-gateway/Dockerfile
-    container_name: mcp-gateway
-    environment:
-      - GIT_PROXY_URL=http://mcp-git-proxy:8080
-      - SKILLS_URL=http://mcp-skills:8080
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - LLM_MODEL=${LLM_MODEL:-openrouter/x-ai/grok-code-fast-1}
-      - MCP_TENANTS_DIR=/app/tenants
-      - MCP_AUDIT_LOG=/audit/audit.jsonl
-    volumes:
-      - ./mcp-gateway/tenants:/app/tenants:ro
-      - audit-storage:/audit
-    ports:
-      - "9000:9000"
-    depends_on:
-      - mcp-git-proxy
-      - mcp-skills
-    networks:
-      - mcp-internal
-      - mcp-public
-    restart: unless-stopped
-
-  # MCP WebUI - testowy panel dla skills i diff
-  mcp-webui:
-    build:
-      context: .
-      dockerfile: mcp-webui/Dockerfile
-    container_name: mcp-webui
-    environment:
-      - GATEWAY_URL=http://mcp-gateway:9000
-      - GIT_PROXY_URL=http://mcp-git-proxy:8080
-      - WEBUI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
-    ports:
-      - "8092:8090"
-    depends_on:
-      - mcp-gateway
-      - mcp-git-proxy
-    networks:
-      - mcp-internal
-      - mcp-public
-    restart: unless-stopped
-
-  # OpenWebUI - frontend dla użytkowników końcowych (OpenAI-compat klient)
-  openwebui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: openwebui
-    environment:
-      - OPENAI_API_BASE_URL=http://mcp-gateway:9000/v1
-      - OPENAI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
-      - WEBUI_AUTH=${OPENWEBUI_AUTH:-False}
-    volumes:
-      - openwebui-data:/app/backend/data
-    ports:
-      - "3000:8080"
-    depends_on:
-      - mcp-gateway
-    networks:
-      - mcp-public
-    restart: unless-stopped
-    profiles:
-      - openwebui
-
-  # Dashboard - statyczny widok output/
+  # Dashboard - Wizualizacja wyników
   dashboard:
     build: ./dashboard
     container_name: mcp-dashboard
@@ -152,18 +88,28 @@ services:
       - mcp-skills
     restart: unless-stopped
     networks:
-      - mcp-internal
-      - mcp-public
+      - mcp-network
+
+  # MCP Gateway - Proxy dla MCP serwerów
+  mcp-gateway:
+    image: docker/mcp-gateway:latest
+    container_name: mcp-gateway
+    environment:
+      - MCP_SERVERS_CONFIG=/config/servers.json
+    volumes:
+      - ./config:/config:ro
+    ports:
+      - "8080:8080"
+    profiles:
+      - gateway
+    networks:
+      - mcp-network
 
 networks:
-  mcp-internal:
-    driver: bridge
-  mcp-public:
+  mcp-network:
     driver: bridge
 
 volumes:
   git-repo-storage:
   git-cache-storage:
   skills-cache:
-  audit-storage:
-  openwebui-data:
