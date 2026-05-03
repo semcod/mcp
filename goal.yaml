@@ -224,7 +224,7 @@ strategies:
   python:
     test: pytest tests/ -v
     build: python -m build
-    publish: twine upload dist/git2mcp-{version}*
+    publish: twine upload dist/env2mcp-{version}*
     publish_enabled: true
     dependencies:
       file: requirements.txt

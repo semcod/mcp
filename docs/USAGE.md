@@ -393,6 +393,23 @@ curl -o /dev/null -w '%{http_code}\n' http://localhost:8092/   # -> 200
 
 ## FAQ
 
+**Jak skonfigurować GitHub?**
+```bash
+make setup-github
+```
+Lub ręcznie:
+1. Zainstaluj `gh` CLI: https://cli.github.com/
+2. Uruchom `env2mcp github login`
+3. Token zostanie zapisany w `.env` jako `GITHUB_PAT`
+
+Alternatywnie, możesz wpisać token ręcznie w http://localhost:8092/github
+
+**Skąd wziąć GitHub Personal Access Token?**
+1. Wejdź na https://github.com/settings/tokens
+2. Generate new token (classic)
+3. Zaznacz scope `repo` (dostęp do repozytoriów)
+4. Skopiuj token i wpisz w `.env` jako `GITHUB_PAT` lub przez WebUI
+
 **Jak włączyć/wyłączyć skill dla tenanta?**
 W `mcp-gateway/tenants/<tenant>.yaml` w sekcji `features`. Po zmianie restart gateway.
 

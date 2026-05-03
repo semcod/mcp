@@ -66,6 +66,42 @@
 - [ ] mcp-git-proxy/server.py:31 - Magic number: 200000 - use named constant
 - [ ] mcp-git-proxy/server.py:282 - Magic number: 404 - use named constant
 - [ ] mcp-git-proxy/server.py:129 - Magic number: 400 - use named constant
+## 🚀 Product Roadmap (Post-MVP)
+
+### Phase 1: Auto-Refactor Code Generation (Next Priority)
+- [ ] Implement LLM-based patch generation for actual code changes (not just plan artifacts)
+- [ ] Add iterative retry loop: patch → test → rollback → retry with LLM feedback
+- [ ] Support multiple refactoring strategies (rename, extract, inline, move)
+- [ ] Add code change validation and safety checks before applying patches
+
+### Phase 2: GitHub Integration
+- [ ] Automatic PR creation via GitHub API after successful refactor
+- [ ] PR templates with analysis summary and diff preview
+- [ ] Branch naming conventions (draft/*, refactor/*, auto/*)
+- [ ] Support for GitHub Actions CI triggers on auto-commits
+
+### Phase 3: Production Hardening
+- [ ] Replace in-memory JOBS store with Redis/Postgres for persistence
+- [ ] Add approval gates before push (human-in-the-loop)
+- [ ] Repository allowlist per tenant (restrict which repos can be modified)
+- [ ] Rate limiting and cost quotas per tenant
+- [ ] Backup/restore for git-repo-storage volume
+- [ ] Monitoring and alerting (Prometheus/Grafana)
+
+### Phase 4: Advanced Features
+- [ ] Multi-file coordinated refactoring across module boundaries
+- [ ] Semantic code search and replace using AST
+- [ ] Integration with external linters (mypy, ruff, black) auto-fix
+- [ ] Custom skill plugins (loadable Python modules)
+- [ ] Webhook support for GitHub/GitLab events
+
+### Phase 5: Enterprise
+- [ ] SAML/SSO authentication integration
+- [ ] Audit log streaming to SIEM
+- [ ] SOC 2 compliance documentation
+- [ ] SLA guarantees and support tiers
+
+## Code Quality Tasks (Auto-generated)
 - [ ] mcp-gateway/server.py:111 - Function 'health' missing return type (suggested: -> Dict)
 - [ ] mcp-gateway/server.py:116 - Function 'list_models' missing return type (suggested: -> Dict)
 - [ ] mcp-gateway/server.py:227 - Function 'get_job' missing return type (suggested: -> Any)

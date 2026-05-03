@@ -4,10 +4,10 @@
 ## AI Cost Tracking
 
 ![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.31-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$2.10-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-3.9h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$2.25-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-3.9h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $2.1000 (14 commits)
-- 👤 **Human dev:** ~$393 (3.9h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $2.2500 (15 commits)
+- 👤 **Human dev:** ~$394 (3.9h @ $100/h, 30min dedup)
 
 Generated on 2026-05-03 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -111,86 +111,142 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 
 ```
 .
-├── docker-compose.yml          # Konfiguracja Docker
-├── .env.example                # Przykładowa konfiguracja
-├── README.md                   # Dokumentacja
+├── docker-compose.yml          # Konfiguracja Docker (dev)
+├── docker-compose.prod.yml   # Overlay produkcyjny
+├── Makefile                  # Zarządzanie cyklem życia (start, stop, smoke)
+├── .env.example              # Przykładowa konfiguracja
+├── README.md                 # Dokumentacja
+├── CHANGELOG.md              # Historia zmian
+├── TODO.md                   # Zadania do zrobienia
+├── REFACTORING_PLAN.md       # Plan architektoniczny
 │
-├── mcp-git-proxy/              # MCP Git Proxy service
+├── mcp-git-proxy/            # MCP Git Proxy - operacje git przez HTTP API
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── server.py
 │
-├── git2mcp/                    # Pakiet python do sync/commit przez MCP
-│   ├── __init__.py
-│   ├── client.py
-│   ├── proxy.py
-│   └── pyproject.toml
+├── git2mcp/                  # Pakiet Python do operacji git przez MCP
+│   ├── git2mcp/
+│   │   ├── client.py         # Async HTTP client
+│   │   └── proxy.py          # GitProxyManager (serwer)
+│   ├── examples/             # Przykłady użycia (01-05)
+│   ├── tests/                # Testy pytest
+│   ├── pyproject.toml
+│   └── README.md
 │
-├── mcp-skills/                 # MCP Skills Server
+├── mcp-skills/               # MCP Skills Server - analiza kodu
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   └── server.py               # Implementacja narzędzi MCP
+│   └── server.py             # FastAPI HTTP API + MCP STDIO
 │
-├── llm-agent/                  # Autonomiczny Agent
+├── mcp-gateway/              # NOWOŚĆ: OpenAI-compatible shim
 │   ├── Dockerfile
 │   ├── requirements.txt
-│   ├── agent.py                # Logika agenta LLM
-│   ├── agent_standalone.py     # Wersja standalone
-│   └── agent_git2mcp.py        # Workflow commit/test/push przez git2mcp
+│   ├── server.py             # FastAPI + SSE + multi-tenant
+│   └── tenants/              # Konfiguracja tenantów (YAML)
+│       └── default.yaml
 │
-├── dashboard/                  # Wizualizacja wyników
+├── mcp-webui/                # NOWOŚĆ: Panel testowy QA/admin
 │   ├── Dockerfile
-│   ├── server.py               # Serwer HTTP
-│   └── index.html              # Interfejs webowy
+│   ├── requirements.txt
+│   ├── server.py             # FastAPI + Jinja2 + HTMX
+│   └── templates/            # HTML templates
 │
-├── scripts/                    # Skrypty pomocnicze
-│   ├── deploy.sh               # Deployment
-│   └── test.sh                 # Testy
+├── llm-agent/                # Autonomiczny Agent
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── agent.py
+│   ├── agent_standalone.py
+│   └── agent_git2mcp.py      # Workflow przez git2mcp
+│
+├── dashboard/                # Wizualizacja wyników
+│   ├── Dockerfile
+│   ├── server.py
+│   └── index.html
+│
+├── ansible/                  # NOWOŚĆ: Ansible E2E tests
+│   ├── inventory.ini
+│   └── e2e-docker-stack.yml
+│
+├── docs/                       # Dokumentacja produktowa
+│   ├── PRODUCT.md            # Architektura produktowa
+│   └── USAGE.md              # Scenariusze użycia
+│
+├── scripts/
+│   ├── deploy.sh
+│   └── test.sh
 │
 ├── repos/                      # Repo hosta (read-only mount)
 └── output/                     # Wyniki analizy (volume)
 ```
 
+## Nowa Architektura Produktowa (Maj 2026)
+
+### MCP Gateway - Publiczny Entrypoint
+OpenAI-compatible HTTP API shim dla integracji z zewnętrznymi klientami:
+- **Endpointy**: `/v1/models`, `/v1/chat/completions` (z SSE streaming)
+- **Autoryzacja**: Bearer token (per-tenant API keys)
+- **Multi-tenant**: Konfiguracja przez `tenants/*.yaml`
+- **Audit logging**: JSONL logi w wolumenie `audit-storage`
+- **Prompt parsing**: Automatyczne parsowanie pól (Repo, Source, Branch, Execute, Push, Test, Zadanie)
+
+### MCP WebUI - Panel Testowy
+FastAPI + HTMX + Tailwind dla QA i administratorów:
+- Dashboard ze statusem gateway
+- Lista repozytoriów + sync form
+- Uruchamianie skilli przez gateway
+- Podgląd diffów
+- Playground dla free-form promptów
+- **URL**: http://localhost:8092
+
+### OpenWebUI - Dla Użytkowników Końcowych
+Oficjalny frontend (docker image) podłączony do MCP Gateway:
+- Chat z modelami `mcp-skills/refactor` i `mcp-skills/analyze`
+- **URL**: http://localhost:3000
+
+### MCP Skills - HTTP API
+Serwer FastAPI z endpointami (poza MCP STDIO):
+- `POST /sync` - Synchronizacja repo z git-proxy
+- `POST /analyze/structure` - Analiza struktury kodu
+- `POST /analyze/metrics` - Metryki repozytorium
+- `POST /analyze/patterns` - Wykrywanie wzorców
+- `POST /refactor/recommend` - Rekomendacje refaktoryzacji
+- `GET /health` - Healthcheck
+
 ## MCP Skills - Narzędzia
 
 ### analyze_code_structure
-Analiza struktury kodu dla podanych ścieżek:
-- Liczba linii kodu
-- Liczba importów
-- Liczba funkcji i klas
-- Podgląd kodu
+Analiza struktury kodu dla podanych ścieżek (via HTTP API lub MCP).
 
 ### compute_metrics_for_repo
-Metryki całego repozytorium:
-- Całkowita liczba plików
-- Całkowita liczba linii
-- Średnia liczba linii na plik
-- Liczba funkcji i klas
+Metryki całego repozytorium.
 
 ### detect_code_patterns
-Wykrywanie wzorców i antywzorców:
-- Duże pliki (>500 linii)
-- Wysoka złożoność
-- Najczęściej używane importy
-- Potencjalne problemy
+Wykrywanie wzorców i antywzorców.
 
 ### recommend_refactoring
-Rekomendacje refaktoryzacji:
-- Priorytetyzacją zmian
-- Sugestie podziału plików
-- Sugestie organizacji kodu
+Rekomendacje refaktoryzacji z priorytetyzacją.
 
 ### sync_repo_from_git_proxy
-Synchronizacja repozytorium z izolowanego `mcp-git-proxy` do cache skills:
-- import paczki repo (`tar.gz + base64`)
-- odświeżanie lokalnego cache `/skills-cache/<repo_id>`
-- analiza na spójnej wersji kodu
+Synchronizacja repozytorium z `mcp-git-proxy` do cache skills.
 
-## git2mcp - paczka proxy
+## git2mcp - Pakiet Proxy
 
 `git2mcp` dostarcza dwa komponenty:
-- `GitProxyManager` (serwer) — sync repo, export paczek, commit/test/push
-- `Git2MCPClient` (agent) — API client używany przez `llm-agent`
+- `GitProxyManager` (serwer w `mcp-git-proxy`) — sync repo, export paczek, commit/test/push
+- `Git2MCPClient` (klient async) — używany przez agentów i gateway
+
+### Nowe Operacje Lokalne (v0.1.9)
+Operacje na working tree bez commitowania:
+- `worktree_read/write/diff` - Bezpośrednia edycja plików
+- `patch_apply` - Aplikowanie unified diff
+- `stage` - Dodawanie do indeksu
+- `stash_save/pop` - Stash operacje
+- `branch_draft` - Tworzenie branchy draft/*
+- `checkpoint_create/restore` - Snapshoty tarball dla rollback
+- `reset` - Git reset (hard/soft/mixed)
+
+Zobacz `git2mcp/examples/05_local_iterate.py` dla workflow: checkpoint → patch → test → commit (lub rollback).
 
 Najważniejsze endpointy `mcp-git-proxy`:
 - `POST /repos/sync` - klonowanie/pull repo do izolowanego volume
