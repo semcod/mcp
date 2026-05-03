@@ -234,6 +234,9 @@ services:
       context: .
       dockerfile: mcp-docs/Dockerfile
     container_name: mcp-docs
+    environment:
+      - PORT_OPENWEBUI=${PORT_OPENWEBUI:-3000}
+      - OPENWEBUI_URL=${OPENWEBUI_URL:-http://localhost:3000/}
     ports:
       - "${PORT_DOCS:-8093}:8090"
     healthcheck:
@@ -247,12 +250,21 @@ services:
 
   # OpenWebUI - frontend dla użytkowników końcowych (OpenAI-compat klient)
   openwebui:
-    image: ghcr.io/open-webui/open-webui:main
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:main}
     container_name: openwebui
     environment:
       - OPENAI_API_BASE_URL=http://mcp-gateway:9000/v1
       - OPENAI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
       - WEBUI_AUTH=${OPENWEBUI_AUTH:-False}
+      # Renderowanie Markdown / artefaktów
+      - ENABLE_MERMAID=${ENABLE_MERMAID:-true}
+      - ENABLE_LATEX=${ENABLE_LATEX:-true}
+      - ENABLE_CODE_EXECUTION=${ENABLE_CODE_EXECUTION:-false}
+      - ENABLE_ARTIFACTS=${ENABLE_ARTIFACTS:-true}
+      - COLLAPSE_CODE_BLOCKS=${COLLAPSE_CODE_BLOCKS:-false}
+      # UI
+      - DEFAULT_LOCALE=${DEFAULT_LOCALE:-pl-PL}
+      - SHOW_ADMIN_DETAILS=${SHOW_ADMIN_DETAILS:-false}
     volumes:
       - openwebui-data:/app/backend/data
     ports:

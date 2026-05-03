@@ -6,6 +6,13 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# Porty z .env lub defaults
+if [ -f "$PROJECT_ROOT/.env" ]; then
+  set -a; source "$PROJECT_ROOT/.env"; set +a
+fi
+PORT_GIT_PROXY="${PORT_GIT_PROXY:-8081}"
+PORT_GATEWAY="${PORT_GATEWAY:-9000}"
+
 # Kolory
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -93,7 +100,7 @@ test_semcod_fragment_transfer() {
         local rid="semcod/${repo_name}"
         local spath="/host-semcod/${repo_name}"
 
-        curl -fsS -X POST http://localhost:8081/repos/sync \
+        curl -fsS -X POST http://localhost:${PORT_GIT_PROXY}/repos/sync \
             -H "Content-Type: application/json" \
             -d "{\"repo_id\":\"${rid}\",\"source_path\":\"${spath}\",\"branch\":\"main\"}" > "/tmp/semcod-sync-${repo_name}.json"
 
@@ -310,16 +317,16 @@ test_git2mcp_workflow() {
     python3 -c "import json; d=json.load(open('$PROJECT_ROOT/output/test_another-project_analysis.json')); assert d['status']=='analysis_complete'; assert d.get('execution',{}).get('tests',{}).get('ok') is True"
     echo -e "  ${GREEN}✓${NC} output JSON validates execution.tests.ok for both repos"
 
-    curl -fsS http://localhost:8081/health > /tmp/gitproxy-health.json
+    curl -fsS http://localhost:${PORT_GIT_PROXY}/health > /tmp/gitproxy-health.json
     python3 -c "import json; d=json.load(open('/tmp/gitproxy-health.json')); assert d.get('status')=='ok'"
     echo -e "  ${GREEN}✓${NC} mcp-git-proxy health endpoint is OK"
 
-    curl -fsS http://localhost:8081/repos > /tmp/gitproxy-repos.json
+    curl -fsS http://localhost:${PORT_GIT_PROXY}/repos > /tmp/gitproxy-repos.json
     grep -q 'test/sample-project' /tmp/gitproxy-repos.json
     grep -q 'test/another-project' /tmp/gitproxy-repos.json
     echo -e "  ${GREEN}✓${NC} mcp-git-proxy repo registry includes both repos"
 
-    curl -fsS -X POST http://localhost:8081/packages/export \
+    curl -fsS -X POST http://localhost:${PORT_GIT_PROXY}/packages/export \
       -H "Content-Type: application/json" \
       -d '{"repo_id":"test/sample-project","ref":"HEAD"}' > /tmp/gitproxy-export.json
     python3 -c "import json; d=json.load(open('/tmp/gitproxy-export.json')); assert len(d.get('archive_b64','')) > 20"

@@ -2,17 +2,51 @@
 {% block title %}Skills - MCP WebUI{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-semibold mb-4">Run skill</h1>
-<form hx-post="/skills/run" hx-target="#out" hx-swap="innerHTML" class="bg-white rounded shadow p-4 grid grid-cols-2 gap-3">
+<form id="sk-form" class="bg-white rounded shadow p-4 grid grid-cols-2 gap-3">
   <label class="text-sm">model
-    <select name="model" class="border p-1 rounded w-full">
+    <select name="model" id="sk-model" class="border p-1 rounded w-full">
       <option value="mcp-skills/refactor">mcp-skills/refactor</option>
       <option value="mcp-skills/analyze">mcp-skills/analyze</option>
+      <option value="mcp-skills/system">mcp-skills/system</option>
+      <option value="mcp-skills/github-qa">mcp-skills/github-qa</option>
+      <option value="mcp-skills/tool">mcp-skills/tool</option>
     </select>
   </label>
-  <label class="text-sm">repo_id <input name="repo_id" class="border p-1 rounded w-full" placeholder="team/sample"></label>
-  <label class="text-sm col-span-2">source_path <input name="source_path" class="border p-1 rounded w-full" placeholder="/host-semcod/code2schema"></label>
-  <label class="text-sm col-span-2">prompt <textarea name="prompt" class="border p-1 rounded w-full h-24" required>Refaktoryzuj moduł utils, popraw nazewnictwo.</textarea></label>
-  <button class="bg-slate-900 text-white px-4 py-1 rounded col-span-2">Run</button>
+  <label class="text-sm">repo_id <input name="repo_id" id="sk-repo" class="border p-1 rounded w-full" placeholder="team/sample"></label>
+  <label class="text-sm col-span-2">source_path <input name="source_path" id="sk-src" class="border p-1 rounded w-full" placeholder="/host-semcod/code2schema"></label>
+  <label class="text-sm col-span-2">prompt <textarea name="prompt" id="sk-prompt" class="border p-1 rounded w-full h-24" required>Refaktoryzuj moduł utils, popraw nazewnictwo.</textarea></label>
+  <div class="col-span-2 flex gap-2 items-center">
+    <button type="submit" id="sk-btn" class="bg-slate-900 text-white px-4 py-1 rounded">Run</button>
+    <span id="sk-status" class="text-xs text-slate-400"></span>
+  </div>
 </form>
-<pre id="out" class="mt-4 bg-slate-50 p-3 text-xs overflow-x-auto rounded shadow"></pre>
+<div id="out" class="mt-4 bg-white rounded shadow p-4 text-sm hidden"></div>
+<script>
+  document.getElementById('sk-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('sk-btn');
+    const status = document.getElementById('sk-status');
+    btn.disabled = true; btn.textContent = '⏳...'; status.textContent = '';
+    const fd = new FormData();
+    fd.append('model', document.getElementById('sk-model').value);
+    fd.append('prompt', document.getElementById('sk-prompt').value);
+    fd.append('repo_id', document.getElementById('sk-repo').value);
+    fd.append('source_path', document.getElementById('sk-src').value);
+    try {
+      const resp = await fetch('/skills/run', { method: 'POST', body: fd });
+      const data = await resp.json();
+      let content = '';
+      if (data.choices && data.choices[0]?.message?.content) {
+        content = data.choices[0].message.content;
+      } else {
+        content = '```json\n' + JSON.stringify(data, null, 2) + '\n```';
+      }
+      const out = document.getElementById('out');
+      out.classList.remove('hidden');
+      renderMarkdownWithArtifacts(content, out);
+      status.textContent = resp.ok ? '✓ OK' : '⚠ ' + resp.status;
+    } catch(err) { status.textContent = '✗ ' + err.message; }
+    btn.disabled = false; btn.textContent = 'Run';
+  });
+</script>
 {% endblock %}

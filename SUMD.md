@@ -6,10 +6,12 @@ Autonomiczny Agent Refaktoryzacji MCP
 
 - [Metadata](#metadata)
 - [Architecture](#architecture)
+- [Workflows](#workflows)
 - [Configuration](#configuration)
 - [Deployment](#deployment)
 - [Environment Variables (`.env.example`)](#environment-variables-envexample)
 - [Release Management (`goal.yaml`)](#release-management-goalyaml)
+- [Makefile Targets](#makefile-targets)
 - [Code Analysis](#code-analysis)
 - [Call Graph](#call-graph)
 - [Intent](#intent)
@@ -19,7 +21,7 @@ Autonomiczny Agent Refaktoryzacji MCP
 - **name**: `mcp`
 - **version**: `0.0.0`
 - **ecosystem**: SUMD + DOQL + testql + taskfile
-- **generated_from**: app.doql.less, goal.yaml, .env.example, docker-compose.yml, project/(2 analysis files)
+- **generated_from**: Makefile, app.doql.less, goal.yaml, .env.example, docker-compose.yml, project/(2 analysis files)
 
 ## Architecture
 
@@ -37,6 +39,11 @@ app {
   version: 0.1.0;
 }
 
+database[name="redis"] {
+  type: redis;
+  url: env.REDIS_URL;
+}
+
 interface[type="api"] {
   type: rest;
   framework: fastapi;
@@ -46,9 +53,203 @@ integration[name="github"] {
   type: scm;
 }
 
+workflow[name="kill-ports"] {
+  trigger: manual;
+  step-1: run cmd=for p in $(PORTS); do \;
+  step-2: run cmd=cids=$$(docker ps --filter "publish=$$p" -q); \;
+  step-3: run cmd=if [ -n "$$cids" ]; then \;
+  step-4: run cmd=echo "stopping containers binding port $$p: $$cids"; \;
+  step-5: run cmd=docker stop $$cids >/dev/null || true; \;
+  step-6: run cmd=fi; \;
+  step-7: run cmd=pids=$$(ss -lntp 2>/dev/null | grep -E ":$$p[[:space:]]" | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u); \;
+  step-8: run cmd=if [ -n "$$pids" ]; then \;
+  step-9: run cmd=echo "killing pids on port $$p: $$pids"; \;
+  step-10: run cmd=for pid in $$pids; do kill -TERM $$pid 2>/dev/null || true; done; \;
+  step-11: run cmd=sleep 1; \;
+  step-12: run cmd=for pid in $$pids; do kill -9 $$pid 2>/dev/null || true; done; \;
+  step-13: run cmd=fi; \;
+  step-14: run cmd=done;
+}
+
+workflow[name="start"] {
+  trigger: manual;
+  step-1: run cmd=GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \;
+  step-2: run cmd=if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \;
+  step-3: run cmd=$(COMPOSE) $(PROFILES) build;
+  step-4: run cmd=GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \;
+  step-5: run cmd=if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \;
+  step-6: run cmd=$(COMPOSE) $(PROFILES) up -d;
+  step-7: run cmd=$(MAKE) smoke;
+  step-8: run cmd=echo "";
+  step-9: run cmd=echo "MCP Skills stack started:";
+  step-10: run cmd=echo "  OpenWebUI:  http://localhost:$(PORT_OPENWEBUI)";
+  step-11: run cmd=echo "  MCP WebUI:  http://localhost:$(PORT_WEBUI)";
+  step-12: run cmd=echo "  MCP Docs:   http://localhost:$(PORT_DOCS)";
+  step-13: run cmd=echo "  Gateway:    http://localhost:$(PORT_GATEWAY)";
+  step-14: run cmd=echo "  Dashboard:  http://localhost:$(PORT_DASHBOARD)";
+  step-15: run cmd=echo "  Git Proxy:  http://localhost:$(PORT_GIT_PROXY)";
+}
+
+workflow[name="stop"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) $(PROFILES) down --remove-orphans;
+}
+
+workflow[name="restart"] {
+  trigger: manual;
+  step-1: depend target=stop;
+  step-2: depend target=start;
+}
+
+workflow[name="up"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) $(PROFILES) up -d;
+}
+
+workflow[name="down"] {
+  trigger: manual;
+  step-1: depend target=stop;
+}
+
+workflow[name="logs"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) $(PROFILES) logs -f --tail=200;
+}
+
+workflow[name="ps"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) $(PROFILES) ps;
+}
+
+workflow[name="build"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) $(PROFILES) build;
+}
+
+workflow[name="rebuild"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) $(PROFILES) build --no-cache;
+}
+
+workflow[name="smoke"] {
+  trigger: manual;
+  step-1: run cmd=echo "--- gateway /health ---"; curl -fsS http://localhost:$(PORT_GATEWAY)/health && echo;
+  step-2: run cmd=echo "--- gh2mcp /health ---"; curl -fsS http://localhost:$(PORT_GH2MCP)/health && echo;
+  step-3: run cmd=echo "--- mcp-docs /health ---"; curl -fsS http://localhost:$(PORT_DOCS)/health && echo;
+  step-4: run cmd=echo "--- gateway /v1/models (no auth) ---"; curl -s -o /dev/null -w '%{http_code}\n' http://localhost:$(PORT_GATEWAY)/v1/models;
+  step-5: run cmd=echo "--- gateway /v1/models (auth) ---"; curl -fsS -H "Authorization: Bearer $${WEBUI_API_KEY:-sk-mcp-default-dev-key}" http://localhost:$(PORT_GATEWAY)/v1/models | python3 -m json.tool | head -20;
+  step-6: run cmd=echo "--- mcp-skills /health (container) ---"; $(COMPOSE) $(PROFILES) exec -T mcp-skills python -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=5).status)";
+  step-7: run cmd=echo "--- mcp-skills /tools/list (container) ---"; $(COMPOSE) $(PROFILES) exec -T mcp-skills python -c "import urllib.request, json; r=urllib.request.urlopen('http://127.0.0.1:8080/tools/list', timeout=5); d=json.loads(r.read()); print('tools:', len(d.get('tools',[])))" && echo OK || echo 'SKIP (tools not ready)';
+  step-8: run cmd=echo "--- mcp-webui / (wait for 200) ---"; \;
+  step-9: run cmd=code=""; \;
+  step-10: run cmd=for i in {1..30}; do \;
+  step-11: run cmd=code=$$(curl -s -o /dev/null -w '%{http_code}' http://localhost:$(PORT_WEBUI)/ || true); \;
+  step-12: run cmd=if [ "$$code" = "200" ]; then break; fi; \;
+  step-13: run cmd=sleep 1; \;
+  step-14: run cmd=done; \;
+  step-15: run cmd=echo "$$code"; \;
+  step-16: run cmd=[ "$$code" = "200" ];
+}
+
+workflow[name="ansible-e2e"] {
+  trigger: manual;
+  step-1: run cmd=ansible-playbook -i ansible/inventory.ini ansible/e2e-docker-stack.yml;
+}
+
+workflow[name="ansible-gh2mcp"] {
+  trigger: manual;
+  step-1: run cmd=ansible-playbook -i ansible/inventory.ini ansible/e2e-gh2mcp.yml;
+}
+
+workflow[name="ansible-github-qa"] {
+  trigger: manual;
+  step-1: run cmd=ansible-playbook -i ansible/inventory.ini ansible/e2e-github-qa.yml;
+}
+
+workflow[name="reload-gateway"] {
+  trigger: manual;
+  step-1: run cmd=GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \;
+  step-2: run cmd=if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \;
+  step-3: run cmd=$(COMPOSE) $(PROFILES) up -d --build --remove-orphans mcp-gateway mcp-gateway-worker gh2mcp-agent;
+  step-4: run cmd=echo "mcp-gateway + mcp-gateway-worker + gh2mcp-agent rebuilt and restarted (GH_TOKEN preserved)";
+}
+
+workflow[name="ansible-tools-e2e"] {
+  trigger: manual;
+  step-1: run cmd=ansible-playbook -i ansible/inventory.ini ansible/e2e-tools.yml;
+}
+
+workflow[name="reload-skills"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) $(PROFILES) up -d --build --remove-orphans mcp-skills;
+  step-2: run cmd=echo "mcp-skills rebuilt and restarted";
+}
+
+workflow[name="ansible-github-test"] {
+  trigger: manual;
+  step-1: run cmd=ansible-playbook -i ansible/inventory.ini ansible/test-github-integration.yml;
+}
+
+workflow[name="gh2mcp-status"] {
+  trigger: manual;
+  step-1: run cmd=echo "--- gh2mcp /health ---"; curl -fsS http://localhost:$(PORT_GH2MCP)/health && echo;
+  step-2: run cmd=echo "--- gh2mcp /status ---"; curl -fsS http://localhost:$(PORT_GH2MCP)/status | python3 -m json.tool;
+}
+
+workflow[name="pytest"] {
+  trigger: manual;
+  step-1: run cmd=python3 -m pytest -q git2mcp/tests/test_git2mcp.py;
+  step-2: run cmd=cd mcp-gateway && python3 -m pytest -q;
+  step-3: run cmd=cd gh2mcp && python3 -m pytest -q;
+  step-4: run cmd=cd mcp-skills && SKILLS_REPO_BASE=/tmp/mcp-skills-test python3 -m pytest -q;
+}
+
+workflow[name="test"] {
+  trigger: manual;
+  step-1: run cmd=bash scripts/test.sh;
+  step-2: run cmd=$(MAKE) ansible-github-qa;
+  step-3: run cmd=$(MAKE) ansible-tools-e2e;
+}
+
+workflow[name="prod-up"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE_PROD) $(PROFILES) up -d --build;
+}
+
+workflow[name="prod-down"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE_PROD) $(PROFILES) down --remove-orphans;
+}
+
+workflow[name="clean"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) $(PROFILES) down -v --remove-orphans;
+}
+
+workflow[name="install-env2mcp"] {
+  trigger: manual;
+  step-1: run cmd=pip install -e ./env2mcp;
+}
+
+workflow[name="setup-github"] {
+  trigger: manual;
+  step-1: run cmd=env2mcp setup-github;
+}
+
+workflow[name="generate-demo-repos"] {
+  trigger: manual;
+  step-1: run cmd=bash scripts/generate_demo_repos.sh;
+}
+
+workflow[name="generate-demo-repos-github"] {
+  trigger: manual;
+  step-1: run cmd=GH_DEMO_PROVIDER=github bash scripts/generate_demo_repos.sh;
+}
+
 deploy {
   target: docker-compose;
   compose_file: docker-compose.yml;
+  ansible: true;
 }
 
 environment[name="local"] {
@@ -60,6 +261,8 @@ environment[name="prod"] {
   runtime: docker-compose;
 }
 ```
+
+## Workflows
 
 ## Configuration
 
@@ -81,13 +284,17 @@ pip install -e .[dev]
 
 ### Docker Compose (`docker-compose.yml`)
 
-- **mcp-git-proxy** image=`{'context': '.', 'dockerfile': 'mcp-git-proxy/Dockerfile'}` ports: `8081:8080`
-- **mcp-skills** image=`./mcp-skills`
+- **redis** image=`redis:7-alpine`
+- **mcp-git-proxy** image=`{'context': '.', 'dockerfile': 'mcp-git-proxy/Dockerfile'}` ports: `${PORT_GIT_PROXY:-8081}:8080`
+- **gh2mcp-agent** image=`{'context': '.', 'dockerfile': 'gh2mcp/Dockerfile'}` ports: `${PORT_GH2MCP:-8079}:8079`
+- **mcp-skills** image=`{'context': '..', 'dockerfile': 'mcp/mcp-skills/Dockerfile'}`
 - **llm-agent** image=`./llm-agent`
-- **mcp-gateway** image=`{'context': '.', 'dockerfile': 'mcp-gateway/Dockerfile'}` ports: `9000:9000`
-- **mcp-webui** image=`{'context': '.', 'dockerfile': 'mcp-webui/Dockerfile'}` ports: `8092:8090`
-- **openwebui** image=`ghcr.io/open-webui/open-webui:main` ports: `3000:8080`
-- **dashboard** image=`./dashboard` ports: `8085:8080`
+- **mcp-gateway** image=`{'context': '.', 'dockerfile': 'mcp-gateway/Dockerfile'}` ports: `${PORT_GATEWAY:-9000}:9000`
+- **mcp-gateway-worker** image=`{'context': '.', 'dockerfile': 'mcp-gateway/Dockerfile'}`
+- **mcp-webui** image=`{'context': '.', 'dockerfile': 'mcp-webui/Dockerfile'}` ports: `${PORT_WEBUI:-8092}:8090`
+- **mcp-docs** image=`{'context': '.', 'dockerfile': 'mcp-docs/Dockerfile'}` ports: `${PORT_DOCS:-8093}:8090`
+- **openwebui** image=`${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:main}` ports: `${PORT_OPENWEBUI:-3000}:8080`
+- **dashboard** image=`./dashboard` ports: `${PORT_DASHBOARD:-8085}:8080`
 
 ## Environment Variables (`.env.example`)
 
@@ -97,11 +304,30 @@ pip install -e .[dev]
 | `OPENROUTER_API_KEY` | `*(not set)*` |  |
 | `LLM_MODEL` | `openrouter/x-ai/grok-code-fast-1` | LLM_MODEL=openrouter/qwen/qwen3-coder-next |
 | `OPENAI_API_KEY` | `sk-...` | OpenAI API Key (wymagane dla LLM_PROVIDER=openai) |
-| `GITHUB_PAT` | `ghp_...` | GitHub Personal Access Token (dla MCP Git Server) |
-| `GITHUB_ORG` | `your-org` |  |
+| `GITHUB_PAT` | `ghp_...` | Uzyskaj token przez: make setup-github lub env2mcp github login |
+| `GITHUB_USER` | `your-username` |  |
+| `GH2MCP_SYNC_ON_START` | `true` | gh2mcp Agent (docker) - synchronizacja tokenu z gh CLI do .env przy starcie |
+| `GH2MCP_SYNC_INTERVAL` | `0` |  |
 | `GIT_PROXY_URL` | `http://mcp-git-proxy:8080` | MCP Git Proxy |
+| `WEBUI_API_KEY` | `sk-mcp-default-dev-key` | MCP Gateway (OpenAI-compatible) - klucz tenanta z mcp-gateway/tenants/*.yaml |
+| `OPENWEBUI_AUTH` | `False` | OpenWebUI (zostaw False dla lokalnego dev, True dla produkcji) |
 | `REPOS_PATH` | `./repos` | Ścieżki repozytoriów |
 | `OUTPUT_PATH` | `./output` |  |
+| `PORT_OPENWEBUI` | `3000` | Porty publiczne usług (host:kontener) |
+| `PORT_GH2MCP` | `8079` |  |
+| `PORT_GIT_PROXY` | `8081` |  |
+| `PORT_DASHBOARD` | `8085` |  |
+| `PORT_WEBUI` | `8092` |  |
+| `PORT_DOCS` | `8093` |  |
+| `PORT_GATEWAY` | `9000` |  |
+| `REDIS_URL` | `redis://redis:6379/0` | Redis |
+| `OPENWEBUI_URL` | `http://localhost:3000/` | URL OpenWebUI (używany przez mcp-docs do linku w UI) |
+| `ENABLE_MERMAID` | `true` | OpenWebUI - renderowanie artefaktów i Markdown |
+| `ENABLE_LATEX` | `true` |  |
+| `ENABLE_ARTIFACTS` | `true` |  |
+| `COLLAPSE_CODE_BLOCKS` | `false` |  |
+| `ENABLE_CODE_EXECUTION` | `false` |  |
+| `DEFAULT_LOCALE` | `pl-PL` |  |
 
 ## Release Management (`goal.yaml`)
 
@@ -109,22 +335,69 @@ pip install -e .[dev]
 - **commits**: `conventional` scope=`mcp`
 - **changelog**: `keep-a-changelog`
 - **build strategies**: `python`, `nodejs`, `rust`
-- **version files**: `VERSION`, `pyproject.toml:version`, `venv/lib/python3.13/site-packages/cryptography/__init__.py:__version__`
+- **version files**: `VERSION`, `venv/lib/python3.13/site-packages/cryptography/__init__.py:__version__`
+
+## Makefile Targets
+
+- `SHELL`
+- `PORTS`
+- `COMPOSE`
+- `COMPOSE_PROD`
+- `PROFILES`
+- `help`
+- `kill-ports`
+- `start`
+- `stop`
+- `restart`
+- `up`
+- `down`
+- `logs`
+- `ps`
+- `build`
+- `rebuild`
+- `smoke`
+- `ansible-e2e`
+- `ansible-gh2mcp`
+- `ansible-github-qa`
+- `reload-gateway`
+- `ansible-tools-e2e`
+- `reload-skills`
+- `ansible-github-test`
+- `gh2mcp-status`
+- `pytest`
+- `test`
+- `prod-up`
+- `prod-down`
+- `clean`
+- `install-env2mcp`
+- `setup-github`
+- `generate-demo-repos`
+- `generate-demo-repos-github`
 
 ## Code Analysis
 
 ### `project/map.toon.yaml`
 
 ```toon markpact:analysis path=project/map.toon.yaml
-# mcp | 35f 4849L | python:28,shell:5,less:2 | 2026-05-03
-# stats: 63 func | 33 cls | 35 mod | CC̄=2.8 | critical:3 | cycles:0
-# alerts[5]: CC test_git_proxy_e2e_sync_export_commit_and_tests=18; CC test_git_proxy_local_operations=17; CC test_git_proxy_e2e_push_to_bare_remote=10; CC test_git_proxy_e2e_commit_and_reset=7; CC dispatch_skill=7
-# hotspots[5]: chat_completions fan=20; test_git_proxy_e2e_push_to_bare_remote fan=18; main fan=13; main fan=13; main fan=12
+# mcp | 60f 13053L | python:51,shell:7,less:2 | 2026-05-03
+# stats: 283 func | 57 cls | 60 mod | CC̄=4.8 | critical:31 | cycles:0
+# alerts[5]: CC _render_tool_text=40; CC _run_tool_against_repo=37; CC chat_completions=31; CC _render_system_text=27; CC _is_repo_list_command=23
+# hotspots[5]: chat_completions fan=49; _run_tool_against_repo fan=30; dispatch_skill fan=21; test_git_proxy_e2e_push_to_bare_remote fan=18; github_create_repo fan=15
 # evolution: baseline
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
-M[35]:
-  app.doql.less,30
+M[60]:
+  app.doql.less,229
   dashboard/server.py,190
+  env2mcp/env2mcp/__init__.py,14
+  env2mcp/env2mcp/cli.py,253
+  env2mcp/env2mcp/config.py,135
+  env2mcp/env2mcp/github_cli.py,331
+  env2mcp/tests/test_env2mcp.py,12
+  gh2mcp/gh2mcp/__init__.py,5
+  gh2mcp/gh2mcp/cli.py,69
+  gh2mcp/gh2mcp/server.py,111
+  gh2mcp/gh2mcp/sync.py,431
+  gh2mcp/tests/test_gh2mcp.py,278
   git2mcp/__init__.py,4
   git2mcp/app.doql.less,22
   git2mcp/client.py,4
@@ -142,11 +415,24 @@ M[35]:
   llm-agent/agent.py,376
   llm-agent/agent_git2mcp.py,362
   llm-agent/agent_standalone.py,541
-  mcp-gateway/server.py,239
-  mcp-git-proxy/server.py,299
-  mcp-skills/server.py,640
-  mcp-webui/server.py,128
+  mcp-docs/server.py,274
+  mcp-gateway/server.py,2909
+  mcp-gateway/test_gateway_token_command.py,690
+  mcp-gateway/test_github_qa.py,96
+  mcp-gateway/test_tool_intent.py,189
+  mcp-gateway/worker.py,19
+  mcp-git-proxy/server.py,444
+  mcp-skills/server.py,1463
+  mcp-skills/test_tools_run.py,147
+  mcp-webui/server.py,622
   project.sh,47
+  repos/generated-sources/integration-lab/integrations/pipeline.py,18
+  repos/generated-sources/integration-lab/services/orders.py,6
+  repos/generated-sources/integration-lab/services/users.py,6
+  repos/generated-sources/migration-lab/setup.py,9
+  repos/generated-sources/migration-lab/src/main.py,16
+  repos/generated-sources/refactor-lab/app/service.py,12
+  repos/generated-sources/refactor-lab/app/utils.py,27
   repos/test/another-project/app.py,7
   repos/test/push-seed/app.py,3
   repos/test/sample-project/main.py,33
@@ -155,8 +441,10 @@ M[35]:
   repos/test/sample-project/module_3.py,8
   repos/test/sample-project/module_4.py,8
   repos/test/sample-project/module_5.py,8
-  scripts/deploy.sh,128
-  scripts/test.sh,398
+  scripts/deploy.sh,136
+  scripts/generate_demo_repos.sh,397
+  scripts/refactor-last-repo.sh,313
+  scripts/test.sh,405
   tree.sh,2
 D:
   dashboard/server.py:
@@ -164,6 +452,76 @@ D:
     DashboardHandler: end_headers(0),do_GET(0),serve_file(1),send_json(1),get_content_type(1),get_status(0),get_analyses(0),get_analysis(1),get_repos(0)  # Custom HTTP handler for dashboard
     TCPServer:
     main()
+  env2mcp/env2mcp/__init__.py:
+  env2mcp/env2mcp/cli.py:
+    e: cmd_github_login,cmd_github_status,cmd_github_logout,cmd_github_repos,cmd_env_show,cmd_env_set,cmd_env_get,main
+    cmd_github_login(args)
+    cmd_github_status(args)
+    cmd_github_logout(args)
+    cmd_github_repos(args)
+    cmd_env_show(args)
+    cmd_env_set(args)
+    cmd_env_get(args)
+    main(argv)
+  env2mcp/env2mcp/config.py:
+    e: load_env,save_env,EnvConfig
+    EnvConfig: __init__(1),_load(0),get(2),set(2),remove(1),save(1),__contains__(1),__getitem__(1),__setitem__(2),items(0)  # Manages .env file configuration.
+    load_env(env_path)
+    save_env(config;create_backup)
+  env2mcp/env2mcp/github_cli.py:
+    e: get_github_token,configure_github,GitHubCLI
+    GitHubCLI: __init__(0),is_available(0),get_auth_status(0),get_token(0),get_user(0),login(2),logout(1),list_repos(2),clone_url(1)  # Interface to GitHub CLI (gh) tool.
+    get_github_token(env_path)
+    configure_github(env_path;interactive)
+  env2mcp/tests/test_env2mcp.py:
+    e: test_placeholder,test_import
+    test_placeholder()
+    test_import()
+  gh2mcp/gh2mcp/__init__.py:
+  gh2mcp/gh2mcp/cli.py:
+    e: _cmd_status,_cmd_sync,_cmd_agent,build_parser,main
+    _cmd_status(args)
+    _cmd_sync(args)
+    _cmd_agent(args)
+    build_parser()
+    main(argv)
+  gh2mcp/gh2mcp/server.py:
+    e: _periodic_sync,on_startup,on_shutdown,health,status,sync_token,set_org,list_orgs,last_pushed_repo,recent_repos,SyncTokenRequest,SetOrgRequest,ListOrgsRequest,LastPushedRepoRequest,RecentReposRequest
+    SyncTokenRequest:
+    SetOrgRequest:
+    ListOrgsRequest:
+    LastPushedRepoRequest:
+    RecentReposRequest:
+    _periodic_sync()
+    on_startup()
+    on_shutdown()
+    health()
+    status(include_token)
+    sync_token(payload)
+    set_org(payload)
+    list_orgs(payload)
+    last_pushed_repo(payload)
+    recent_repos(payload)
+  gh2mcp/gh2mcp/sync.py:
+    e: GitHubTokenSyncService
+    GitHubTokenSyncService: __init__(1),get_status(1),set_org(1),list_orgs_and_repos(1),get_last_pushed_repo(2),get_recent_repos(3),sync_token(2)
+  gh2mcp/tests/test_gh2mcp.py:
+    e: test_sync_token_saves_from_env_and_reads_back,test_sync_token_reads_from_env_file_when_env_missing,test_sync_token_force_gh_cli_does_not_fallback_to_env_or_file,test_set_org_defaults_to_gh_username,test_list_orgs_and_repos,test_get_last_pushed_repo_selects_latest,test_get_last_pushed_repo_success,test_get_last_pushed_repo_no_repos,test_get_recent_repos_sorts_across_user_and_orgs,test_get_recent_repos_owner_only,_GhUnavailable,_GhUserRepos,_ProcResult,_GhAvailableUser,_GhNoToken
+    _GhUnavailable: is_available(0),get_token(0),get_user(0)
+    _GhUserRepos: is_available(0),get_token(0),get_user(0),list_repos(2)
+    _ProcResult: __init__(3)
+    _GhAvailableUser: is_available(0),get_token(0),get_user(0)
+    _GhNoToken: is_available(0),get_token(0),get_user(0)
+    test_sync_token_saves_from_env_and_reads_back(monkeypatch;tmp_path)
+    test_sync_token_reads_from_env_file_when_env_missing(monkeypatch;tmp_path)
+    test_sync_token_force_gh_cli_does_not_fallback_to_env_or_file(monkeypatch;tmp_path)
+    test_set_org_defaults_to_gh_username(monkeypatch;tmp_path)
+    test_list_orgs_and_repos(monkeypatch;tmp_path)
+    test_get_last_pushed_repo_selects_latest(monkeypatch;tmp_path)
+    test_get_last_pushed_repo_success(monkeypatch;tmp_path)
+    test_get_last_pushed_repo_no_repos(monkeypatch;tmp_path)
+    test_get_recent_repos_sorts_across_user_and_orgs(monkeypatch;tmp_path)
+    test_get_recent_repos_owner_only(monkeypatch;tmp_path)
   git2mcp/__init__.py:
   git2mcp/client.py:
   git2mcp/examples/01_sync_and_commit.py:
@@ -215,22 +573,170 @@ D:
     LocalCodeAnalyzer: __init__(1),analyze_code_structure(2),compute_metrics_for_repo(2),detect_code_patterns(2),recommend_refactoring(2)  # Lokalny analizator kodu - implementacja MCP Skills lokalnie
     RefactoringAgent: __init__(1),analyze_repository(2),generate_refactoring_plan(1),_build_refactoring_prompt(1),_call_openai_sync(1),_mock_llm_response(1),_mock_llm_response_from_prompt(1),execute_refactoring_workflow(3)  # Autonomiczny Agent Refaktoryzacji - Standalone
     main()
+  mcp-docs/server.py:
+    e: _markdown_to_html,_page,_safe_doc_path,health,list_docs,index,render_doc
+    _markdown_to_html(md_text)
+    _page(title;body)
+    _safe_doc_path(rel_path)
+    health()
+    list_docs()
+    index()
+    render_doc(doc_path)
   mcp-gateway/server.py:
-    e: load_tenants,find_tenant_by_key,authenticate,audit,health,list_models,chat_completions,dispatch_skill,get_job,audit_tail,ChatMessage,ChatCompletionRequest
+    e: load_tenants,_get_redis_client,_track_repo_usage,_get_last_used_repo,_get_most_used_repo,_get_preferred_repo,_is_github_configured,_get_default_github_repo,message_content_to_text,parse_prompt_context,parse_bool,_normalize_command_text,_extract_github_token_from_text,_extract_repo_template_expression,_is_last_pushed_repo_template,_extract_owner_from_repo_template,_is_github_token_save_command,_extract_org_from_text,_is_org_set_command,_is_org_list_command,_is_repo_list_command,_extract_repo_list_limit,_strip_url_suffix,parse_tool_intent,_is_github_token_sync_command,_sync_github_token_via_gh2mcp,_set_default_org_via_gh2mcp,_list_recent_repos_via_gh2mcp,_list_orgs_via_gh2mcp,_gh2mcp_status_via_gh2mcp,_last_pushed_repo_via_gh2mcp,_is_github_auth_error,_github_auth_recovery_message,_resolve_repo_id_template,_save_github_token_via_env2mcp,_load_env_file_values,_runtime_github_token,_save_github_token,_normalize_repo_url,_inject_github_token,_redact_repo_url,_default_draft_name,_github_repo_from_url,_default_pr_title,_default_pr_body,_create_github_pr,_summary_text,_render_repo_selection_text,_render_system_text,_render_analyze_text,_render_queued_text,_render_refactor_text,_file_fence_lang,_is_markdown_path,_render_tool_text,_render_github_qa_text,_render_chat_content,_build_commit_changes,_expect_json,_is_tools_list_command,_fetch_tools_list,_render_tools_list_text,_run_skills_tool,_ask_openrouter_github_qa,_repo_owner,_run_github_qa,_run_skills_analysis,find_tenant_by_key,authenticate,audit,_job_storage_key,_get_state_redis_client,_get_rq_redis_client,_get_queue,_save_job,_load_job,_update_job,_queue_workflow_job,execute_dispatch_job,health,list_models,chat_completions,dispatch_skill,get_job,stream_job,audit_tail,ChatMessage,ChatCompletionRequest
     ChatMessage:
     ChatCompletionRequest:
     load_tenants()
+    _get_redis_client()
+    _track_repo_usage(tenant_id;repo_id;platform)
+    _get_last_used_repo(tenant_id)
+    _get_most_used_repo(tenant_id)
+    _get_preferred_repo(tenant_id)
+    _is_github_configured()
+    _get_default_github_repo()
+    message_content_to_text(content)
+    parse_prompt_context(user_msg)
+    parse_bool(value;default)
+    _normalize_command_text(text)
+    _extract_github_token_from_text(user_msg)
+    _extract_repo_template_expression(repo_value)
+    _is_last_pushed_repo_template(expression)
+    _extract_owner_from_repo_template(expression)
+    _is_github_token_save_command(user_msg;prompt_ctx)
+    _extract_org_from_text(user_msg;prompt_ctx)
+    _is_org_set_command(user_msg)
+    _is_org_list_command(user_msg)
+    _is_repo_list_command(user_msg)
+    _extract_repo_list_limit(user_msg;default;max_limit)
+    _strip_url_suffix(url)
+    parse_tool_intent(user_msg;prompt_ctx)
+    _is_github_token_sync_command(user_msg;prompt_ctx)
+    _sync_github_token_via_gh2mcp()
+    _set_default_org_via_gh2mcp(org)
+    _list_recent_repos_via_gh2mcp(limit;owner;include_orgs)
+    _list_orgs_via_gh2mcp(repos_limit)
+    _gh2mcp_status_via_gh2mcp()
+    _last_pushed_repo_via_gh2mcp(owner;limit)
+    _is_github_auth_error(error_text)
+    _github_auth_recovery_message(original_error)
+    _resolve_repo_id_template(repo_value)
+    _save_github_token_via_env2mcp(user_msg;prompt_ctx)
+    _load_env_file_values(env_path)
+    _runtime_github_token()
+    _save_github_token(token)
+    _normalize_repo_url(repo_url)
+    _inject_github_token(repo_url)
+    _redact_repo_url(repo_url)
+    _default_draft_name(repo_id)
+    _github_repo_from_url(repo_url)
+    _default_pr_title(repo_id;user_request)
+    _default_pr_body(repo_id;user_request;base_branch)
+    _create_github_pr(client;owner;repo;head_branch;base_branch;title;body;draft)
+    _summary_text(analysis;user_request)
+    _render_repo_selection_text(repo_selection)
+    _render_system_text(result)
+    _render_analyze_text(result)
+    _render_queued_text(result)
+    _render_refactor_text(result)
+    _file_fence_lang(path)
+    _is_markdown_path(path)
+    _render_tool_text(result)
+    _render_github_qa_text(result)
+    _render_chat_content(result)
+    _build_commit_changes(plan_payload;summary_md)
+    _expect_json(response;action)
+    _is_tools_list_command(msg)
+    _fetch_tools_list()
+    _render_tools_list_text(result)
+    _run_skills_tool(tool;repo_id;repo_url;subcommand;args;timeout)
+    _ask_openrouter_github_qa(user_request;github_context)
+    _repo_owner(repo_id)
+    _run_github_qa(user_request;repo_id;repo_url)
+    _run_skills_analysis(client;repo_id;execute;user_request;max_actions)
     find_tenant_by_key(api_key)
     authenticate(authorization)
     audit(event)
+    _job_storage_key(job_id)
+    _get_state_redis_client()
+    _get_rq_redis_client()
+    _get_queue()
+    _save_job(job_id;payload)
+    _load_job(job_id)
+    _update_job(job_id)
+    _queue_workflow_job(job_id;payload)
+    execute_dispatch_job(job_id;payload)
     health()
     list_models(_)
     chat_completions(req;tenant)
-    dispatch_skill(skill;tenant;req;user_msg)
+    dispatch_skill(skill;tenant;repo_id;repo_url;github_token;source_path;branch;user_request;execute_commit;push_after_tests;create_draft_branch;draft_name;open_pull_request;pr_title;pr_body;pr_base;test_command;push_remote;job_id)
     get_job(job_id;_)
+    stream_job(job_id;_)
     audit_tail(limit;_)
+  mcp-gateway/test_gateway_token_command.py:
+    e: _extract_sse_data,_authorized_client,test_is_github_token_sync_command,test_is_github_token_sync_command_false_if_explicit_token_value,test_is_github_token_save_command,test_extract_github_token_from_text,test_is_org_set_command,test_is_org_list_command,test_is_repo_list_command,test_extract_repo_list_limit_defaults_and_bounds,test_extract_org_from_text,test_sync_github_token_via_gh2mcp_success_note,test_sync_github_token_via_gh2mcp_failure_note,test_extract_repo_template_expression,test_is_last_pushed_repo_template,test_resolve_repo_id_template_last_pushed,test_resolve_repo_id_template_last_pushed_repo_url_in_meta,test_resolve_repo_id_template_unsupported,test_is_github_auth_error,test_github_auth_recovery_message_has_three_options,test_resolve_repo_id_template_auto_recovers_on_auth_error,test_resolve_repo_id_template_auth_error_with_failed_recovery_raises_helpful_message,test_resolve_repo_id_template_non_auth_error_does_not_trigger_recovery,_compute_effective_repo_url,test_effective_repo_url_explicit_repo_url_wins,test_effective_repo_url_falls_back_to_resolved,test_effective_repo_url_both_none,test_effective_repo_url_no_template_resolution,test_render_chat_content_analyze_human_readable,test_render_chat_content_refactor_human_readable,test_render_chat_content_system_human_readable,test_render_chat_content_system_recent_repos_human_readable,test_render_chat_content_queued_human_readable,test_is_repo_list_command,test_extract_repo_list_limit,test_summary_text_redsl_engine,test_summary_text_mcp_skills_engine,test_stream_job_not_found_returns_404,test_stream_job_emits_status_updates_and_done,test_stream_job_emits_failure_with_error,_FakeResponse,_FakeAsyncClient
+    _FakeResponse: __init__(2),json(0)
+    _FakeAsyncClient: __init__(0),__aenter__(0),__aexit__(3),post(2),get(1)
+    _extract_sse_data(raw_text)
+    _authorized_client()
+    test_is_github_token_sync_command(msg;expected)
+    test_is_github_token_sync_command_false_if_explicit_token_value()
+    test_is_github_token_save_command(msg;expected)
+    test_extract_github_token_from_text()
+    test_is_org_set_command(msg;expected)
+    test_is_org_list_command(msg;expected)
+    test_is_repo_list_command(msg;expected)
+    test_extract_repo_list_limit_defaults_and_bounds()
+    test_extract_org_from_text()
+    test_sync_github_token_via_gh2mcp_success_note(monkeypatch)
+    test_sync_github_token_via_gh2mcp_failure_note(monkeypatch)
+    test_extract_repo_template_expression()
+    test_is_last_pushed_repo_template(expression;expected)
+    test_resolve_repo_id_template_last_pushed(monkeypatch)
+    test_resolve_repo_id_template_last_pushed_repo_url_in_meta(monkeypatch)
+    test_resolve_repo_id_template_unsupported()
+    test_is_github_auth_error(error;expected)
+    test_github_auth_recovery_message_has_three_options()
+    test_resolve_repo_id_template_auto_recovers_on_auth_error(monkeypatch)
+    test_resolve_repo_id_template_auth_error_with_failed_recovery_raises_helpful_message(monkeypatch)
+    test_resolve_repo_id_template_non_auth_error_does_not_trigger_recovery(monkeypatch)
+    _compute_effective_repo_url(repo_url;meta)
+    test_effective_repo_url_explicit_repo_url_wins(monkeypatch)
+    test_effective_repo_url_falls_back_to_resolved(monkeypatch)
+    test_effective_repo_url_both_none()
+    test_effective_repo_url_no_template_resolution()
+    test_render_chat_content_analyze_human_readable()
+    test_render_chat_content_refactor_human_readable()
+    test_render_chat_content_system_human_readable()
+    test_render_chat_content_system_recent_repos_human_readable()
+    test_render_chat_content_queued_human_readable()
+    test_is_repo_list_command(msg;expected)
+    test_extract_repo_list_limit(msg;expected)
+    test_summary_text_redsl_engine()
+    test_summary_text_mcp_skills_engine()
+    test_stream_job_not_found_returns_404(monkeypatch)
+    test_stream_job_emits_status_updates_and_done(monkeypatch)
+    test_stream_job_emits_failure_with_error(monkeypatch)
+  mcp-gateway/test_github_qa.py:
+    e: _authorized_client,test_render_chat_content_github_qa,test_run_github_qa_missing_openrouter_key,test_chat_completions_github_qa_model,test_models_include_github_qa
+    _authorized_client()
+    test_render_chat_content_github_qa()
+    test_run_github_qa_missing_openrouter_key(monkeypatch)
+    test_chat_completions_github_qa_model(monkeypatch)
+    test_models_include_github_qa()
+  mcp-gateway/test_tool_intent.py:
+    e: test_parse_tool_intent_recognizes_tool_and_repo,test_parse_tool_intent_returns_none_for_non_tool_prompts,test_parse_tool_intent_uses_prompt_ctx_repo_id,test_render_tool_text_includes_artifacts_and_status,test_render_tool_text_handles_failure,test_render_chat_content_dispatches_tool_skill,test_force_tool_skill_with_no_intent_returns_helpful_error
+    test_parse_tool_intent_recognizes_tool_and_repo(msg;expected_tool;expected_repo_url;expected_repo_id)
+    test_parse_tool_intent_returns_none_for_non_tool_prompts(msg)
+    test_parse_tool_intent_uses_prompt_ctx_repo_id()
+    test_render_tool_text_includes_artifacts_and_status()
+    test_render_tool_text_handles_failure()
+    test_render_chat_content_dispatches_tool_skill()
+    test_force_tool_skill_with_no_intent_returns_helpful_error()
+  mcp-gateway/worker.py:
+    e: main
+    main()
   mcp-git-proxy/server.py:
-    e: health,list_repos,sync_repo,export_fragments,export_package,import_package,commit,push,reset,worktree_write,worktree_read,worktree_diff,patch_apply,stage,stash_save,stash_pop,branch_draft,checkpoint_create,checkpoint_restore,run_tests,SyncRepoRequest,ExportPackageRequest,ExportFragmentsRequest,CommitRequest,PushRequest,RunTestsRequest,ResetRequest,ImportPackageRequest,WorktreeWriteRequest,WorktreeReadRequest,WorktreeDiffRequest,PatchApplyRequest,StageRequest,StashSaveRequest,BranchDraftRequest,CheckpointCreateRequest,CheckpointRestoreRequest
+    e: health,list_repos,sync_repo,export_fragments,export_package,import_package,commit,push,reset,worktree_write,worktree_read,worktree_diff,patch_apply,stage,stash_save,stash_pop,branch_draft,checkpoint_create,checkpoint_restore,run_tests,github_create_repo,sync_pull,SyncRepoRequest,ExportPackageRequest,ExportFragmentsRequest,CommitRequest,PushRequest,RunTestsRequest,ResetRequest,ImportPackageRequest,WorktreeWriteRequest,WorktreeReadRequest,WorktreeDiffRequest,PatchApplyRequest,StageRequest,StashSaveRequest,BranchDraftRequest,CheckpointCreateRequest,CheckpointRestoreRequest,SyncPullRequest,CreateGithubRepoRequest
     SyncRepoRequest:
     ExportPackageRequest:
     ExportFragmentsRequest:
@@ -248,6 +754,8 @@ D:
     BranchDraftRequest:
     CheckpointCreateRequest:
     CheckpointRestoreRequest:
+    SyncPullRequest:
+    CreateGithubRepoRequest:
     health()
     list_repos()
     sync_repo(request)
@@ -268,12 +776,47 @@ D:
     checkpoint_create(repo_id;request)
     checkpoint_restore(repo_id;request)
     run_tests(repo_id;request)
+    github_create_repo(request)
+    sync_pull(repo_id;request)
   mcp-skills/server.py:
-    e: main,MCPSkillsServer
+    e: _truncate_text,_ensure_tool_installed,_git_clone_or_update,_derive_repo_id_from_url,_collect_output_files,_run_tool_against_repo,_parse_tool_result,_run_redsl_refactor,health,sync_repo,analyze_code_structure,compute_metrics,detect_patterns,recommend_refactoring,redsl_refactor,list_tools_endpoint,run_tool_endpoint,main,MCPSkillsServer,SyncRepoRequest,AnalyzeStructureRequest,RepoMetricsRequest,PatternDetectionRequest,RecommendRefactoringRequest,RedslRefactorRequest,ToolRunRequest
     MCPSkillsServer: __init__(1),_sync_from_git_proxy(2),_setup_handlers(0),_handle_list_tools(0),_handle_call_tool(2),_analyze_code_structure(1),_compute_metrics_for_repo(1),_detect_code_patterns(1),_sync_repo_tool(1),_recommend_refactoring(1),run(0)  # Serwer MCP Skills z narzędziami do analizy kodu
+    SyncRepoRequest:
+    AnalyzeStructureRequest:
+    RepoMetricsRequest:
+    PatternDetectionRequest:
+    RecommendRefactoringRequest:
+    RedslRefactorRequest:
+    ToolRunRequest:  # Generic request to run a semcod CLI tool against a repo.
+    _truncate_text(text;limit)
+    _ensure_tool_installed(tool_name;package;binary;extra_pip_deps)
+    _git_clone_or_update(repo_url;target_dir;ref)
+    _derive_repo_id_from_url(repo_url)
+    _collect_output_files(repo_path;paths)
+    _run_tool_against_repo(request)
+    _parse_tool_result(result)
+    _run_redsl_refactor(project_path;max_actions;dry_run)
+    health()
+    sync_repo(request)
+    analyze_code_structure(request)
+    compute_metrics(request)
+    detect_patterns(request)
+    recommend_refactoring(request)
+    redsl_refactor(request)
+    list_tools_endpoint()
+    run_tool_endpoint(request)
     main()
+  mcp-skills/test_tools_run.py:
+    e: server_module,test_derive_repo_id_from_url,test_supported_tools_registry_has_expected_entries,test_collect_output_files_reads_small_text,test_run_tool_against_repo_unsupported,test_run_tool_against_repo_happy_path,test_run_tool_against_repo_install_fails
+    server_module(tmp_path_factory)
+    test_derive_repo_id_from_url(server_module)
+    test_supported_tools_registry_has_expected_entries(server_module)
+    test_collect_output_files_reads_small_text(server_module;tmp_path)
+    test_run_tool_against_repo_unsupported(server_module)
+    test_run_tool_against_repo_happy_path(server_module;tmp_path;monkeypatch)
+    test_run_tool_against_repo_install_fails(server_module;tmp_path;monkeypatch)
   mcp-webui/server.py:
-    e: gateway_headers,index,repos_page,repos_sync,diff_page,skills_page,skills_run,playground
+    e: gateway_headers,index,repos_page,repos_sync,diff_page,skills_page,skills_run,playground,_resolve_github_token,_read_gh2mcp_status,_get_github_config,github_page,github_configure,github_fetch_token_from_cli,_github_page_ctx,_normalize_github_url,github_clone,github_create_repo,github_sync
     gateway_headers()
     index(request)
     repos_page(request)
@@ -282,6 +825,38 @@ D:
     skills_page(request)
     skills_run(model;prompt;repo_id;source_path)
     playground(request)
+    _resolve_github_token()
+    _read_gh2mcp_status()
+    _get_github_config()
+    github_page(request)
+    github_configure(request;token;action)
+    github_fetch_token_from_cli(request)
+    _github_page_ctx(request)
+    _normalize_github_url(repo_url)
+    github_clone(request;repo_url;repo_id;branch)
+    github_create_repo(request;repo_name;description;private;auto_clone)
+    github_sync(request;repo_id;branch)
+  repos/generated-sources/integration-lab/integrations/pipeline.py:
+    e: build_user_totals
+    build_user_totals()
+  repos/generated-sources/integration-lab/services/orders.py:
+    e: fetch_orders
+    fetch_orders()
+  repos/generated-sources/integration-lab/services/users.py:
+    e: fetch_users
+    fetch_users()
+  repos/generated-sources/migration-lab/setup.py:
+  repos/generated-sources/migration-lab/src/main.py:
+    e: load_config,run
+    load_config(path)
+    run(config_path)
+  repos/generated-sources/refactor-lab/app/service.py:
+    e: build_report
+    build_report(payload)
+  repos/generated-sources/refactor-lab/app/utils.py:
+    e: normalize_items,score_payload
+    normalize_items(items)
+    score_payload(payload)
   repos/test/another-project/app.py:
     e: build_payload
     build_payload(value)
@@ -311,57 +886,94 @@ D:
 
 ## Call Graph
 
-*13 nodes · 9 edges · 9 modules · CC̄=2.9*
+*119 nodes · 129 edges · 17 modules · CC̄=3.7*
 
 ### Hubs (by degree)
 
 | Function | CC | in | out | total |
 |----------|----|----|-----|-------|
-| `print` *(in scripts.test)* | 0 | 26 | 0 | **26** |
-| `chat_completions` *(in mcp-gateway.server)* | 6 | 0 | 26 | **26** |
-| `main` *(in llm-agent.agent_standalone)* | 2 | 0 | 21 | **21** |
-| `main` *(in git2mcp.examples.03_agent_git2mcp)* | 4 | 0 | 19 | **19** |
-| `main` *(in git2mcp.examples.01_sync_and_commit)* | 1 | 0 | 18 | **18** |
-| `main` *(in llm-agent.agent)* | 2 | 0 | 16 | **16** |
-| `main` *(in git2mcp.examples.02_fragment_sync_to_skills)* | 1 | 0 | 15 | **15** |
-| `main` *(in dashboard.server)* | 2 | 0 | 10 | **10** |
+| `chat_completions` *(in mcp-gateway.server)* | 31 ⚠ | 0 | 114 | **114** |
+| `_render_tool_text` *(in mcp-gateway.server)* | 40 ⚠ | 1 | 80 | **81** |
+| `_run_tool_against_repo` *(in mcp-skills.server)* | 37 ⚠ | 1 | 80 | **81** |
+| `print` *(in scripts.test)* | 0 | 64 | 0 | **64** |
+| `_render_refactor_text` *(in mcp-gateway.server)* | 17 ⚠ | 1 | 51 | **52** |
+| `_render_system_text` *(in mcp-gateway.server)* | 27 ⚠ | 1 | 45 | **46** |
+| `dispatch_skill` *(in mcp-gateway.server)* | 19 ⚠ | 2 | 41 | **43** |
+| `_sync_from_git_proxy` *(in mcp-skills.server.MCPSkillsServer)* | 15 ⚠ | 0 | 39 | **39** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/semcod/mcp
-# nodes: 13 | edges: 9 | modules: 9
-# CC̄=2.9
+# nodes: 119 | edges: 129 | modules: 17
+# CC̄=3.7
 
 HUBS[20]:
-  scripts.test.print
-    CC=0  in:26  out:0  total:26
   mcp-gateway.server.chat_completions
-    CC=6  in:0  out:26  total:26
+    CC=31  in:0  out:114  total:114
+  mcp-gateway.server._render_tool_text
+    CC=40  in:1  out:80  total:81
+  mcp-skills.server._run_tool_against_repo
+    CC=37  in:1  out:80  total:81
+  scripts.test.print
+    CC=0  in:64  out:0  total:64
+  mcp-gateway.server._render_refactor_text
+    CC=17  in:1  out:51  total:52
+  mcp-gateway.server._render_system_text
+    CC=27  in:1  out:45  total:46
+  mcp-gateway.server.dispatch_skill
+    CC=19  in:2  out:41  total:43
+  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
+    CC=15  in:0  out:39  total:39
+  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
+    CC=32  in:0  out:38  total:38
+  mcp-webui.server.github_fetch_token_from_cli
+    CC=16  in:0  out:32  total:32
+  env2mcp.env2mcp.github_cli.configure_github
+    CC=14  in:1  out:29  total:30
+  mcp-gateway.server._resolve_repo_id_template
+    CC=14  in:1  out:28  total:29
+  mcp-gateway.server._summary_text
+    CC=9  in:1  out:24  total:25
+  mcp-gateway.server._render_analyze_text
+    CC=10  in:1  out:23  total:24
+  env2mcp.env2mcp.cli.cmd_github_status
+    CC=11  in:0  out:22  total:22
+  mcp-webui.server._get_github_config
+    CC=16  in:7  out:15  total:22
+  mcp-gateway.server._expect_json
+    CC=3  in:18  out:4  total:22
   llm-agent.agent_standalone.main
     CC=2  in:0  out:21  total:21
+  mcp-gateway.server._render_chat_content
+    CC=13  in:4  out:16  total:20
   git2mcp.examples.03_agent_git2mcp.main
     CC=4  in:0  out:19  total:19
-  git2mcp.examples.01_sync_and_commit.main
-    CC=1  in:0  out:18  total:18
-  llm-agent.agent.main
-    CC=2  in:0  out:16  total:16
-  git2mcp.examples.02_fragment_sync_to_skills.main
-    CC=1  in:0  out:15  total:15
-  dashboard.server.main
-    CC=2  in:0  out:10  total:10
-  mcp-webui.server.index
-    CC=3  in:0  out:10  total:10
-  mcp-gateway.server.authenticate
-    CC=4  in:0  out:8  total:8
-  mcp-gateway.server.audit
-    CC=1  in:1  out:5  total:6
-  mcp-gateway.server.find_tenant_by_key
-    CC=3  in:1  out:2  total:3
-  mcp-webui.server.gateway_headers
-    CC=1  in:2  out:0  total:2
 
 MODULES:
   dashboard.server  [1 funcs]
     main  CC=2  out:10
+  env2mcp.env2mcp.cli  [7 funcs]
+    cmd_env_get  CC=7  out:10
+    cmd_env_set  CC=2  out:5
+    cmd_env_show  CC=6  out:12
+    cmd_github_login  CC=4  out:9
+    cmd_github_logout  CC=7  out:14
+    cmd_github_repos  CC=5  out:12
+    cmd_github_status  CC=11  out:22
+  env2mcp.env2mcp.config  [1 funcs]
+    set  CC=1  out:0
+  env2mcp.env2mcp.github_cli  [1 funcs]
+    configure_github  CC=14  out:29
+  gh2mcp.gh2mcp.cli  [5 funcs]
+    _cmd_agent  CC=3  out:6
+    _cmd_status  CC=1  out:3
+    _cmd_sync  CC=2  out:4
+    build_parser  CC=1  out:13
+    main  CC=2  out:5
+  gh2mcp.gh2mcp.server  [2 funcs]
+    _periodic_sync  CC=2  out:2
+    on_startup  CC=3  out:4
+  gh2mcp.gh2mcp.sync  [1 funcs]
+    get_recent_repos  CC=32  out:38
   git2mcp.examples.01_sync_and_commit  [1 funcs]
     main  CC=1  out:18
   git2mcp.examples.02_fragment_sync_to_skills  [1 funcs]
@@ -372,27 +984,99 @@ MODULES:
     main  CC=2  out:16
   llm-agent.agent_standalone  [1 funcs]
     main  CC=2  out:21
-  mcp-gateway.server  [4 funcs]
-    audit  CC=1  out:5
-    authenticate  CC=4  out:8
-    chat_completions  CC=6  out:26
-    find_tenant_by_key  CC=3  out:2
-  mcp-webui.server  [2 funcs]
+  mcp-docs.server  [5 funcs]
+    _markdown_to_html  CC=1  out:1
+    _page  CC=1  out:1
+    _safe_doc_path  CC=4  out:9
+    index  CC=4  out:11
+    render_doc  CC=1  out:6
+  mcp-gateway.server  [66 funcs]
+    _ask_openrouter_github_qa  CC=12  out:15
+    _create_github_pr  CC=3  out:14
+    _expect_json  CC=3  out:4
+    _extract_github_token_from_text  CC=2  out:2
+    _extract_org_from_text  CC=9  out:9
+    _extract_owner_from_repo_template  CC=4  out:3
+    _extract_repo_template_expression  CC=3  out:3
+    _get_default_github_repo  CC=7  out:7
+    _get_last_used_repo  CC=8  out:6
+    _get_most_used_repo  CC=8  out:5
+  mcp-skills.server  [12 funcs]
+    _sync_from_git_proxy  CC=15  out:39
+    _collect_output_files  CC=9  out:17
+    _ensure_tool_installed  CC=10  out:11
+    _git_clone_or_update  CC=10  out:16
+    _parse_tool_result  CC=3  out:1
+    _run_tool_against_repo  CC=37  out:80
+    _truncate_text  CC=3  out:4
+    analyze_code_structure  CC=2  out:6
+    compute_metrics  CC=2  out:6
+    detect_patterns  CC=2  out:6
+  mcp-webui.server  [12 funcs]
+    _get_github_config  CC=16  out:15
+    _github_page_ctx  CC=2  out:4
+    _normalize_github_url  CC=6  out:5
+    _read_gh2mcp_status  CC=4  out:3
+    _resolve_github_token  CC=7  out:6
     gateway_headers  CC=1  out:0
-    index  CC=3  out:10
+    github_clone  CC=6  out:17
+    github_create_repo  CC=4  out:18
+    github_fetch_token_from_cli  CC=16  out:32
+    github_page  CC=2  out:6
   scripts.test  [1 funcs]
     print  CC=0  out:0
 
 EDGES:
-  git2mcp.examples.02_fragment_sync_to_skills.main → scripts.test.print
-  mcp-webui.server.index → mcp-webui.server.gateway_headers
-  git2mcp.examples.03_agent_git2mcp.main → scripts.test.print
-  git2mcp.examples.01_sync_and_commit.main → scripts.test.print
   dashboard.server.main → scripts.test.print
-  llm-agent.agent.main → scripts.test.print
   llm-agent.agent_standalone.main → scripts.test.print
-  mcp-gateway.server.authenticate → mcp-gateway.server.find_tenant_by_key
-  mcp-gateway.server.chat_completions → mcp-gateway.server.audit
+  llm-agent.agent.main → scripts.test.print
+  git2mcp.examples.03_agent_git2mcp.main → scripts.test.print
+  git2mcp.examples.02_fragment_sync_to_skills.main → scripts.test.print
+  git2mcp.examples.01_sync_and_commit.main → scripts.test.print
+  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-docs.server.index → mcp-docs.server._page
+  mcp-docs.server.render_doc → mcp-docs.server._safe_doc_path
+  mcp-docs.server.render_doc → mcp-docs.server._markdown_to_html
+  mcp-docs.server.render_doc → mcp-docs.server._page
+  env2mcp.env2mcp.github_cli.configure_github → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
+  env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_set → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_get → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_status → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_sync → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_agent → scripts.test.print
+  gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
+  mcp-webui.server.index → mcp-webui.server.gateway_headers
+  mcp-webui.server._get_github_config → mcp-webui.server._resolve_github_token
+  mcp-webui.server._get_github_config → mcp-webui.server._read_gh2mcp_status
+  mcp-webui.server.github_page → mcp-webui.server._get_github_config
+  mcp-webui.server.github_fetch_token_from_cli → mcp-webui.server._get_github_config
+  mcp-webui.server._github_page_ctx → mcp-webui.server._get_github_config
+  mcp-webui.server.github_clone → mcp-webui.server._normalize_github_url
+  mcp-webui.server.github_clone → mcp-webui.server._resolve_github_token
+  mcp-webui.server.github_clone → mcp-webui.server._get_github_config
+  mcp-webui.server.github_create_repo → mcp-webui.server._resolve_github_token
+  mcp-webui.server.github_create_repo → mcp-webui.server._get_github_config
+  mcp-webui.server.github_sync → mcp-webui.server._get_github_config
+  gh2mcp.gh2mcp.server.on_startup → gh2mcp.gh2mcp.server._periodic_sync
+  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server._ensure_tool_installed → mcp-skills.server._truncate_text
+  mcp-skills.server._git_clone_or_update → mcp-skills.server._truncate_text
+  mcp-skills.server._collect_output_files → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server._run_tool_against_repo → mcp-skills.server._ensure_tool_installed
+  mcp-skills.server._run_tool_against_repo → mcp-skills.server._collect_output_files
+  mcp-skills.server.analyze_code_structure → mcp-skills.server._parse_tool_result
+  mcp-skills.server.compute_metrics → mcp-skills.server._parse_tool_result
+  mcp-skills.server.detect_patterns → mcp-skills.server._parse_tool_result
+  mcp-skills.server.recommend_refactoring → mcp-skills.server._parse_tool_result
+  mcp-skills.server.run_tool_endpoint → mcp-skills.server._run_tool_against_repo
+  mcp-gateway.server._track_repo_usage → mcp-gateway.server._get_redis_client
+  mcp-gateway.server._get_last_used_repo → mcp-gateway.server._get_redis_client
 ```
 
 ## Intent

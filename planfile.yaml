@@ -407,55 +407,536 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-b824928c
-    name: Fix smart-return-type issues
-    description: Resolve 4 smart-return-type issues in mcp-gateway/server.py
+  - id: ticket-3b8719c4
+    name: Fix relative-imports issues
+    description: Resolve 4 relative-imports issues in env2mcp/env2mcp/__init__.py
     task_type: prefactor
     priority: medium
     estimate: 2d
     files:
-    - mcp-gateway/server.py
-    rule_id: smart-return-type
+    - env2mcp/env2mcp/__init__.py
+    rule_id: relative-imports
     count: 4
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-a8af84e6
+  - id: ticket-0234b9a8
+    name: Fix relative-imports issues
+    description: Resolve 4 relative-imports issues in env2mcp/env2mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - env2mcp/env2mcp/cli.py
+    rule_id: relative-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f0afb114
     name: Fix string-concat issues
-    description: Resolve 1 string-concat issues in mcp-gateway/server.py
+    description: Resolve 2 string-concat issues in env2mcp/env2mcp/cli.py
     task_type: prefactor
     priority: medium
     estimate: 1d
     files:
-    - mcp-gateway/server.py
+    - env2mcp/env2mcp/cli.py
     rule_id: string-concat
-    count: 1
+    count: 2
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-2d0dea29
+  - id: ticket-e74f97d9
     name: Fix unused-imports issues
-    description: Resolve 6 unused-imports issues in mcp-gateway/server.py
+    description: Resolve 6 unused-imports issues in env2mcp/env2mcp/cli.py
     task_type: prefactor
     priority: high
     estimate: 2d
     files:
-    - mcp-gateway/server.py
+    - env2mcp/env2mcp/cli.py
     rule_id: unused-imports
     count: 6
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-4ee2ec52
+  - id: ticket-a9b9165f
     name: Fix magic-numbers issues
-    description: Resolve 10 magic-numbers issues in mcp-gateway/server.py
+    description: Resolve 4 magic-numbers issues in env2mcp/env2mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - env2mcp/env2mcp/cli.py
+    rule_id: magic-numbers
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-76691dde
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in env2mcp/env2mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - env2mcp/env2mcp/cli.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-916374bd
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in env2mcp/env2mcp/config.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - env2mcp/env2mcp/config.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-973be596
+    name: Fix unused-imports issues
+    description: Resolve 6 unused-imports issues in env2mcp/env2mcp/config.py
     task_type: prefactor
     priority: high
     estimate: 2d
     files:
-    - mcp-gateway/server.py
+    - env2mcp/env2mcp/config.py
+    rule_id: unused-imports
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5e131711
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in gh2mcp/gh2mcp/__init__.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/__init__.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8a24b190
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in env2mcp/env2mcp/github_cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - env2mcp/env2mcp/github_cli.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d1919ee1
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in env2mcp/env2mcp/github_cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - env2mcp/env2mcp/github_cli.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-bc72edc1
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in env2mcp/env2mcp/github_cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - env2mcp/env2mcp/github_cli.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-873af373
+    name: Fix magic-numbers issues
+    description: Resolve 3 magic-numbers issues in env2mcp/env2mcp/github_cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - env2mcp/env2mcp/github_cli.py
     rule_id: magic-numbers
-    count: 10
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-88728fa9
+    name: Fix llm-generated-code issues
+    description: Resolve 1 llm-generated-code issues in env2mcp/env2mcp/github_cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - env2mcp/env2mcp/github_cli.py
+    rule_id: llm-generated-code
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7655ac63
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in gh2mcp/gh2mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/cli.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-1c169665
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in gh2mcp/gh2mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/cli.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-39ce0253
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in gh2mcp/gh2mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/cli.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-02a9c6cb
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in gh2mcp/gh2mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/cli.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-00451893
+    name: Fix string-concat issues
+    description: Resolve 2 string-concat issues in gh2mcp/gh2mcp/sync.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/sync.py
+    rule_id: string-concat
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-fd256bd3
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in gh2mcp/gh2mcp/sync.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/sync.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-94df9f8e
+    name: Fix magic-numbers issues
+    description: Resolve 6 magic-numbers issues in gh2mcp/gh2mcp/sync.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - gh2mcp/gh2mcp/sync.py
+    rule_id: magic-numbers
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-09cd63ff
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in gh2mcp/gh2mcp/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/server.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c23207aa
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in gh2mcp/gh2mcp/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/server.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7c348e41
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in gh2mcp/gh2mcp/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - gh2mcp/gh2mcp/server.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-58aa280e
+    name: Fix smart-return-type issues
+    description: Resolve 4 smart-return-type issues in mcp-gateway/test_github_qa.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - mcp-gateway/test_github_qa.py
+    rule_id: smart-return-type
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c9e79ed1
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-gateway/test_github_qa.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/test_github_qa.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6e8ee29e
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-docs/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-docs/server.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-3c9aac83
+    name: Fix magic-numbers issues
+    description: Resolve 2 magic-numbers issues in mcp-docs/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-docs/server.py
+    rule_id: magic-numbers
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a001ca2a
+    name: Fix smart-return-type issues
+    description: Resolve 40 smart-return-type issues in mcp-gateway/test_gateway_token_command.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - mcp-gateway/test_gateway_token_command.py
+    rule_id: smart-return-type
+    count: 40
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-eb4f0127
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-gateway/test_gateway_token_command.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/test_gateway_token_command.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-62b8e4ab
+    name: Fix llm-hallucinations issues
+    description: Resolve 2 llm-hallucinations issues in mcp-gateway/test_gateway_token_command.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/test_gateway_token_command.py
+    rule_id: llm-hallucinations
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-62aebf74
+    name: Fix smart-return-type issues
+    description: Resolve 7 smart-return-type issues in mcp-gateway/test_tool_intent.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - mcp-gateway/test_tool_intent.py
+    rule_id: smart-return-type
+    count: 7
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9589658a
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in mcp-gateway/test_tool_intent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/test_tool_intent.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-53cc4c9a
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-gateway/test_tool_intent.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/test_tool_intent.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4ba9e289
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-gateway/worker.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/worker.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4e1f11b3
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in mcp-gateway/worker.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/worker.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-cf238806
+    name: Fix string-concat issues
+    description: Resolve 3 string-concat issues in mcp-webui/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-webui/server.py
+    rule_id: string-concat
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8655bcaa
+    name: Fix smart-return-type issues
+    description: Resolve 4 smart-return-type issues in mcp-skills/test_tools_run.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - mcp-skills/test_tools_run.py
+    rule_id: smart-return-type
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c2cf30c6
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-skills/test_tools_run.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-skills/test_tools_run.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9bde2585
+    name: Fix duplicate-imports issues
+    description: Resolve 2 duplicate-imports issues in mcp-git-proxy/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-git-proxy/server.py
+    rule_id: duplicate-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-21e868b1
+    name: Fix string-concat issues
+    description: Resolve 9 string-concat issues in mcp-skills/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - mcp-skills/server.py
+    rule_id: string-concat
+    count: 9
     model_hints:
       planning: balanced
       implementation: balanced

@@ -1,48 +1,57 @@
-# code2llm/evolution | 145 func | 11f | 2026-05-03
+# code2llm/evolution | 365 func | 21f | 2026-05-03
 
-NEXT[8] (ranked by impact):
-  [1] !! SPLIT           mcp-skills/server.py
-      WHY: 639L, 1 classes, max CC=15
-      EFFORT: ~4h  IMPACT: 9585
+NEXT[10] (ranked by impact):
+  [1] !! SPLIT           mcp-gateway/server.py
+      WHY: 2908L, 2 classes, max CC=40
+      EFFORT: ~4h  IMPACT: 116320
 
-  [2] !! SPLIT           llm-agent/agent_standalone.py
-      WHY: 540L, 3 classes, max CC=15
-      EFFORT: ~4h  IMPACT: 8100
+  [2] !! SPLIT           mcp-skills/server.py
+      WHY: 1462L, 8 classes, max CC=37
+      EFFORT: ~4h  IMPACT: 54094
 
-  [3] !  SPLIT-FUNC      MCPSkillsServer._sync_from_git_proxy  CC=15  fan=30
+  [3] !! SPLIT-FUNC      chat_completions  CC=31  fan=56
+      WHY: CC=31 exceeds 15
+      EFFORT: ~1h  IMPACT: 1736
+
+  [4] !! SPLIT-FUNC      _run_tool_against_repo  CC=37  fan=41
+      WHY: CC=37 exceeds 15
+      EFFORT: ~1h  IMPACT: 1517
+
+  [5] !! SPLIT-FUNC      GitHubTokenSyncService.get_recent_repos  CC=32  fan=24
+      WHY: CC=32 exceeds 15
+      EFFORT: ~1h  IMPACT: 768
+
+  [6] !! SPLIT-FUNC      _render_tool_text  CC=40  fan=15
+      WHY: CC=40 exceeds 15
+      EFFORT: ~1h  IMPACT: 600
+
+  [7] !  SPLIT-FUNC      dispatch_skill  CC=19  fan=26
+      WHY: CC=19 exceeds 15
+      EFFORT: ~1h  IMPACT: 494
+
+  [8] !  SPLIT-FUNC      MCPSkillsServer._sync_from_git_proxy  CC=15  fan=30
       WHY: CC=15 exceeds 15
       EFFORT: ~1h  IMPACT: 450
 
-  [4] !  SPLIT-FUNC      MCPSkillsServer._compute_metrics_for_repo  CC=15  fan=18
-      WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 270
+  [9] !  SPLIT-FUNC      GitHubTokenSyncService.get_last_pushed_repo  CC=23  fan=18
+      WHY: CC=23 exceeds 15
+      EFFORT: ~1h  IMPACT: 414
 
-  [5] !  SPLIT-FUNC      LocalCodeAnalyzer.detect_code_patterns  CC=15  fan=15
-      WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 225
-
-  [6] !  SPLIT-FUNC      CachedCodeAnalyzer.compute_metrics  CC=15  fan=13
-      WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 195
-
-  [7] !  SPLIT-FUNC      MCPSkillsServer._recommend_refactoring  CC=15  fan=13
-      WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 195
-
-  [8] !  SPLIT-FUNC      LocalCodeAnalyzer.compute_metrics_for_repo  CC=15  fan=13
-      WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 195
+  [10] !  SPLIT-FUNC      parse_tool_intent  CC=23  fan=16
+      WHY: CC=23 exceeds 15
+      EFFORT: ~1h  IMPACT: 368
 
 
-RISKS[2]:
-  ⚠ Splitting mcp-skills/server.py may break 12 import paths
-  ⚠ Splitting llm-agent/agent_standalone.py may break 14 import paths
+RISKS[3]:
+  ⚠ Splitting mcp-gateway/server.py may break 86 import paths
+  ⚠ Splitting mcp-skills/server.py may break 29 import paths
+  ⚠ Splitting mcp-gateway/test_gateway_token_command.py may break 0 import paths
 
 METRICS-TARGET:
-  CC̄:          3.4 → ≤2.4
-  max-CC:      15 → ≤7
-  god-modules: 2 → 0
-  high-CC(≥15): 6 → ≤3
+  CC̄:          4.2 → ≤2.9
+  max-CC:      40 → ≤20
+  god-modules: 5 → 0
+  high-CC(≥15): 22 → ≤11
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -70,4 +79,4 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  (first run — no previous data)
+  prev CC̄=3.4 → now CC̄=4.2

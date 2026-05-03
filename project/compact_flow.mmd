@@ -1,12 +1,21 @@
 flowchart TD
     dashboard__server["dashboard.server<br/>10 funcs"]
+    env2mcp__env2mcp["env2mcp.env2mcp<br/>31 funcs"]
+    gh2mcp__gh2mcp["gh2mcp.gh2mcp<br/>22 funcs"]
     git2mcp__examples["git2mcp.examples<br/>6 funcs"]
     llm_agent__agent["llm-agent.agent<br/>13 funcs"]
     llm_agent__agent_git2mcp["llm-agent.agent_git2mcp<br/>13 funcs"]
     llm_agent__agent_standalone["llm-agent.agent_standalone<br/>14 funcs"]
+    mcp_gateway__server["mcp-gateway.server<br/>86 funcs"]
+    mcp_skills__server["mcp-skills.server<br/>29 funcs"]
     scripts__test["scripts.test<br/>14 funcs"]
-    git2mcp__examples ==>|8| scripts__test
+    env2mcp__env2mcp ==>|34| scripts__test
     dashboard__server ==>|8| scripts__test
+    git2mcp__examples ==>|8| scripts__test
+    mcp_gateway__server ==>|8| env2mcp__env2mcp
     llm_agent__agent_standalone ==>|5| scripts__test
     llm_agent__agent ==>|4| scripts__test
+    gh2mcp__gh2mcp ==>|4| scripts__test
+    mcp_skills__server -->|2| env2mcp__env2mcp
     llm_agent__agent_git2mcp -->|1| scripts__test
+    gh2mcp__gh2mcp -->|1| env2mcp__env2mcp

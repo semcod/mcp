@@ -48,6 +48,21 @@ class EnvConfig:
         """Remove configuration key."""
         self._data.pop(key, None)
 
+    def _format_value(self, key: str, value: str) -> str:
+        """Format a value for .env file - don't quote numeric values."""
+        # Don't quote numeric values (ports, etc.)
+        if value.isdigit():
+            return value
+        # Don't quote boolean values
+        if value.lower() in ("true", "false"):
+            return value
+        # Don't quote values that already have quotes
+        if (value.startswith('"') and value.endswith('"')) or \
+           (value.startswith("'") and value.endswith("'")):
+            return value
+        # Quote string values
+        return f'"{value}"'
+
     def save(self, create_backup: bool = True) -> None:
         """Save configuration to .env file."""
         if create_backup and self.env_path.exists():
@@ -67,7 +82,7 @@ class EnvConfig:
             for key in sorted(self._data.keys()):
                 if key.startswith("GITHUB_"):
                     value = self._data[key]
-                    lines.append(f'{key}="{value}"')
+                    lines.append(f'{key}={self._format_value(key, value)}')
             lines.append("")
 
         # OpenRouter / LLM Configuration
@@ -76,7 +91,7 @@ class EnvConfig:
             for key in ["OPENROUTER_API_KEY", "LLM_MODEL", "LLM_PROVIDER"]:
                 if key in self._data:
                     value = self._data[key]
-                    lines.append(f'{key}="{value}"')
+                    lines.append(f'{key}={self._format_value(key, value)}')
             lines.append("")
 
         # MCP / WebUI Configuration
@@ -85,7 +100,7 @@ class EnvConfig:
             for key in ["WEBUI_API_KEY", "MCP_GATEWAY_URL", "GIT_PROXY_URL"]:
                 if key in self._data:
                     value = self._data[key]
-                    lines.append(f'{key}="{value}"')
+                    lines.append(f'{key}={self._format_value(key, value)}')
             lines.append("")
 
         # Other keys
@@ -97,7 +112,7 @@ class EnvConfig:
             lines.append("# Other Configuration")
             for key in sorted(other_keys):
                 value = self._data[key]
-                lines.append(f'{key}="{value}"')
+                lines.append(f'{key}={self._format_value(key, value)}')
             lines.append("")
 
         self.env_path.write_text("\n".join(lines), encoding="utf-8")

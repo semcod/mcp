@@ -1,4 +1,7 @@
 flowchart TD
+    subgraph ansible__e2e_gh2mcp
+        ansible__e2e_gh2mcp__or["or"]
+    end
     subgraph dashboard__server
         dashboard__server__DashboardHandler__end_headers["end_headers"]
         dashboard__server__DashboardHandler__do_GET("do_GET CC=8")
@@ -11,35 +14,72 @@ flowchart TD
         dashboard__server__DashboardHandler__get_repos["get_repos"]
         dashboard__server__main["main"]
     end
+    subgraph env2mcp__env2mcp
+        env2mcp__env2mcp__config__EnvConfig____init__["__init__"]
+        env2mcp__env2mcp__config__EnvConfig___load("_load CC=11")
+        env2mcp__env2mcp__config__EnvConfig__get["get"]
+        env2mcp__env2mcp__config__EnvConfig__set["set"]
+        env2mcp__env2mcp__config__EnvConfig__remove["remove"]
+        env2mcp__env2mcp__config__EnvConfig__save{{save CC=20}}
+        env2mcp__env2mcp__config__EnvConfig____contains__["__contains__"]
+        env2mcp__env2mcp__config__EnvConfig____getitem__["__getitem__"]
+        env2mcp__env2mcp__config__EnvConfig____setitem__["__setitem__"]
+        env2mcp__env2mcp__config__EnvConfig__items["items"]
+        env2mcp__env2mcp__config__load_env["load_env"]
+        env2mcp__env2mcp__config__save_env["save_env"]
+        env2mcp__env2mcp__github_cli__GitHubCLI____init__["__init__"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__is_available["is_available"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__get_auth_status("get_auth_status CC=14")
+        env2mcp__env2mcp__github_cli__GitHubCLI__get_token["get_token"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__get_user["get_user"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__login["login"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__logout["logout"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__list_repos["list_repos"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__clone_url["clone_url"]
+        env2mcp__env2mcp__github_cli__get_github_token["get_github_token"]
+        env2mcp__env2mcp__github_cli__configure_github("configure_github CC=14")
+        env2mcp__env2mcp__cli__cmd_github_login["cmd_github_login"]
+        env2mcp__env2mcp__cli__cmd_github_status("cmd_github_status CC=11")
+        env2mcp__env2mcp__cli__cmd_github_logout["cmd_github_logout"]
+        env2mcp__env2mcp__cli__cmd_github_repos["cmd_github_repos"]
+        env2mcp__env2mcp__cli__cmd_env_show["cmd_env_show"]
+        env2mcp__env2mcp__cli__cmd_env_set["cmd_env_set"]
+        env2mcp__env2mcp__cli__cmd_env_get["cmd_env_get"]
+        env2mcp__env2mcp__cli__main["main"]
+    end
+    subgraph gh2mcp__gh2mcp
+        gh2mcp__gh2mcp__sync__GitHubTokenSyncService____init__["__init__"]
+        gh2mcp__gh2mcp__sync__GitHubTokenSyncService__get_status["get_status"]
+        gh2mcp__gh2mcp__sync__GitHubTokenSyncService__set_org["set_org"]
+        gh2mcp__gh2mcp__sync__GitHubTokenSyncService__list_orgs_and_repos("list_orgs_and_repos CC=8")
+        gh2mcp__gh2mcp__sync__GitHubTokenSyncService__get_last_pushed_repo{{get_last_pushed_repo CC=23}}
+        gh2mcp__gh2mcp__sync__GitHubTokenSyncService__get_recent_repos{{get_recent_repos CC=32}}
+        gh2mcp__gh2mcp__sync__GitHubTokenSyncService__sync_token{{sync_token CC=20}}
+        gh2mcp__gh2mcp__cli___cmd_status["_cmd_status"]
+        gh2mcp__gh2mcp__cli___cmd_sync["_cmd_sync"]
+        gh2mcp__gh2mcp__cli___cmd_agent["_cmd_agent"]
+        gh2mcp__gh2mcp__cli__build_parser["build_parser"]
+        gh2mcp__gh2mcp__cli__main["main"]
+        gh2mcp__gh2mcp__server___periodic_sync["_periodic_sync"]
+        gh2mcp__gh2mcp__server__on_startup["on_startup"]
+        gh2mcp__gh2mcp__server__on_shutdown["on_shutdown"]
+        gh2mcp__gh2mcp__server__health["health"]
+        gh2mcp__gh2mcp__server__status["status"]
+        gh2mcp__gh2mcp__server__sync_token["sync_token"]
+        gh2mcp__gh2mcp__server__set_org["set_org"]
+        gh2mcp__gh2mcp__server__list_orgs["list_orgs"]
+        gh2mcp__gh2mcp__server__last_pushed_repo["last_pushed_repo"]
+        gh2mcp__gh2mcp__server__recent_repos["recent_repos"]
+    end
     subgraph git2mcp__examples
+        git2mcp__examples__05_local_iterate__main["main"]
+        git2mcp__examples__03_agent_git2mcp__main["main"]
         git2mcp__examples__04_dry_run_vs_execute__run["run"]
         git2mcp__examples__04_dry_run_vs_execute__main["main"]
         git2mcp__examples__02_fragment_sync_to_skills__main["main"]
-        git2mcp__examples__03_agent_git2mcp__main["main"]
-        git2mcp__examples__05_local_iterate__main["main"]
         git2mcp__examples__01_sync_and_commit__main["main"]
     end
     subgraph git2mcp__git2mcp
-        git2mcp__git2mcp__client__Git2MCPClient____init__["__init__"]
-        git2mcp__git2mcp__client__Git2MCPClient___request["_request"]
-        git2mcp__git2mcp__client__Git2MCPClient__health["health"]
-        git2mcp__git2mcp__client__Git2MCPClient__list_repos["list_repos"]
-        git2mcp__git2mcp__client__Git2MCPClient__sync_repo["sync_repo"]
-        git2mcp__git2mcp__client__Git2MCPClient__export_package["export_package"]
-        git2mcp__git2mcp__client__Git2MCPClient__commit_changes["commit_changes"]
-        git2mcp__git2mcp__client__Git2MCPClient__run_tests["run_tests"]
-        git2mcp__git2mcp__client__Git2MCPClient__push["push"]
-        git2mcp__git2mcp__client__Git2MCPClient__reset["reset"]
-        git2mcp__git2mcp__client__Git2MCPClient__worktree_write["worktree_write"]
-        git2mcp__git2mcp__client__Git2MCPClient__worktree_read["worktree_read"]
-        git2mcp__git2mcp__client__Git2MCPClient__worktree_diff["worktree_diff"]
-        git2mcp__git2mcp__client__Git2MCPClient__patch_apply["patch_apply"]
-        git2mcp__git2mcp__client__Git2MCPClient__stage["stage"]
-        git2mcp__git2mcp__client__Git2MCPClient__stash_save["stash_save"]
-        git2mcp__git2mcp__client__Git2MCPClient__stash_pop["stash_pop"]
-        git2mcp__git2mcp__client__Git2MCPClient__branch_draft["branch_draft"]
-        git2mcp__git2mcp__client__Git2MCPClient__checkpoint_create["checkpoint_create"]
-        git2mcp__git2mcp__client__Git2MCPClient__checkpoint_restore["checkpoint_restore"]
         git2mcp__git2mcp__proxy__GitProxyManager____init__["__init__"]
         git2mcp__git2mcp__proxy__GitProxyManager___repo_path["_repo_path"]
         git2mcp__git2mcp__proxy__GitProxyManager___ensure_parent["_ensure_parent"]
@@ -61,6 +101,26 @@ flowchart TD
         git2mcp__git2mcp__proxy__GitProxyManager__checkpoint_create["checkpoint_create"]
         git2mcp__git2mcp__proxy__GitProxyManager__checkpoint_restore["checkpoint_restore"]
         git2mcp__git2mcp__proxy__GitProxyManager__reset["reset"]
+        git2mcp__git2mcp__client__Git2MCPClient____init__["__init__"]
+        git2mcp__git2mcp__client__Git2MCPClient___request["_request"]
+        git2mcp__git2mcp__client__Git2MCPClient__health["health"]
+        git2mcp__git2mcp__client__Git2MCPClient__list_repos["list_repos"]
+        git2mcp__git2mcp__client__Git2MCPClient__sync_repo["sync_repo"]
+        git2mcp__git2mcp__client__Git2MCPClient__export_package["export_package"]
+        git2mcp__git2mcp__client__Git2MCPClient__commit_changes["commit_changes"]
+        git2mcp__git2mcp__client__Git2MCPClient__run_tests["run_tests"]
+        git2mcp__git2mcp__client__Git2MCPClient__push["push"]
+        git2mcp__git2mcp__client__Git2MCPClient__reset["reset"]
+        git2mcp__git2mcp__client__Git2MCPClient__worktree_write["worktree_write"]
+        git2mcp__git2mcp__client__Git2MCPClient__worktree_read["worktree_read"]
+        git2mcp__git2mcp__client__Git2MCPClient__worktree_diff["worktree_diff"]
+        git2mcp__git2mcp__client__Git2MCPClient__patch_apply["patch_apply"]
+        git2mcp__git2mcp__client__Git2MCPClient__stage["stage"]
+        git2mcp__git2mcp__client__Git2MCPClient__stash_save["stash_save"]
+        git2mcp__git2mcp__client__Git2MCPClient__stash_pop["stash_pop"]
+        git2mcp__git2mcp__client__Git2MCPClient__branch_draft["branch_draft"]
+        git2mcp__git2mcp__client__Git2MCPClient__checkpoint_create["checkpoint_create"]
+        git2mcp__git2mcp__client__Git2MCPClient__checkpoint_restore["checkpoint_restore"]
     end
     subgraph git2mcp__project
         git2mcp__project__map__toon___load_proxy_app["_load_proxy_app"]
@@ -114,17 +174,79 @@ flowchart TD
         llm_agent__agent_standalone__RefactoringAgent__execute_refactoring_workflow["execute_refactoring_workflow"]
         llm_agent__agent_standalone__main["main"]
     end
+    subgraph mcp_docs__server
+        mcp_docs__server___markdown_to_html["_markdown_to_html"]
+        mcp_docs__server___page["_page"]
+        mcp_docs__server___safe_doc_path["_safe_doc_path"]
+        mcp_docs__server__health["health"]
+        mcp_docs__server__list_docs["list_docs"]
+        mcp_docs__server__index["index"]
+        mcp_docs__server__render_doc["render_doc"]
+    end
     subgraph mcp_gateway__server
         mcp_gateway__server__load_tenants["load_tenants"]
-        mcp_gateway__server__find_tenant_by_key["find_tenant_by_key"]
-        mcp_gateway__server__authenticate["authenticate"]
-        mcp_gateway__server__audit["audit"]
-        mcp_gateway__server__health["health"]
-        mcp_gateway__server__list_models["list_models"]
-        mcp_gateway__server__chat_completions["chat_completions"]
-        mcp_gateway__server__dispatch_skill["dispatch_skill"]
-        mcp_gateway__server__get_job["get_job"]
-        mcp_gateway__server__audit_tail["audit_tail"]
+        mcp_gateway__server___get_redis_client["_get_redis_client"]
+        mcp_gateway__server___track_repo_usage["_track_repo_usage"]
+        mcp_gateway__server___get_last_used_repo("_get_last_used_repo CC=8")
+        mcp_gateway__server___get_most_used_repo("_get_most_used_repo CC=8")
+        mcp_gateway__server___get_preferred_repo["_get_preferred_repo"]
+        mcp_gateway__server___is_github_configured["_is_github_configured"]
+        mcp_gateway__server___get_default_github_repo["_get_default_github_repo"]
+        mcp_gateway__server__message_content_to_text("message_content_to_text CC=14")
+        mcp_gateway__server__parse_prompt_context("parse_prompt_context CC=8")
+        mcp_gateway__server__parse_bool["parse_bool"]
+        mcp_gateway__server___normalize_command_text["_normalize_command_text"]
+        mcp_gateway__server___extract_github_token_from_text["_extract_github_token_from_text"]
+        mcp_gateway__server___extract_repo_template_expression["_extract_repo_template_expression"]
+        mcp_gateway__server___is_last_pushed_repo_template{{_is_last_pushed_repo_template CC=15}}
+        mcp_gateway__server___extract_owner_from_repo_template["_extract_owner_from_repo_template"]
+        mcp_gateway__server___is_github_token_save_command{{_is_github_token_save_command CC=15}}
+        mcp_gateway__server___extract_org_from_text("_extract_org_from_text CC=9")
+        mcp_gateway__server___is_org_set_command("_is_org_set_command CC=9")
+        mcp_gateway__server___is_org_list_command("_is_org_list_command CC=13")
+        mcp_gateway__server___is_repo_list_command{{_is_repo_list_command CC=23}}
+        mcp_gateway__server___extract_repo_list_limit["_extract_repo_list_limit"]
+        mcp_gateway__server___strip_url_suffix["_strip_url_suffix"]
+        mcp_gateway__server__parse_tool_intent{{parse_tool_intent CC=23}}
+        mcp_gateway__server___is_github_token_sync_command("_is_github_token_sync_command CC=11")
+        mcp_gateway__server___sync_github_token_via_gh2mcp["_sync_github_token_via_gh2mcp"]
+        mcp_gateway__server___set_default_org_via_gh2mcp["_set_default_org_via_gh2mcp"]
+        mcp_gateway__server___list_recent_repos_via_gh2mcp["_list_recent_repos_via_gh2mcp"]
+        mcp_gateway__server___list_orgs_via_gh2mcp["_list_orgs_via_gh2mcp"]
+        mcp_gateway__server___gh2mcp_status_via_gh2mcp["_gh2mcp_status_via_gh2mcp"]
+        mcp_gateway__server___last_pushed_repo_via_gh2mcp["_last_pushed_repo_via_gh2mcp"]
+        mcp_gateway__server___is_github_auth_error["_is_github_auth_error"]
+        mcp_gateway__server___github_auth_recovery_message["_github_auth_recovery_message"]
+        mcp_gateway__server___resolve_repo_id_template("_resolve_repo_id_template CC=14")
+        mcp_gateway__server___save_github_token_via_env2mcp["_save_github_token_via_env2mcp"]
+        mcp_gateway__server___load_env_file_values("_load_env_file_values CC=11")
+        mcp_gateway__server___runtime_github_token["_runtime_github_token"]
+        mcp_gateway__server___save_github_token["_save_github_token"]
+        mcp_gateway__server___normalize_repo_url["_normalize_repo_url"]
+        mcp_gateway__server___inject_github_token("_inject_github_token CC=9")
+        mcp_gateway__server___redact_repo_url["_redact_repo_url"]
+        mcp_gateway__server___default_draft_name["_default_draft_name"]
+        mcp_gateway__server___github_repo_from_url("_github_repo_from_url CC=9")
+        mcp_gateway__server___default_pr_title["_default_pr_title"]
+        mcp_gateway__server___default_pr_body["_default_pr_body"]
+        mcp_gateway__server___create_github_pr["_create_github_pr"]
+        mcp_gateway__server___summary_text("_summary_text CC=9")
+        mcp_gateway__server___render_repo_selection_text["_render_repo_selection_text"]
+        mcp_gateway__server___render_system_text{{_render_system_text CC=27}}
+        mcp_gateway__server___render_analyze_text("_render_analyze_text CC=10")
+        mcp_gateway__server___render_queued_text["_render_queued_text"]
+        mcp_gateway__server___render_refactor_text{{_render_refactor_text CC=17}}
+        mcp_gateway__server___file_fence_lang["_file_fence_lang"]
+        mcp_gateway__server___is_markdown_path["_is_markdown_path"]
+        mcp_gateway__server___render_tool_text{{_render_tool_text CC=40}}
+        mcp_gateway__server___render_github_qa_text("_render_github_qa_text CC=8")
+        mcp_gateway__server___render_chat_content("_render_chat_content CC=13")
+        mcp_gateway__server___build_commit_changes["_build_commit_changes"]
+        mcp_gateway__server___expect_json["_expect_json"]
+        mcp_gateway__server___is_tools_list_command["_is_tools_list_command"]
+    end
+    subgraph mcp_gateway__worker
+        mcp_gateway__worker__main["main"]
     end
     subgraph mcp_git_proxy__server
         mcp_git_proxy__server__health["health"]
@@ -147,6 +269,8 @@ flowchart TD
         mcp_git_proxy__server__checkpoint_create["checkpoint_create"]
         mcp_git_proxy__server__checkpoint_restore["checkpoint_restore"]
         mcp_git_proxy__server__run_tests["run_tests"]
+        mcp_git_proxy__server__github_create_repo("github_create_repo CC=9")
+        mcp_git_proxy__server__sync_pull["sync_pull"]
     end
     subgraph mcp_skills__server
         mcp_skills__server__MCPSkillsServer____init__["__init__"]
@@ -160,6 +284,23 @@ flowchart TD
         mcp_skills__server__MCPSkillsServer___sync_repo_tool["_sync_repo_tool"]
         mcp_skills__server__MCPSkillsServer___recommend_refactoring{{_recommend_refactoring CC=15}}
         mcp_skills__server__MCPSkillsServer__run["run"]
+        mcp_skills__server___truncate_text["_truncate_text"]
+        mcp_skills__server___ensure_tool_installed("_ensure_tool_installed CC=10")
+        mcp_skills__server___git_clone_or_update("_git_clone_or_update CC=10")
+        mcp_skills__server___derive_repo_id_from_url("_derive_repo_id_from_url CC=9")
+        mcp_skills__server___collect_output_files("_collect_output_files CC=9")
+        mcp_skills__server___run_tool_against_repo{{_run_tool_against_repo CC=37}}
+        mcp_skills__server___parse_tool_result["_parse_tool_result"]
+        mcp_skills__server___run_redsl_refactor("_run_redsl_refactor CC=14")
+        mcp_skills__server__health["health"]
+        mcp_skills__server__sync_repo["sync_repo"]
+        mcp_skills__server__analyze_code_structure["analyze_code_structure"]
+        mcp_skills__server__compute_metrics["compute_metrics"]
+        mcp_skills__server__detect_patterns["detect_patterns"]
+        mcp_skills__server__recommend_refactoring["recommend_refactoring"]
+        mcp_skills__server__redsl_refactor("redsl_refactor CC=13")
+        mcp_skills__server__list_tools_endpoint["list_tools_endpoint"]
+        mcp_skills__server__run_tool_endpoint["run_tool_endpoint"]
         mcp_skills__server__main["main"]
     end
     subgraph mcp_webui__server
@@ -171,6 +312,71 @@ flowchart TD
         mcp_webui__server__skills_page["skills_page"]
         mcp_webui__server__skills_run["skills_run"]
         mcp_webui__server__playground["playground"]
+        mcp_webui__server___resolve_github_token["_resolve_github_token"]
+        mcp_webui__server___read_gh2mcp_status["_read_gh2mcp_status"]
+        mcp_webui__server___get_github_config{{_get_github_config CC=16}}
+        mcp_webui__server__github_page["github_page"]
+        mcp_webui__server__github_configure("github_configure CC=9")
+        mcp_webui__server__github_fetch_token_from_cli{{github_fetch_token_from_cli CC=16}}
+        mcp_webui__server___github_page_ctx["_github_page_ctx"]
+        mcp_webui__server___normalize_github_url["_normalize_github_url"]
+        mcp_webui__server__github_clone["github_clone"]
+        mcp_webui__server__github_create_repo["github_create_repo"]
+        mcp_webui__server__github_sync["github_sync"]
+    end
+    subgraph project__map
+        project__map__toon__main["main"]
+        project__map__toon__run["run"]
+        project__map__toon___load_proxy_app["_load_proxy_app"]
+        project__map__toon___create_sample_repo_source["_create_sample_repo_source"]
+        project__map__toon__test_git_proxy_e2e_sync_export_commit_and_tests["test_git_proxy_e2e_sync_export_comm"]
+        project__map__toon__test_git_proxy_local_operations["test_git_proxy_local_operations"]
+        project__map__toon__test_git_proxy_e2e_commit_and_reset["test_git_proxy_e2e_commit_and_reset"]
+        project__map__toon__test_git_proxy_e2e_push_to_bare_remote["test_git_proxy_e2e_push_to_bare_rem"]
+        project__map__toon__load_tenants["load_tenants"]
+        project__map__toon__find_tenant_by_key["find_tenant_by_key"]
+        project__map__toon__authenticate["authenticate"]
+        project__map__toon__audit["audit"]
+        project__map__toon__health["health"]
+        project__map__toon__list_models["list_models"]
+        project__map__toon__chat_completions["chat_completions"]
+        project__map__toon__dispatch_skill["dispatch_skill"]
+        project__map__toon__get_job["get_job"]
+        project__map__toon__audit_tail["audit_tail"]
+        project__map__toon__list_repos["list_repos"]
+        project__map__toon__sync_repo["sync_repo"]
+        project__map__toon__export_fragments["export_fragments"]
+        project__map__toon__export_package["export_package"]
+        project__map__toon__import_package["import_package"]
+        project__map__toon__commit["commit"]
+        project__map__toon__push["push"]
+        project__map__toon__reset["reset"]
+        project__map__toon__worktree_write["worktree_write"]
+        project__map__toon__worktree_read["worktree_read"]
+        project__map__toon__worktree_diff["worktree_diff"]
+        project__map__toon__patch_apply["patch_apply"]
+        project__map__toon__stage["stage"]
+        project__map__toon__stash_save["stash_save"]
+        project__map__toon__stash_pop["stash_pop"]
+        project__map__toon__branch_draft["branch_draft"]
+        project__map__toon__checkpoint_create["checkpoint_create"]
+        project__map__toon__checkpoint_restore["checkpoint_restore"]
+        project__map__toon__run_tests["run_tests"]
+        project__map__toon__gateway_headers["gateway_headers"]
+        project__map__toon__index["index"]
+        project__map__toon__repos_page["repos_page"]
+        project__map__toon__repos_sync["repos_sync"]
+        project__map__toon__diff_page["diff_page"]
+        project__map__toon__skills_page["skills_page"]
+        project__map__toon__skills_run["skills_run"]
+        project__map__toon__playground["playground"]
+        project__map__toon__build_payload["build_payload"]
+        project__map__toon__add["add"]
+        project__map__toon__function_1["function_1"]
+        project__map__toon__function_2["function_2"]
+        project__map__toon__function_3["function_3"]
+        project__map__toon__function_4["function_4"]
+        project__map__toon__function_5["function_5"]
     end
     subgraph scripts__deploy
         scripts__deploy__check_requirements["check_requirements"]
@@ -180,6 +386,40 @@ flowchart TD
         scripts__deploy__start_services["start_services"]
         scripts__deploy__health_check["health_check"]
         scripts__deploy__main["main"]
+    end
+    subgraph scripts__generate_demo_repos
+        scripts__generate_demo_repos__read_env_value["read_env_value"]
+        scripts__generate_demo_repos__resolve_github_token["resolve_github_token"]
+        scripts__generate_demo_repos__resolve_github_user["resolve_github_user"]
+        scripts__generate_demo_repos__select_provider["select_provider"]
+        scripts__generate_demo_repos__seed_repo_files["seed_repo_files"]
+        scripts__generate_demo_repos__normalize_items["normalize_items"]
+        scripts__generate_demo_repos__score_payload["score_payload"]
+        scripts__generate_demo_repos__build_report["build_report"]
+        scripts__generate_demo_repos__load_config["load_config"]
+        scripts__generate_demo_repos__run["run"]
+        scripts__generate_demo_repos__fetch_users["fetch_users"]
+        scripts__generate_demo_repos__fetch_orders["fetch_orders"]
+        scripts__generate_demo_repos__build_user_totals["build_user_totals"]
+        scripts__generate_demo_repos__create_repo["create_repo"]
+        scripts__generate_demo_repos__create_local_remote["create_local_remote"]
+        scripts__generate_demo_repos__create_github_remote["create_github_remote"]
+        scripts__generate_demo_repos__create_repo_bundle["create_repo_bundle"]
+        scripts__generate_demo_repos__sync_to_proxy["sync_to_proxy"]
+    end
+    subgraph scripts__refactor_last_repo
+        scripts__refactor_last_repo__usage["usage"]
+        scripts__refactor_last_repo__strip_quotes["strip_quotes"]
+        scripts__refactor_last_repo__load_env_defaults["load_env_defaults"]
+        scripts__refactor_last_repo__require_cmd["require_cmd"]
+        scripts__refactor_last_repo__parse_args["parse_args"]
+        scripts__refactor_last_repo__resolve_last_repo["resolve_last_repo"]
+        scripts__refactor_last_repo__check_gateway["check_gateway"]
+        scripts__refactor_last_repo__post_chat_completion["post_chat_completion"]
+        scripts__refactor_last_repo__extract_result_content["extract_result_content"]
+        scripts__refactor_last_repo__print_analyze_summary["print_analyze_summary"]
+        scripts__refactor_last_repo__print_refactor_summary["print_refactor_summary"]
+        scripts__refactor_last_repo__main["main"]
     end
     subgraph scripts__test
         scripts__test__test_structure["test_structure"]
@@ -197,21 +437,152 @@ flowchart TD
         scripts__test__test_git2mcp_workflow["test_git2mcp_workflow"]
         scripts__test__test_pytest_e2e["test_pytest_e2e"]
     end
+    dashboard__server__main --> scripts__test__print
+    llm_agent__agent_standalone__main --> scripts__test__print
+    llm_agent__agent_git2mcp__main --> scripts__test__print
+    llm_agent__agent__main --> scripts__test__print
+    git2mcp__examples__03_agent_git2mcp__main --> scripts__test__print
     git2mcp__examples__04_dry_run_vs_execute__main --> scripts__test__print
     git2mcp__examples__04_dry_run_vs_execute__main --> git2mcp__examples__04_dry_run_vs_execute__run
     git2mcp__examples__02_fragment_sync_to_skills__main --> scripts__test__print
+    git2mcp__examples__01_sync_and_commit__main --> scripts__test__print
+    gh2mcp__gh2mcp__sync__GitHubTokenSyncService__get_recent_repos --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_docs__server__index --> mcp_docs__server___page
+    mcp_docs__server__render_doc --> mcp_docs__server___safe_doc_path
+    mcp_docs__server__render_doc --> mcp_docs__server___markdown_to_html
+    mcp_docs__server__render_doc --> mcp_docs__server___page
+    env2mcp__env2mcp__github_cli__configure_github --> scripts__test__print
+    env2mcp__env2mcp__cli__cmd_github_login --> env2mcp__env2mcp__github_cli__configure_github
+    env2mcp__env2mcp__cli__cmd_github_login --> scripts__test__print
+    env2mcp__env2mcp__cli__cmd_github_status --> scripts__test__print
+    env2mcp__env2mcp__cli__cmd_github_logout --> scripts__test__print
+    env2mcp__env2mcp__cli__cmd_github_repos --> scripts__test__print
+    env2mcp__env2mcp__cli__cmd_env_show --> scripts__test__print
+    env2mcp__env2mcp__cli__cmd_env_set --> scripts__test__print
+    env2mcp__env2mcp__cli__cmd_env_get --> scripts__test__print
+    gh2mcp__gh2mcp__cli___cmd_status --> scripts__test__print
+    gh2mcp__gh2mcp__cli___cmd_sync --> scripts__test__print
+    gh2mcp__gh2mcp__cli___cmd_agent --> scripts__test__print
+    gh2mcp__gh2mcp__cli__main --> gh2mcp__gh2mcp__cli__build_parser
     mcp_webui__server__index --> mcp_webui__server__gateway_headers
     mcp_webui__server__skills_run --> mcp_webui__server__gateway_headers
-    git2mcp__examples__03_agent_git2mcp__main --> scripts__test__print
-    git2mcp__examples__01_sync_and_commit__main --> scripts__test__print
-    llm_agent__agent_git2mcp__main --> scripts__test__print
-    dashboard__server__main --> scripts__test__print
-    llm_agent__agent__main --> scripts__test__print
-    llm_agent__agent_standalone__main --> scripts__test__print
+    mcp_webui__server___get_github_config --> mcp_webui__server___resolve_github_token
+    mcp_webui__server___get_github_config --> mcp_webui__server___read_gh2mcp_status
+    mcp_webui__server__github_page --> mcp_webui__server___get_github_config
+    mcp_webui__server__github_fetch_token_from_cli --> mcp_webui__server___get_github_config
+    mcp_webui__server___github_page_ctx --> mcp_webui__server___get_github_config
+    mcp_webui__server__github_clone --> mcp_webui__server___normalize_github_url
+    mcp_webui__server__github_clone --> mcp_webui__server___resolve_github_token
+    mcp_webui__server__github_clone --> mcp_webui__server___get_github_config
+    mcp_webui__server__github_create_repo --> mcp_webui__server___resolve_github_token
+    mcp_webui__server__github_create_repo --> mcp_webui__server___get_github_config
+    mcp_webui__server__github_sync --> mcp_webui__server___get_github_config
+    gh2mcp__gh2mcp__server__on_startup --> gh2mcp__gh2mcp__server___periodic_sync
+    mcp_skills__server__MCPSkillsServer___sync_from_git_proxy --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_skills__server___ensure_tool_installed --> mcp_skills__server___truncate_text
+    mcp_skills__server___git_clone_or_update --> mcp_skills__server___truncate_text
+    mcp_skills__server___collect_output_files --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_skills__server___run_tool_against_repo --> mcp_skills__server___ensure_tool_installed
+    mcp_skills__server___run_tool_against_repo --> mcp_skills__server___collect_output_files
+    mcp_skills__server___run_tool_against_repo --> mcp_skills__server___derive_repo_id_from_url
+    mcp_skills__server___run_tool_against_repo --> mcp_skills__server___git_clone_or_update
+    mcp_skills__server__analyze_code_structure --> mcp_skills__server___parse_tool_result
+    mcp_skills__server__compute_metrics --> mcp_skills__server___parse_tool_result
+    mcp_skills__server__detect_patterns --> mcp_skills__server___parse_tool_result
+    mcp_skills__server__recommend_refactoring --> mcp_skills__server___parse_tool_result
+    mcp_skills__server__run_tool_endpoint --> mcp_skills__server___run_tool_against_repo
+    mcp_gateway__server___track_repo_usage --> mcp_gateway__server___get_redis_client
+    mcp_gateway__server___get_last_used_repo --> mcp_gateway__server___get_redis_client
+    mcp_gateway__server___get_most_used_repo --> mcp_gateway__server___get_redis_client
+    mcp_gateway__server___get_preferred_repo --> mcp_gateway__server___get_last_used_repo
+    mcp_gateway__server___get_preferred_repo --> mcp_gateway__server___get_most_used_repo
+    mcp_gateway__server___is_github_configured --> mcp_gateway__server___runtime_github_token
+    mcp_gateway__server___get_default_github_repo --> mcp_gateway__server___is_github_configured
+    mcp_gateway__server___get_default_github_repo --> mcp_gateway__server___last_pushed_repo_via_gh2mcp
+    mcp_gateway__server___is_last_pushed_repo_template --> mcp_gateway__server___normalize_command_text
+    mcp_gateway__server___is_last_pushed_repo_template --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_gateway__server___is_github_token_save_command --> mcp_gateway__server___normalize_command_text
+    mcp_gateway__server___is_github_token_save_command --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_gateway__server___is_github_token_save_command --> mcp_gateway__server___extract_github_token_from_text
+    mcp_gateway__server___extract_org_from_text --> mcp_gateway__server___normalize_repo_url
+    mcp_gateway__server___extract_org_from_text --> mcp_gateway__server___github_repo_from_url
+    mcp_gateway__server___is_org_set_command --> mcp_gateway__server___normalize_command_text
+    mcp_gateway__server___is_org_set_command --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_gateway__server___is_org_list_command --> mcp_gateway__server___normalize_command_text
+    mcp_gateway__server___is_org_list_command --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_gateway__server___is_repo_list_command --> mcp_gateway__server___normalize_command_text
+    mcp_gateway__server___is_repo_list_command --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_gateway__server__parse_tool_intent --> mcp_gateway__server___normalize_command_text
+    mcp_gateway__server__parse_tool_intent --> mcp_gateway__server___strip_url_suffix
+    mcp_gateway__server___is_github_token_sync_command --> mcp_gateway__server___normalize_command_text
+    mcp_gateway__server___is_github_token_sync_command --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_gateway__server___sync_github_token_via_gh2mcp --> mcp_gateway__server___expect_json
+    mcp_gateway__server___set_default_org_via_gh2mcp --> mcp_gateway__server___expect_json
+    mcp_gateway__server___list_recent_repos_via_gh2mcp --> mcp_gateway__server___expect_json
+    mcp_gateway__server___list_orgs_via_gh2mcp --> mcp_gateway__server___expect_json
+    mcp_gateway__server___gh2mcp_status_via_gh2mcp --> mcp_gateway__server___expect_json
+    mcp_gateway__server___last_pushed_repo_via_gh2mcp --> mcp_gateway__server___expect_json
+    mcp_gateway__server___resolve_repo_id_template --> mcp_gateway__server___extract_repo_template_expression
+    mcp_gateway__server___resolve_repo_id_template --> mcp_gateway__server___is_last_pushed_repo_template
+    mcp_gateway__server___resolve_repo_id_template --> mcp_gateway__server___extract_owner_from_repo_template
+    mcp_gateway__server___resolve_repo_id_template --> mcp_gateway__server___last_pushed_repo_via_gh2mcp
+    mcp_gateway__server___resolve_repo_id_template --> mcp_gateway__server___is_github_auth_error
+    mcp_gateway__server___save_github_token_via_env2mcp --> mcp_gateway__server___extract_github_token_from_text
+    mcp_gateway__server___save_github_token_via_env2mcp --> mcp_gateway__server___save_github_token
+    mcp_gateway__server___runtime_github_token --> mcp_gateway__server___load_env_file_values
+    mcp_gateway__server___inject_github_token --> mcp_gateway__server___runtime_github_token
+    mcp_gateway__server___github_repo_from_url --> mcp_gateway__server___normalize_repo_url
+    mcp_gateway__server___create_github_pr --> mcp_gateway__server___runtime_github_token
+    mcp_gateway__server___render_analyze_text --> mcp_gateway__server___render_repo_selection_text
+    mcp_gateway__server___render_tool_text --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_gateway__server___render_chat_content --> mcp_gateway__server___render_system_text
+    mcp_gateway__server___render_chat_content --> mcp_gateway__server___render_queued_text
+    mcp_gateway__server___render_chat_content --> mcp_gateway__server___render_analyze_text
+    mcp_gateway__server___render_chat_content --> mcp_gateway__server___render_refactor_text
+    mcp_gateway__server___render_chat_content --> mcp_gateway__server___render_tool_text
+    mcp_gateway__server___render_chat_content --> mcp_gateway__server___render_tools_list_text
+    mcp_gateway__server___render_chat_content --> mcp_gateway__server___render_github_qa_text
+    mcp_gateway__server___ask_openrouter_github_qa --> mcp_gateway__server__message_content_to_text
+    mcp_gateway__server___run_github_qa --> mcp_gateway__server___repo_owner
+    mcp_gateway__server___run_github_qa --> mcp_gateway__server___ask_openrouter_github_qa
+    mcp_gateway__server___run_github_qa --> mcp_gateway__server___gh2mcp_status_via_gh2mcp
+    mcp_gateway__server___run_github_qa --> mcp_gateway__server___list_recent_repos_via_gh2mcp
+    mcp_gateway__server___run_github_qa --> env2mcp__env2mcp__config__EnvConfig__set
+    mcp_gateway__server___run_github_qa --> mcp_gateway__server___list_orgs_via_gh2mcp
+    mcp_gateway__server___run_skills_analysis --> mcp_gateway__server___expect_json
     mcp_gateway__server__authenticate --> mcp_gateway__server__find_tenant_by_key
+    mcp_gateway__server___get_queue --> mcp_gateway__server___get_rq_redis_client
+    mcp_gateway__server___save_job --> mcp_gateway__server___get_state_redis_client
+    mcp_gateway__server___save_job --> mcp_gateway__server___job_storage_key
+    mcp_gateway__server___load_job --> mcp_gateway__server___get_state_redis_client
+    mcp_gateway__server___load_job --> mcp_gateway__server___job_storage_key
+    mcp_gateway__server___update_job --> mcp_gateway__server___save_job
+    mcp_gateway__server___update_job --> mcp_gateway__server___load_job
+    mcp_gateway__server___queue_workflow_job --> mcp_gateway__server___get_queue
+    mcp_gateway__server__execute_dispatch_job --> mcp_gateway__server___update_job
+    mcp_gateway__server__execute_dispatch_job --> mcp_gateway__server__dispatch_skill
+    mcp_gateway__server__chat_completions --> mcp_gateway__server___save_job
     mcp_gateway__server__chat_completions --> mcp_gateway__server__audit
+    mcp_gateway__server__chat_completions --> mcp_gateway__server__parse_prompt_context
+    mcp_gateway__server__chat_completions --> mcp_gateway__server___is_github_token_save_command
+    mcp_gateway__server__chat_completions --> mcp_gateway__server___is_github_token_sync_command
+    mcp_gateway__server__chat_completions --> mcp_gateway__server___is_org_set_command
+    mcp_gateway__server__chat_completions --> mcp_gateway__server___is_org_list_command
+    mcp_gateway__server__chat_completions --> mcp_gateway__server___is_repo_list_command
+    mcp_gateway__server__chat_completions --> mcp_gateway__server__parse_tool_intent
+    mcp_gateway__server__chat_completions --> mcp_gateway__server___get_preferred_repo
+    mcp_gateway__server__dispatch_skill --> mcp_gateway__server___normalize_repo_url
+    mcp_gateway__server__dispatch_skill --> mcp_gateway__server___redact_repo_url
+    mcp_gateway__server__dispatch_skill --> mcp_gateway__server___save_github_token
+    mcp_gateway__server__dispatch_skill --> mcp_gateway__server___update_job
+    mcp_gateway__server__dispatch_skill --> mcp_gateway__server___inject_github_token
+    mcp_gateway__server__dispatch_skill --> mcp_gateway__server___expect_json
+    mcp_gateway__server__dispatch_skill --> mcp_gateway__server___summary_text
+    mcp_gateway__server__dispatch_skill --> mcp_gateway__server___run_skills_analysis
+    mcp_gateway__server__get_job --> mcp_gateway__server___load_job
+    mcp_gateway__server__stream_job --> mcp_gateway__server___load_job
 
     classDef highCC fill:#ff6b6b,stroke:#c92a2a,color:#fff
     classDef medCC fill:#ffd43b,stroke:#f08c00,color:#000
-    class llm_agent__agent_git2mcp__CachedCodeAnalyzer__compute_metrics,mcp_skills__server__MCPSkillsServer___sync_from_git_proxy,mcp_skills__server__MCPSkillsServer___compute_metrics_for_repo,mcp_skills__server__MCPSkillsServer___recommend_refactoring,llm_agent__agent_standalone__LocalCodeAnalyzer__compute_metrics_for_repo,llm_agent__agent_standalone__LocalCodeAnalyzer__detect_code_patterns highCC
-    class llm_agent__agent_git2mcp__CachedCodeAnalyzer__detect_patterns,llm_agent__agent_git2mcp__CachedCodeAnalyzer__recommend_refactoring,mcp_skills__server__MCPSkillsServer___analyze_code_structure,mcp_skills__server__MCPSkillsServer___detect_code_patterns,git2mcp__git2mcp__proxy__GitProxyManager___allow_local_repo_url,git2mcp__git2mcp__proxy__GitProxyManager__sync_repo,git2mcp__git2mcp__proxy__GitProxyManager__export_fragments,dashboard__server__DashboardHandler__do_GET,llm_agent__agent_standalone__LocalCodeAnalyzer__analyze_code_structure,llm_agent__agent_standalone__LocalCodeAnalyzer__recommend_refactoring medCC
+    class llm_agent__agent_standalone__LocalCodeAnalyzer__compute_metrics_for_repo,llm_agent__agent_standalone__LocalCodeAnalyzer__detect_code_patterns,llm_agent__agent_git2mcp__CachedCodeAnalyzer__compute_metrics,gh2mcp__gh2mcp__sync__GitHubTokenSyncService__get_last_pushed_repo,gh2mcp__gh2mcp__sync__GitHubTokenSyncService__get_recent_repos,gh2mcp__gh2mcp__sync__GitHubTokenSyncService__sync_token,env2mcp__env2mcp__config__EnvConfig__save,mcp_webui__server___get_github_config,mcp_webui__server__github_fetch_token_from_cli,mcp_skills__server__MCPSkillsServer___sync_from_git_proxy,mcp_skills__server__MCPSkillsServer___compute_metrics_for_repo,mcp_skills__server__MCPSkillsServer___recommend_refactoring,mcp_skills__server___run_tool_against_repo,mcp_gateway__server___is_last_pushed_repo_template,mcp_gateway__server___is_github_token_save_command,mcp_gateway__server___is_repo_list_command,mcp_gateway__server__parse_tool_intent,mcp_gateway__server___render_system_text,mcp_gateway__server___render_refactor_text,mcp_gateway__server___render_tool_text,mcp_gateway__server__chat_completions,mcp_gateway__server__dispatch_skill highCC
+    class dashboard__server__DashboardHandler__do_GET,llm_agent__agent_standalone__LocalCodeAnalyzer__analyze_code_structure,llm_agent__agent_standalone__LocalCodeAnalyzer__recommend_refactoring,llm_agent__agent_git2mcp__CachedCodeAnalyzer__detect_patterns,llm_agent__agent_git2mcp__CachedCodeAnalyzer__recommend_refactoring,git2mcp__git2mcp__proxy__GitProxyManager___allow_local_repo_url,git2mcp__git2mcp__proxy__GitProxyManager__sync_repo,git2mcp__git2mcp__proxy__GitProxyManager__export_fragments,gh2mcp__gh2mcp__sync__GitHubTokenSyncService__list_orgs_and_repos,env2mcp__env2mcp__config__EnvConfig___load,env2mcp__env2mcp__github_cli__GitHubCLI__get_auth_status,env2mcp__env2mcp__github_cli__configure_github,env2mcp__env2mcp__cli__cmd_github_status,mcp_webui__server__github_configure,mcp_git_proxy__server__github_create_repo,mcp_skills__server__MCPSkillsServer___analyze_code_structure,mcp_skills__server__MCPSkillsServer___detect_code_patterns,mcp_skills__server___ensure_tool_installed,mcp_skills__server___git_clone_or_update,mcp_skills__server___derive_repo_id_from_url,mcp_skills__server___collect_output_files,mcp_skills__server___run_redsl_refactor,mcp_skills__server__redsl_refactor,mcp_gateway__server___get_last_used_repo,mcp_gateway__server___get_most_used_repo,mcp_gateway__server__message_content_to_text,mcp_gateway__server__parse_prompt_context,mcp_gateway__server___extract_org_from_text,mcp_gateway__server___is_org_set_command,mcp_gateway__server___is_org_list_command medCC

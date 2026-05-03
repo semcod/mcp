@@ -1360,19 +1360,78 @@ def _render_refactor_text(result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+_FENCE_LANG_MAP: dict[str, str] = {
+    ".py": "python",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".json": "json",
+    ".toml": "toml",
+    ".md": "markdown",
+    ".mmd": "mermaid",
+    ".mermaid": "mermaid",
+    ".less": "less",
+    ".css": "css",
+    ".js": "javascript",
+    ".ts": "typescript",
+    ".jsx": "jsx",
+    ".tsx": "tsx",
+    ".sh": "bash",
+    ".bash": "bash",
+    ".zsh": "bash",
+    ".sql": "sql",
+    ".html": "html",
+    ".htm": "html",
+    ".xml": "xml",
+    ".rs": "rust",
+    ".go": "go",
+    ".java": "java",
+    ".kt": "kotlin",
+    ".rb": "ruby",
+    ".php": "php",
+    ".cs": "csharp",
+    ".cpp": "cpp",
+    ".c": "c",
+    ".h": "c",
+    ".tf": "hcl",
+    ".hcl": "hcl",
+    ".ini": "ini",
+    ".env": "bash",
+    ".dockerfile": "dockerfile",
+    ".toon": "yaml",
+    ".doql": "less",
+    ".planfile": "yaml",
+    ".diff": "diff",
+    ".patch": "diff",
+}
+
+# File names (basename) that have a known language.
+_FENCE_NAME_MAP: dict[str, str] = {
+    "dockerfile": "dockerfile",
+    "makefile": "makefile",
+    "taskfile.yml": "yaml",
+    "taskfile.yaml": "yaml",
+    ".env": "bash",
+    ".env.example": "bash",
+    "cargo.toml": "toml",
+    "pyproject.toml": "toml",
+    "package.json": "json",
+    "composer.json": "json",
+}
+
+
 def _file_fence_lang(path: str) -> str:
     p = path.lower()
-    if p.endswith(".md"):
-        return "markdown"
-    if p.endswith((".yaml", ".yml")):
-        return "yaml"
-    if p.endswith(".json"):
-        return "json"
-    if p.endswith(".toml"):
-        return "toml"
-    if p.endswith((".py",)):
-        return "python"
+    basename = p.rsplit("/", 1)[-1]
+    if basename in _FENCE_NAME_MAP:
+        return _FENCE_NAME_MAP[basename]
+    for ext, lang in _FENCE_LANG_MAP.items():
+        if p.endswith(ext):
+            return lang
     return ""
+
+
+def _is_markdown_path(path: str) -> bool:
+    return path.lower().endswith(".md")
 
 
 def _render_tool_text(result: dict[str, Any]) -> str:
@@ -1456,11 +1515,19 @@ def _render_tool_text(result: dict[str, Any]) -> str:
         if content is None:
             lines.append("_binary file_")
             continue
-        lang = _file_fence_lang(path)
-        fence = f"```{lang}" if lang else "```"
-        lines.append(fence)
-        lines.append(content[:8000])
-        lines.append("```")
+        text = content[:16000]
+        if _is_markdown_path(path):
+            # Render Markdown files directly — avoid nested fences.
+            # Replace any 3-backtick fences with 4-backtick fences to prevent
+            # collision with the outer code block, then just output raw.
+            lines.append(text)
+        else:
+            lang = _file_fence_lang(path)
+            # Use 4-backtick fence so inner 3-backtick fences don't break rendering.
+            fence_open = f"````{lang}" if lang else "````"
+            lines.append(fence_open)
+            lines.append(text)
+            lines.append("````")
 
     extra = [e for e in output_files if (e.get("path") or "?") not in rendered_paths]
     if extra:
@@ -1512,6 +1579,8 @@ def _render_chat_content(result: dict[str, Any]) -> str:
         return _render_refactor_text(result)
     if skill == "tool":
         return _render_tool_text(result.get("tool_result") or result)
+    if skill == "tools_list":
+        return _render_tools_list_text(result.get("tools_list") or result)
     if skill == "github_qa":
         return _render_github_qa_text(result)
 
@@ -1540,6 +1609,51 @@ async def _expect_json(response: httpx.Response, action: str) -> dict[str, Any]:
     if isinstance(data, dict):
         return data
     raise ValueError(f"{action} returned non-object payload")
+
+
+def _is_tools_list_command(msg: str) -> bool:
+    """Detect 'lista narzędzi' / 'list tools' / 'jakie narzędzia' style prompts."""
+    m = msg.lower()
+    return bool(
+        re.search(r"\blista\s+narz[eę]dzi\b", m)
+        or re.search(r"\blist\s+tools?\b", m)
+        or re.search(r"\bjakie\s+narz[eę]dzia\b", m)
+        or re.search(r"\bshow\s+tools?\b", m)
+        or re.search(r"\bdost[eę]pne\s+narz[eę]dzia\b", m)
+        or re.search(r"\bnarz[eę]dzia\b.*\bdost[eę]pne\b", m)
+    )
+
+
+async def _fetch_tools_list() -> dict[str, Any]:
+    """Call mcp-skills /tools/list."""
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        response = await client.get(f"{SKILLS_URL}/tools/list")
+        if response.status_code >= 400:
+            return {"ok": False, "error": f"HTTP {response.status_code}"}
+        return {**response.json(), "ok": True}
+
+
+def _render_tools_list_text(result: dict[str, Any]) -> str:
+    """Render /tools/list result as Markdown."""
+    if not result.get("ok"):
+        return f"⚠️ Nie udało się pobrać listy narzędzi: {result.get('error')}"
+    tools = result.get("tools") or []
+    lines = [f"## Dostępne narzędzia semcod ({len(tools)})\n"]
+    for t in tools:
+        name = t.get("tool", "?")
+        desc = t.get("description") or ""
+        cmd = t.get("binary", name)
+        sub = t.get("default_subcommand") or ""
+        args = " ".join(t.get("default_args") or [])
+        invocation = f"`{cmd} {sub} {args}`.strip()" if sub or args else f"`{cmd}`"
+        invocation = f"`{cmd}{' ' + sub if sub else ''}{' ' + args if args else ''}`"
+        lines.append(f"- **{name}** — {desc}")
+        lines.append(f"  Domyślne wywołanie: {invocation}")
+        if t.get("key_outputs"):
+            lines.append(f"  Pliki wyjściowe: {', '.join(f'`{o}`' for o in t['key_outputs'][:3])}")
+    lines.append("")
+    lines.append("_Użycie: `wygeneruj <narzędzie> dla <owner/repo>`_")
+    return "\n".join(lines)
 
 
 async def _run_skills_tool(
@@ -2206,6 +2320,11 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
                 repo_id=repo_id_input,
                 repo_url=repo_url,
             )
+
+        # Lista dostępnych narzędzi
+        if _is_tools_list_command(user_msg) or (force_tool_skill and _is_tools_list_command(user_request)):
+            tools_list = await _fetch_tools_list()
+            return {"skill": "tools_list", "tenant": tenant_id, "tools_list": tools_list}
 
         # NLP-routed tool execution (sumd / code2llm / redsl / ...)
         if tool_intent is not None:

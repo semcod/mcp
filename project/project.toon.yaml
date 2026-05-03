@@ -1,51 +1,51 @@
-# mcp | 172 func | 18f | 10178L | python | 2026-05-03
+# mcp | 422 func | 30f | 26333L | python | 2026-05-03
 
 HEALTH:
-  CC̄=2.9  critical=11 (limit:10)  dup=2  cycles=0
+  CC̄=3.7  critical=44 (limit:10)  dup=3  cycles=0
 
 ALERTS[20]:
+  !!! high_fan_out     chat_completions = 56 (limit:10)
+  !!! high_fan_out     _run_tool_against_repo = 41 (limit:10)
+  !!! cc_exceeded      _render_tool_text = 40 (limit:15)
+  !!! cc_exceeded      _run_tool_against_repo = 37 (limit:15)
+  !!! cc_exceeded      GitHubTokenSyncService.get_recent_repos = 32 (limit:15)
+  !!! cc_exceeded      chat_completions = 31 (limit:15)
   !!! high_fan_out     MCPSkillsServer._sync_from_git_proxy = 30 (limit:10)
-  !!! high_fan_out     main = 23 (limit:10)
-  !!! high_fan_out     GitProxyManager.sync_repo = 23 (limit:10)
-  !!! high_fan_out     chat_completions = 21 (limit:10)
-  !!  high_fan_out     MCPSkillsServer._detect_code_patterns = 19 (limit:10)
-  !!  high_fan_out     MCPSkillsServer._compute_metrics_for_repo = 18 (limit:10)
-  !!  high_fan_out     MCPSkillsServer._analyze_code_structure = 16 (limit:10)
-  !!  high_fan_out     GitProxyManager.export_package = 16 (limit:10)
-  !!  high_fan_out     CachedCodeAnalyzer.detect_patterns = 15 (limit:10)
-  !!  high_fan_out     LocalCodeAnalyzer.detect_code_patterns = 15 (limit:10)
+  !!! cc_exceeded      _render_system_text = 27 (limit:15)
+  !!! high_fan_out     dispatch_skill = 26 (limit:10)
+  !!! high_fan_out     GitHubTokenSyncService.get_recent_repos = 24 (limit:10)
 
-MODULES[52] (top by size):
-  M[mcp-skills/server.py] 639L C:1 F:12 CC↑15 D:0 (python)
+MODULES[87] (top by size):
+  M[mcp-gateway/server.py] 2908L C:2 F:86 CC↑40 D:0 (python)
+  M[mcp-skills/server.py] 1462L C:8 F:29 CC↑37 D:0 (python)
+  M[mcp-webui/server.py] 621L C:0 F:19 CC↑16 D:0 (python)
   M[llm-agent/agent_standalone.py] 540L C:3 F:14 CC↑15 D:0 (python)
-  M[goal.yaml] 512L C:0 F:0 CC↑0 D:0 (yaml)
+  M[ansible/e2e-gh2mcp.yml] 520L C:0 F:1 CC↑0 D:0 (yml)
+  M[goal.yaml] 510L C:0 F:0 CC↑0 D:0 (yaml)
+  M[planfile.yaml] 461L C:0 F:0 CC↑0 D:0 (yaml)
+  M[mcp-git-proxy/server.py] 443L C:19 F:22 CC↑9 D:0 (python)
   M[git2mcp/git2mcp/proxy.py] 437L C:1 F:21 CC↑12 D:0 (python)
-  M[scripts/test.sh] 397L C:1 F:14 CC↑0 D:9 (shell)
+  M[gh2mcp/gh2mcp/sync.py] 430L C:1 F:7 CC↑32 D:0 (python)
+  M[scripts/test.sh] 404L C:1 F:14 CC↑0 D:12 (shell)
+  M[scripts/generate_demo_repos.sh] 396L C:0 F:18 CC↑0 D:0 (shell)
   M[llm-agent/agent.py] 375L C:2 F:13 CC↑4 D:0 (python)
   M[llm-agent/agent_git2mcp.py] 361L C:3 F:13 CC↑15 D:0 (python)
-  M[mcp-git-proxy/server.py] 298L C:17 F:20 CC↑3 D:0 (python)
-  M[mcp-gateway/server.py] 238L C:2 F:10 CC↑7 D:0 (python)
-  M[dashboard/server.py] 189L C:2 F:10 CC↑8 D:0 (python)
-  M[docker-compose.yml] 169L C:0 F:0 CC↑0 D:0 (yml)
-  M[mcp-webui/server.py] 127L C:0 F:8 CC↑5 D:0 (python)
-  M[scripts/deploy.sh] 127L C:0 F:7 CC↑0 D:0 (shell)
-  M[git2mcp/examples/05_local_iterate.py] 126L C:0 F:1 CC↑5 D:0 (python)
-  M[git2mcp/planfile.yaml] 123L C:0 F:0 CC↑0 D:0 (yaml)
-  LANGS: python:19/yaml:13/other:6/txt:6/shell:5/yml:2/toml:1
+  M[env2mcp/env2mcp/github_cli.py] 330L C:1 F:11 CC↑14 D:1 (python)
+  LANGS: python:29/yaml:23/other:9/txt:8/yml:7/shell:7/toml:3/ini:1
 
 HOTSPOTS[10]:
+  ★ chat_completions fan=56  // Orchestrates 56 calls
+  ★ _run_tool_against_repo fan=41  // Orchestrates 41 calls
   ★ MCPSkillsServer._sync_from_git_proxy fan=30  // Orchestrates 30 calls
-  ★ main fan=23  // Orchestrates 23 calls
-  ★ GitProxyManager.sync_repo fan=23  // Orchestrates 23 calls
-  ★ chat_completions fan=21  // Orchestrates 21 calls
-  ★ MCPSkillsServer._detect_code_patterns fan=19  // Wykrywanie wzorców kodu i antywzorców
+  ★ dispatch_skill fan=26  // 26-way dispatch
+  ★ GitHubTokenSyncService.get_recent_repos fan=24  // Orchestrates 24 calls
 
-REFACTOR[12]:
-  [1] H/H Split god module llm-agent/agent_standalone.py (540L, 3 classes)
-  [2] H/H Split god module mcp-skills/server.py (639L, 1 classes)
-  [3] H/H Split god module goal.yaml (512L, 0 classes)
-  [4] M/L Split CachedCodeAnalyzer.compute_metrics (CC=15)
-  [5] M/L Split MCPSkillsServer._sync_from_git_proxy (CC=15)
+REFACTOR[15]:
+  [1] H/L Split GitHubTokenSyncService.get_recent_repos (CC=32)
+  [2] H/L Split _run_tool_against_repo (CC=37)
+  [3] H/L Split _render_system_text (CC=27)
+  [4] H/L Split _render_tool_text (CC=40)
+  [5] H/L Split chat_completions (CC=31)
 
 EVOLUTION:
-  2026-05-03 CC̄=2.9 crit=11 10178L // Automated analysis
+  2026-05-03 CC̄=3.7 crit=44 26333L // Automated analysis

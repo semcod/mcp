@@ -8,6 +8,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.10] - 2026-05-03
 
 ### Fixed
+- Fix relative-imports issues (ticket-3b8719c4)
+- Fix relative-imports issues (ticket-0234b9a8)
+- Fix string-concat issues (ticket-f0afb114)
+- Fix unused-imports issues (ticket-e74f97d9)
+- Fix magic-numbers issues (ticket-a9b9165f)
+- Fix ai-boilerplate issues (ticket-76691dde)
+- Fix smart-return-type issues (ticket-916374bd)
+- Fix unused-imports issues (ticket-973be596)
+- Fix relative-imports issues (ticket-5e131711)
+- Fix relative-imports issues (ticket-8a24b190)
+- Fix string-concat issues (ticket-d1919ee1)
+- Fix unused-imports issues (ticket-bc72edc1)
+- Fix magic-numbers issues (ticket-873af373)
+- Fix llm-generated-code issues (ticket-88728fa9)
+- Fix relative-imports issues (ticket-7655ac63)
+- Fix unused-imports issues (ticket-1c169665)
+- Fix magic-numbers issues (ticket-39ce0253)
+- Fix ai-boilerplate issues (ticket-02a9c6cb)
+- Fix string-concat issues (ticket-00451893)
+- Fix unused-imports issues (ticket-fd256bd3)
+- Fix magic-numbers issues (ticket-94df9f8e)
+- Fix relative-imports issues (ticket-09cd63ff)
+- Fix unused-imports issues (ticket-c23207aa)
+- Fix magic-numbers issues (ticket-7c348e41)
+- Fix smart-return-type issues (ticket-58aa280e)
+- Fix unused-imports issues (ticket-c9e79ed1)
+- Fix unused-imports issues (ticket-6e8ee29e)
+- Fix magic-numbers issues (ticket-3c9aac83)
+- Fix smart-return-type issues (ticket-a001ca2a)
+- Fix unused-imports issues (ticket-eb4f0127)
+- Fix llm-hallucinations issues (ticket-62b8e4ab)
+- Fix smart-return-type issues (ticket-62aebf74)
+- Fix string-concat issues (ticket-9589658a)
+- Fix unused-imports issues (ticket-53cc4c9a)
+- Fix unused-imports issues (ticket-4ba9e289)
+- Fix ai-boilerplate issues (ticket-4e1f11b3)
+- Fix string-concat issues (ticket-cf238806)
+- Fix smart-return-type issues (ticket-8655bcaa)
+- Fix unused-imports issues (ticket-c2cf30c6)
+- Fix duplicate-imports issues (ticket-9bde2585)
+- Fix string-concat issues (ticket-21e868b1)
+
+## [0.1.10] - 2026-05-03
+
+### Fixed
 - Fix relative-imports issues (ticket-fdfba7d4)
 - Fix smart-return-type issues (ticket-6313e5f3)
 - Fix unused-imports issues (ticket-928c5400)
@@ -44,6 +89,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix magic-numbers issues (ticket-4ee2ec52)
 
 ## [Unreleased]
+
+## [0.0.6] - 2026-05-03
+
+### Docs
+- Update CHANGELOG.md
+- Update SUMD.md
+- Update SUMR.md
+- Update TODO.md
+- Update TODO/1.md
+- Update TODO/2.md
+- Update TODO/3.md
+- Update project/README.md
+- Update project/context.md
+
+### Other
+- Update app.doql.less
+- Update env2mcp/env2mcp/config.py
+- Update mcp-gateway/conftest.py
+- Update mcp-gateway/server.py
+- Update mcp-skills/conftest.py
+- Update mcp-skills/server.py
+- Update mcp-skills/test_tools_run.py
+- Update mcp-webui/templates/base.html
+- Update mcp-webui/templates/playground.html
+- Update mcp-webui/templates/skills.html
+- ... and 20 more files
 
 ## [0.0.5] - 2026-05-03
 

@@ -11,6 +11,12 @@ GH_DEMO_PROVIDER="${GH_DEMO_PROVIDER:-auto}"
 GH_DEMO_PREFIX="${GH_DEMO_PREFIX:-mcp-demo}"
 GH_DEMO_VISIBILITY="${GH_DEMO_VISIBILITY:-private}"
 
+# Porty z .env lub defaults
+if [ -f "$ENV_FILE" ]; then
+  set -a; source "$ENV_FILE"; set +a
+fi
+PORT_GIT_PROXY="${PORT_GIT_PROXY:-8081}"
+
 DEMO_REPOS=(
   "refactor-lab"
   "migration-lab"
@@ -349,7 +355,7 @@ sync_to_proxy() {
     fi
   fi
 
-  curl -fsS -X POST "http://localhost:8081/repos/sync" \
+  curl -fsS -X POST "http://localhost:${PORT_GIT_PROXY}/repos/sync" \
     -H 'Content-Type: application/json' \
     -d "{\"repo_id\":\"$repo_id\",\"repo_url\":\"$remote_url_for_proxy\",\"branch\":\"main\"}" >/dev/null
 }
@@ -379,12 +385,12 @@ for line in "${OUTPUT_LINES[@]}"; do
   echo "  provider: $provider"
 done
 
-if curl -fsS "http://localhost:8081/health" >/dev/null 2>&1; then
+if curl -fsS "http://localhost:${PORT_GIT_PROXY}/health" >/dev/null 2>&1; then
   for line in "${OUTPUT_LINES[@]}"; do
     IFS='|' read -r name path remote_display remote_for_proxy provider <<<"$line"
     sync_to_proxy "demo/$name" "$remote_for_proxy"
   done
   echo "Synced to mcp-git-proxy as: demo/refactor-lab, demo/migration-lab, demo/integration-lab"
 else
-  echo "mcp-git-proxy is not reachable on http://localhost:8081 (skip sync)."
+  echo "mcp-git-proxy is not reachable on http://localhost:${PORT_GIT_PROXY} (skip sync)."
 fi

@@ -2,12 +2,171 @@
 {% block title %}Playground - MCP WebUI{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-semibold mb-4">Free-form playground</h1>
-<form hx-post="/skills/run" hx-target="#out" class="bg-white rounded shadow p-4 grid grid-cols-1 gap-3">
-  <input type="hidden" name="model" value="mcp-skills/refactor">
-  <input name="repo_id" class="border p-1 rounded" placeholder="repo_id (optional)">
-  <input name="source_path" class="border p-1 rounded" placeholder="source_path (optional)">
-  <textarea name="prompt" class="border p-1 rounded h-32" required>Co byś zrefaktoryzował w tym repo i dlaczego?</textarea>
-  <button class="bg-slate-900 text-white px-4 py-1 rounded">Send</button>
+<form id="pg-form" class="bg-white rounded shadow p-4 grid grid-cols-1 gap-3">
+  <div class="grid grid-cols-2 gap-2">
+    <select name="model" id="pg-model" class="border p-1 rounded col-span-2">
+      <option value="mcp-skills/refactor">mcp-skills/refactor</option>
+      <option value="mcp-skills/analyze">mcp-skills/analyze</option>
+      <option value="mcp-skills/system">mcp-skills/system</option>
+      <option value="mcp-skills/github-qa">mcp-skills/github-qa</option>
+      <option value="mcp-skills/tool">mcp-skills/tool</option>
+    </select>
+    <input name="repo_id" id="pg-repo" class="border p-1 rounded" placeholder="repo_id (opcjonalnie)">
+    <input name="source_path" id="pg-src" class="border p-1 rounded" placeholder="source_path (opcjonalnie)">
+  </div>
+  <textarea name="prompt" id="pg-prompt" class="border p-1 rounded h-32" required>Co byś zrefaktoryzował w tym repo i dlaczego?</textarea>
+  <div class="flex gap-2 items-center">
+    <button type="submit" id="pg-btn" class="bg-slate-900 text-white px-4 py-1 rounded">Wyślij</button>
+    <span id="pg-status" class="text-xs text-slate-400"></span>
+    <label class="ml-auto flex items-center gap-1 text-xs text-slate-500">
+      <input type="checkbox" id="pg-raw" class="accent-slate-700"> Pokaż raw JSON
+    </label>
+  </div>
 </form>
-<pre id="out" class="mt-4 bg-slate-50 p-3 text-xs overflow-x-auto rounded shadow"></pre>
+
+<div id="out-wrap" class="mt-4 hidden">
+  <div class="flex gap-2 mb-2 items-center">
+    <span class="text-sm font-semibold text-slate-600">Odpowiedź</span>
+    <button onclick="copyResult()" class="text-xs border rounded px-2 py-0.5 hover:bg-slate-100">📋 Kopiuj</button>
+  </div>
+  <div id="out-rendered" class="bg-white rounded shadow p-4 text-sm"></div>
+  <pre id="out-raw" class="hidden mt-2 bg-slate-900 text-green-300 p-3 text-xs overflow-x-auto rounded shadow max-h-96"></pre>
+</div>
+
+<script>
+  let _lastRawText = '';
+
+  document.getElementById('pg-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('pg-btn');
+    const status = document.getElementById('pg-status');
+    btn.disabled = true;
+    btn.textContent = '⏳ Wysyłanie...';
+    status.textContent = '';
+
+    const model = document.getElementById('pg-model').value;
+    const repo_id = document.getElementById('pg-repo').value;
+    const source_path = document.getElementById('pg-src').value;
+    const prompt = document.getElementById('pg-prompt').value;
+
+    const fd = new FormData();
+    fd.append('model', model);
+    fd.append('prompt', prompt);
+    fd.append('repo_id', repo_id);
+    fd.append('source_path', source_path);
+
+    try {
+      const resp = await fetch('/skills/run', { method: 'POST', body: fd });
+      const data = await resp.json();
+      _lastRawText = JSON.stringify(data, null, 2);
+
+      // Extract content from OpenAI-style response
+      let content = '';
+      if (data.choices && data.choices[0]?.message?.content) {
+        content = data.choices[0].message.content;
+        // Try to parse inner JSON (MCP gateway returns JSON string)
+        try {
+          const inner = JSON.parse(content);
+          content = innerToMarkdown(inner);
+        } catch(_) {}
+      } else if (data.raw) {
+        content = data.raw;
+      } else {
+        content = _lastRawText;
+      }
+
+      document.getElementById('out-wrap').classList.remove('hidden');
+      const renderedEl = document.getElementById('out-rendered');
+      renderMarkdownWithArtifacts(content, renderedEl);
+
+      const rawEl = document.getElementById('out-raw');
+      rawEl.textContent = _lastRawText;
+      rawEl.classList.toggle('hidden', !document.getElementById('pg-raw').checked);
+
+      status.textContent = resp.ok ? '✓ OK' : '⚠ HTTP ' + resp.status;
+    } catch(err) {
+      status.textContent = '✗ ' + err.message;
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Wyślij';
+  });
+
+  document.getElementById('pg-raw').addEventListener('change', function() {
+    document.getElementById('out-raw').classList.toggle('hidden', !this.checked);
+  });
+
+  function innerToMarkdown(obj) {
+    // Convert MCP gateway JSON payload to readable Markdown
+    const lines = [];
+    if (obj.skill)      lines.push(`**Skill:** \`${obj.skill}\``);
+    if (obj.repo_id)    lines.push(`**Repo:** \`${obj.repo_id}\``);
+    if (obj.branch)     lines.push(`**Branch:** \`${obj.branch}\``);
+    if (obj.base_branch)lines.push(`**Base branch:** \`${obj.base_branch}\``);
+    if (lines.length)   lines.push('');
+
+    if (obj.answer)     lines.push(obj.answer, '');
+    if (obj.summary)    lines.push('## Podsumowanie', obj.summary, '');
+    if (obj.recommendation) lines.push('## Rekomendacja', obj.recommendation, '');
+
+    if (obj.recommendations && Array.isArray(obj.recommendations)) {
+      lines.push('## Rekomendacje');
+      obj.recommendations.forEach(r => {
+        lines.push(`### ${r.title || r.type || 'Item'}`);
+        if (r.description) lines.push(r.description);
+        if (r.example)     lines.push('```\n' + r.example + '\n```');
+        lines.push('');
+      });
+    }
+
+    if (obj.changes && Array.isArray(obj.changes)) {
+      lines.push('## Zmiany');
+      obj.changes.forEach(c => {
+        lines.push(`- **${c.file || c.path || '?'}**: ${c.description || c.reason || ''}`);
+      });
+      lines.push('');
+    }
+
+    if (obj.execution) {
+      const ex = obj.execution;
+      lines.push('## Wykonanie');
+      if (ex.committed !== undefined) lines.push(`- Committed: \`${ex.committed}\``);
+      if (ex.pushed    !== undefined) lines.push(`- Pushed: \`${ex.pushed}\``);
+      if (ex.tests?.ok !== undefined) lines.push(`- Testy: \`${ex.tests.ok ? '✓ OK' : '✗ FAILED'}\``);
+      if (ex.tests?.output) lines.push('```\n' + ex.tests.output + '\n```');
+      lines.push('');
+    }
+
+    if (obj.diff) lines.push('## Diff', '```diff\n' + obj.diff + '\n```', '');
+    if (obj.diagram) lines.push('## Diagram', '```mermaid\n' + obj.diagram + '\n```', '');
+
+    if (obj.repos && Array.isArray(obj.repos)) {
+      lines.push('## Repozytoria');
+      obj.repos.forEach(r => {
+        lines.push(`- **${r.nameWithOwner || r.repo_id || r.name}** — ${r.pushedAt || ''}`);
+      });
+      lines.push('');
+    }
+
+    if (obj.tool) {
+      lines.push(`## Wynik narzędzia: \`${obj.tool}\``);
+      if (obj.stdout) lines.push('### stdout', '```\n' + obj.stdout.slice(0, 4000) + '\n```', '');
+      if (obj.stderr) lines.push('### stderr', '```\n' + obj.stderr.slice(0, 1000) + '\n```', '');
+    }
+
+    // Fallback: jeśli nic nie dopasowano, dump JSON
+    if (lines.length <= 3) {
+      return '```json\n' + JSON.stringify(obj, null, 2) + '\n```';
+    }
+    return lines.join('\n');
+  }
+
+  function copyResult() {
+    navigator.clipboard.writeText(_lastRawText).then(() => {
+      const btn = event.target;
+      btn.textContent = '✓ Skopiowano';
+      setTimeout(() => btn.textContent = '📋 Kopiuj', 1500);
+    });
+  }
+</script>
 {% endblock %}

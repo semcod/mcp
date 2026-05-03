@@ -5,6 +5,76 @@
 <title>{% block title %}MCP WebUI{% endblock %}</title>
 <script src="https://unpkg.com/htmx.org@1.9.12"></script>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/diff.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  .mermaid-block { background:#1e1e2e; border-radius:8px; padding:16px; margin:8px 0; overflow-x:auto; }
+  .rendered-md { line-height:1.7; }
+  .rendered-md h1,.rendered-md h2,.rendered-md h3 { font-weight:700; margin:1em 0 .4em; }
+  .rendered-md h1 { font-size:1.5em; } .rendered-md h2 { font-size:1.25em; } .rendered-md h3 { font-size:1.1em; }
+  .rendered-md ul,.rendered-md ol { padding-left:1.5em; margin:.4em 0; }
+  .rendered-md li { margin:.2em 0; }
+  .rendered-md code:not([class]) { background:#f1f5f9; padding:2px 6px; border-radius:4px; font-family:monospace; font-size:.9em; }
+  .rendered-md pre { margin:.6em 0; border-radius:8px; overflow-x:auto; }
+  .rendered-md blockquote { border-left:4px solid #94a3b8; padding-left:1em; color:#64748b; margin:.5em 0; }
+  .rendered-md table { border-collapse:collapse; width:100%; margin:.5em 0; }
+  .rendered-md th,.rendered-md td { border:1px solid #e2e8f0; padding:6px 12px; }
+  .rendered-md th { background:#f8fafc; font-weight:600; }
+</style>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose' });
+  });
+
+  function renderMarkdownWithArtifacts(text, targetEl) {
+    if (!text) { targetEl.textContent = ''; return; }
+
+    // Try JSON parse first — pretty-print or render as markdown
+    let mdText = text;
+    try {
+      const obj = JSON.parse(text);
+      // If it has a 'content' or 'choices' key (raw OpenAI response), extract text
+      if (obj.choices && obj.choices[0]?.message?.content) {
+        mdText = obj.choices[0].message.content;
+        try { mdText = JSON.stringify(JSON.parse(mdText), null, 2); } catch(_) {}
+      } else {
+        mdText = '```json\n' + JSON.stringify(obj, null, 2) + '\n```';
+      }
+    } catch(_) {}
+
+    // Render markdown
+    const renderer = new marked.Renderer();
+    const originalCode = renderer.code.bind(renderer);
+    renderer.code = function(code, lang) {
+      const language = (lang || '').toLowerCase().trim();
+      if (language === 'mermaid') {
+        const id = 'mermaid-' + Math.random().toString(36).slice(2);
+        return `<div class="mermaid-block"><div class="mermaid" id="${id}">${code}</div></div>`;
+      }
+      return originalCode(code, lang);
+    };
+
+    marked.use({ renderer, gfm: true, breaks: true });
+    targetEl.innerHTML = '<div class="rendered-md">' + marked.parse(mdText) + '</div>';
+
+    // Syntax highlight non-mermaid blocks
+    targetEl.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+
+    // Render mermaid diagrams
+    targetEl.querySelectorAll('.mermaid').forEach(el => {
+      mermaid.render(el.id + '-svg', el.textContent).then(({svg}) => {
+        el.innerHTML = svg;
+      }).catch(err => {
+        el.textContent = 'Mermaid error: ' + err.message;
+        el.style.color = '#f87171';
+      });
+    });
+  }
+</script>
 </head>
 <body class="bg-slate-100 text-slate-800">
 <nav class="bg-slate-900 text-white px-6 py-3 flex gap-4">

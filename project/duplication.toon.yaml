@@ -1,62 +1,84 @@
-# redup/duplication | 4 groups | 19f 3746L | 2026-05-03
+# redup/duplication | 6 groups | 32f 8868L | 2026-05-03
 
 SUMMARY:
-  files_scanned: 19
-  total_lines:   3746
-  dup_groups:    4
-  dup_fragments: 10
-  saved_lines:   61
-  scan_ms:       6961
+  files_scanned: 32
+  total_lines:   8868
+  dup_groups:    6
+  dup_fragments: 16
+  saved_lines:   98
+  scan_ms:       7442
 
-HOTSPOTS[3] (files with most duplication):
-  llm-agent/agent.py  dup=41L  groups=2  frags=2  (1.1%)
-  llm-agent/agent_standalone.py  dup=41L  groups=2  frags=2  (1.1%)
-  mcp-git-proxy/server.py  dup=30L  groups=2  frags=6  (0.8%)
+HOTSPOTS[5] (files with most duplication):
+  llm-agent/agent.py  dup=41L  groups=2  frags=2  (0.5%)
+  llm-agent/agent_standalone.py  dup=41L  groups=2  frags=2  (0.5%)
+  mcp-skills/server.py  dup=32L  groups=1  frags=4  (0.4%)
+  mcp-git-proxy/server.py  dup=30L  groups=2  frags=6  (0.3%)
+  mcp-gateway/server.py  dup=26L  groups=1  frags=2  (0.3%)
 
-DUPLICATES[4] (ranked by impact):
+DUPLICATES[6] (ranked by impact):
   [aea4a7a9526a2ad3]   EXAC  _mock_llm_response  L=30 N=2 saved=30 sim=1.00
       llm-agent/agent.py:232-261  (_mock_llm_response)
       llm-agent/agent_standalone.py:405-434  (_mock_llm_response)
+  [467fd96667a253a0]   STRU  analyze_code_structure  L=8 N=4 saved=24 sim=1.00
+      mcp-skills/server.py:1288-1295  (analyze_code_structure)
+      mcp-skills/server.py:1299-1306  (compute_metrics)
+      mcp-skills/server.py:1310-1317  (detect_patterns)
+      mcp-skills/server.py:1321-1328  (recommend_refactoring)
   [d7672c451ace4405]   STRU  worktree_diff  L=5 N=4 saved=15 sim=1.00
-      mcp-git-proxy/server.py:213-217  (worktree_diff)
-      mcp-git-proxy/server.py:229-233  (stage)
-      mcp-git-proxy/server.py:237-241  (stash_save)
-      mcp-git-proxy/server.py:261-265  (checkpoint_create)
+      mcp-git-proxy/server.py:230-234  (worktree_diff)
+      mcp-git-proxy/server.py:246-250  (stage)
+      mcp-git-proxy/server.py:254-258  (stash_save)
+      mcp-git-proxy/server.py:278-282  (checkpoint_create)
+  [bf41aa98652b1a64]   STRU  _get_state_redis_client  L=13 N=2 saved=13 sim=1.00
+      mcp-gateway/server.py:2013-2025  (_get_state_redis_client)
+      mcp-gateway/server.py:2028-2040  (_get_rq_redis_client)
   [5865906155183adc]   EXAC  _mock_llm_response_from_prompt  L=11 N=2 saved=11 sim=1.00
       llm-agent/agent.py:263-273  (_mock_llm_response_from_prompt)
       llm-agent/agent_standalone.py:436-446  (_mock_llm_response_from_prompt)
   [796eb26d67b6a889]   STRU  push  L=5 N=2 saved=5 sim=1.00
-      mcp-git-proxy/server.py:179-183  (push)
-      mcp-git-proxy/server.py:253-257  (branch_draft)
+      mcp-git-proxy/server.py:196-200  (push)
+      mcp-git-proxy/server.py:270-274  (branch_draft)
 
-REFACTOR[4] (ranked by priority):
+REFACTOR[6] (ranked by priority):
   [1] ○ extract_class      → llm-agent/utils/_mock_llm_response.py
       WHY: 2 occurrences of 30-line block across 2 files — saves 30 lines
       FILES: llm-agent/agent.py, llm-agent/agent_standalone.py
-  [2] ○ extract_function   → mcp-git-proxy/utils/worktree_diff.py
+  [2] ○ extract_function   → mcp-skills/utils/analyze_code_structure.py
+      WHY: 4 occurrences of 8-line block across 1 files — saves 24 lines
+      FILES: mcp-skills/server.py
+  [3] ○ extract_function   → mcp-git-proxy/utils/worktree_diff.py
       WHY: 4 occurrences of 5-line block across 1 files — saves 15 lines
       FILES: mcp-git-proxy/server.py
-  [3] ○ extract_class      → llm-agent/utils/_mock_llm_response_from_prompt.py
+  [4] ○ extract_function   → mcp-gateway/utils/_get_state_redis_client.py
+      WHY: 2 occurrences of 13-line block across 1 files — saves 13 lines
+      FILES: mcp-gateway/server.py
+  [5] ○ extract_class      → llm-agent/utils/_mock_llm_response_from_prompt.py
       WHY: 2 occurrences of 11-line block across 2 files — saves 11 lines
       FILES: llm-agent/agent.py, llm-agent/agent_standalone.py
-  [4] ○ extract_function   → mcp-git-proxy/utils/push.py
+  [6] ○ extract_function   → mcp-git-proxy/utils/push.py
       WHY: 2 occurrences of 5-line block across 1 files — saves 5 lines
       FILES: mcp-git-proxy/server.py
 
-QUICK_WINS[3] (low risk, high savings — do first):
+QUICK_WINS[5] (low risk, high savings — do first):
   [1] extract_class      saved=30L  → llm-agent/utils/_mock_llm_response.py
       FILES: agent.py, agent_standalone.py
-  [2] extract_function   saved=15L  → mcp-git-proxy/utils/worktree_diff.py
+  [2] extract_function   saved=24L  → mcp-skills/utils/analyze_code_structure.py
       FILES: server.py
-  [3] extract_class      saved=11L  → llm-agent/utils/_mock_llm_response_from_prompt.py
+  [3] extract_function   saved=15L  → mcp-git-proxy/utils/worktree_diff.py
+      FILES: server.py
+  [4] extract_function   saved=13L  → mcp-gateway/utils/_get_state_redis_client.py
+      FILES: server.py
+  [5] extract_class      saved=11L  → llm-agent/utils/_mock_llm_response_from_prompt.py
       FILES: agent.py, agent_standalone.py
 
-EFFORT_ESTIMATE (total ≈ 2.0h):
+EFFORT_ESTIMATE (total ≈ 3.3h):
   medium _mock_llm_response                  saved=30L  ~60min
+  medium analyze_code_structure              saved=24L  ~48min
   medium worktree_diff                       saved=15L  ~30min
+  easy   _get_state_redis_client             saved=13L  ~26min
   easy   _mock_llm_response_from_prompt      saved=11L  ~22min
   easy   push                                saved=5L  ~10min
 
 METRICS-TARGET:
-  dup_groups:  4 → 0
-  saved_lines: 61 lines recoverable
+  dup_groups:  6 → 0
+  saved_lines: 98 lines recoverable

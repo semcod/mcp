@@ -712,6 +712,7 @@ SUPPORTED_TOOLS: dict[str, dict[str, Any]] = {
         "package": "code2llm",
         "binary": "code2llm",
         "description": "Static + dynamic code analyzer (TOON, call graphs, metrics)",
+        "extra_pip_deps": ["psutil"],
         "default_subcommand": None,
         "default_args": [".", "-f", "toon", "-o", "code2llm_output"],
         "key_outputs": [
@@ -765,10 +766,10 @@ SUPPORTED_TOOLS: dict[str, dict[str, Any]] = {
         "package": "redup",
         "binary": "redup",
         "description": "Detect duplicated/redundant code blocks",
-        "default_subcommand": None,
+        "default_subcommand": "scan",
         "default_args": ["."],
-        "key_outputs": [],
-        "summary_files": [],
+        "key_outputs": ["redup_report.md", "redup_report.yaml"],
+        "summary_files": ["redup_report.md"],
     },
     "regres": {
         "package": "regres",
@@ -801,8 +802,8 @@ SUPPORTED_TOOLS: dict[str, dict[str, Any]] = {
         "package": "pyqual",
         "binary": "pyqual",
         "description": "Python quality assessor",
-        "default_subcommand": None,
-        "default_args": ["."],
+        "default_subcommand": "init",
+        "default_args": ["--profile", "python"],
         "key_outputs": ["pyqual.yaml"],
         "summary_files": ["pyqual.yaml"],
     },
@@ -854,15 +855,29 @@ def _truncate_text(text: str, limit: int = _MAX_STREAM_BYTES) -> str:
     return truncated + f"\n... [truncated, {len(encoded) - limit} more bytes]"
 
 
-def _ensure_tool_installed(tool_name: str, package: str, binary: str) -> dict[str, Any]:
+def _ensure_tool_installed(
+    tool_name: str, package: str, binary: str, extra_pip_deps: list[str] | None = None
+) -> dict[str, Any]:
     """Ensure a CLI tool binary is available, attempting `pip install <package>` if not."""
     cached = _TOOL_INSTALL_CACHE.get(tool_name)
     if cached and cached.get("available"):
+        # Still install extra_pip_deps if requested and not yet done.
+        if extra_pip_deps and not cached.get("extra_deps_installed"):
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", "--no-cache-dir"] + extra_pip_deps,
+                capture_output=True, text=True, timeout=120,
+            )
+            cached["extra_deps_installed"] = True
         return cached
 
     binary_path = shutil.which(binary)
     if binary_path:
-        info = {"available": True, "binary_path": binary_path, "installed_now": False}
+        if extra_pip_deps:
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", "--no-cache-dir"] + extra_pip_deps,
+                capture_output=True, text=True, timeout=120,
+            )
+        info = {"available": True, "binary_path": binary_path, "installed_now": False, "extra_deps_installed": True}
         _TOOL_INSTALL_CACHE[tool_name] = info
         return info
 
@@ -972,6 +987,8 @@ def _collect_output_files(repo_path: Path, paths: list[str]) -> list[dict[str, A
         except Exception as exc:
             collected.append({"path": rel, "error": str(exc)})
             continue
+        if len(data) == 0:
+            continue
         truncated = len(data) > _MAX_INLINE_FILE_BYTES
         text: str | None
         try:
@@ -1032,7 +1049,9 @@ async def _run_tool_against_repo(request: ToolRunRequest) -> dict[str, Any]:
         }
 
     # 2. Ensure binary available.
-    install_info = _ensure_tool_installed(tool_key, spec["package"], spec["binary"])
+    install_info = _ensure_tool_installed(
+        tool_key, spec["package"], spec["binary"], spec.get("extra_pip_deps")
+    )
     if request.auto_install is False and not install_info.get("available"):
         install_info = {**install_info, "skipped": True}
     if not install_info.get("available"):

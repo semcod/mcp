@@ -16,15 +16,24 @@ import pytest
 @pytest.fixture(scope="module")
 def server_module(tmp_path_factory):
     """Import the mcp-skills server with a writable repo_base."""
+    import importlib.util
+    import sys
+
     base = tmp_path_factory.mktemp("mcp-skills-test-repo-base")
     os.environ["SKILLS_REPO_BASE"] = str(base)
-    import importlib
-    import sys
-    # Ensure fresh import so the env var takes effect.
-    if "server" in sys.modules:
-        del sys.modules["server"]
-    server = importlib.import_module("server")
-    server.skills_server.repo_base = Path(base)
+
+    server_path = Path(__file__).parent / "server.py"
+    mod_name = "mcp_skills_server"
+    # Remove any stale module from previous runs.
+    sys.modules.pop(mod_name, None)
+
+    spec = importlib.util.spec_from_file_location(mod_name, server_path)
+    server = importlib.util.module_from_spec(spec)
+    sys.modules[mod_name] = server
+    spec.loader.exec_module(server)
+
+    if hasattr(server, "skills_server"):
+        server.skills_server.repo_base = Path(base)
     return server
 
 

@@ -6,6 +6,14 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# Porty z .env lub defaults
+if [ -f "$PROJECT_ROOT/.env" ]; then
+  set -a; source "$PROJECT_ROOT/.env"; set +a
+fi
+PORT_GIT_PROXY="${PORT_GIT_PROXY:-8081}"
+PORT_DASHBOARD="${PORT_DASHBOARD:-8085}"
+PORT_GATEWAY="${PORT_GATEWAY:-9000}"
+
 echo "=========================================="
 echo "MCP Autonomous Refactoring Agent - Deploy"
 echo "=========================================="
@@ -107,12 +115,12 @@ main() {
     echo "=========================================="
     echo ""
     echo "Services available:"
-    echo "  - MCP Git Proxy:    http://localhost:8081"
-    echo "  - MCP Skills Server: http://localhost:8082"
-    echo "  - Dashboard:         http://localhost:8085"
+    echo "  - MCP Git Proxy:    http://localhost:${PORT_GIT_PROXY}"
+    echo "  - Dashboard:         http://localhost:${PORT_DASHBOARD}"
+    echo "  - Gateway:           http://localhost:${PORT_GATEWAY}"
     echo ""
     echo "To view the dashboard:"
-    echo "  open http://localhost:8085"
+    echo "  open http://localhost:${PORT_DASHBOARD}"
     echo ""
     echo "To run the agent:"
     echo "  docker-compose run --rm llm-agent python agent_git2mcp.py --repo team/sample --source-path /host-repos/test/sample-project"

@@ -4,31 +4,34 @@ flowchart TD
     classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
 
     subgraph Core
-        git2mcp__project__map__toon___load_proxy_app["_load_proxy_app"]
-        git2mcp__project__map__toon___create_sample_repo_source["_create_sample_repo_source"]
-        git2mcp__project__map__toon__test_git_proxy_e2e_push_to_bare_remote["test_git_proxy_e2e_push_to_bar"]
-        git2mcp__git2mcp__client__Git2MCPClient___request["_request"]
-        git2mcp__git2mcp__client__Git2MCPClient__health["health"]
-        git2mcp__git2mcp__client__Git2MCPClient__list_repos["list_repos"]
-        git2mcp__git2mcp__client__Git2MCPClient__sync_repo["sync_repo"]
-        git2mcp__git2mcp__client__Git2MCPClient__commit_changes["commit_changes"]
-        git2mcp__git2mcp__client__Git2MCPClient__run_tests["run_tests"]
-        git2mcp__git2mcp__client__Git2MCPClient__push["push"]
-        git2mcp__git2mcp__client__Git2MCPClient__reset["reset"]
-        git2mcp__git2mcp__client__Git2MCPClient__worktree_write["worktree_write"]
-        git2mcp__git2mcp__client__Git2MCPClient__worktree_read["worktree_read"]
-        git2mcp__git2mcp__client__Git2MCPClient__worktree_diff["worktree_diff"]
-        git2mcp__git2mcp__client__Git2MCPClient__patch_apply["patch_apply"]
-        ...["+113 more"]
+        dashboard__server__DashboardHandler__end_headers["end_headers"]
+        dashboard__server__DashboardHandler__do_GET["do_GET"]
+        dashboard__server__DashboardHandler__serve_file["serve_file"]
+        dashboard__server__DashboardHandler__send_json["send_json"]
+        dashboard__server__DashboardHandler__get_content_type["get_content_type"]
+        dashboard__server__DashboardHandler__get_status["get_status"]
+        dashboard__server__DashboardHandler__get_analyses["get_analyses"]
+        dashboard__server__DashboardHandler__get_analysis["get_analysis"]
+        dashboard__server__DashboardHandler__get_repos["get_repos"]
+        dashboard__server__main["main"]
+        llm_agent__agent_standalone__LocalCodeAnalyzer__analyze_code_structure["analyze_code_structure"]
+        llm_agent__agent_standalone__LocalCodeAnalyzer__compute_metrics_for_repo["compute_metrics_for_repo"]
+        llm_agent__agent_standalone__LocalCodeAnalyzer__detect_code_patterns["detect_code_patterns"]
+        llm_agent__agent_standalone__LocalCodeAnalyzer__recommend_refactoring["recommend_refactoring"]
+        llm_agent__agent_standalone__RefactoringAgent__analyze_repository["analyze_repository"]
+        ...["+249 more"]
     end
 
     subgraph Exporters
         git2mcp__project__map__toon__test_git_proxy_e2e_sync_export_commit_and_tests["test_git_proxy_e2e_sync_export"]
-        git2mcp__git2mcp__client__Git2MCPClient__export_package["export_package"]
         git2mcp__git2mcp__proxy__GitProxyManager__export_package["export_package"]
         git2mcp__git2mcp__proxy__GitProxyManager__export_fragments["export_fragments"]
+        git2mcp__git2mcp__client__Git2MCPClient__export_package["export_package"]
+        project__map__toon__test_git_proxy_e2e_sync_export_commit_and_tests["test_git_proxy_e2e_sync_export"]
+        project__map__toon__export_fragments["export_fragments"]
+        project__map__toon__export_package["export_package"]
         mcp_git_proxy__server__export_fragments["export_fragments"]
         mcp_git_proxy__server__export_package["export_package"]
     end
 
-    class git2mcp__project__map__toon___load_proxy_app,git2mcp__project__map__toon___create_sample_repo_source,git2mcp__project__map__toon__test_git_proxy_e2e_sync_export_commit_and_tests,git2mcp__project__map__toon__test_git_proxy_e2e_push_to_bare_remote,git2mcp__git2mcp__client__Git2MCPClient___request,git2mcp__git2mcp__client__Git2MCPClient__health,git2mcp__git2mcp__client__Git2MCPClient__list_repos,git2mcp__git2mcp__client__Git2MCPClient__sync_repo,git2mcp__git2mcp__client__Git2MCPClient__export_package,git2mcp__git2mcp__client__Git2MCPClient__commit_changes entry
+    class dashboard__server__DashboardHandler__end_headers,dashboard__server__DashboardHandler__do_GET,dashboard__server__DashboardHandler__serve_file,dashboard__server__DashboardHandler__send_json,dashboard__server__DashboardHandler__get_content_type,dashboard__server__DashboardHandler__get_status,dashboard__server__DashboardHandler__get_analyses,dashboard__server__DashboardHandler__get_analysis,dashboard__server__DashboardHandler__get_repos,dashboard__server__main entry
