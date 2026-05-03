@@ -1,5 +1,14 @@
 {
   "repository": "test/sample-project",
+  "sync": {
+    "sync": {
+      "repo_id": "test/sample-project",
+      "path": "/git-repos/test/sample-project",
+      "head": "907c73f398c0b9b9ce285a417645f15317b0ea49"
+    },
+    "package_ref": "907c73f398c0b9b9ce285a417645f15317b0ea49",
+    "cache_path": "/skills-cache/test/sample-project"
+  },
   "analysis": {
     "metrics": {
       "repo_id": "test/sample-project",
@@ -52,61 +61,7 @@
           "functions": 1,
           "classes": 0
         }
-      ],
-      "structure_analysis": {
-        "repo_id": "test/sample-project",
-        "path_analysis": [
-          {
-            "path": "main.py",
-            "exists": true,
-            "line_count": 32,
-            "import_count": 5,
-            "function_count": 4,
-            "class_count": 1,
-            "imports": [
-              "import os",
-              "import sys",
-              "import json",
-              "import logging",
-              "from typing import Dict, List"
-            ],
-            "preview": [
-              "\"\"\"Sample project for testing MCP Skills\"\"\"",
-              "import os",
-              "import sys",
-              "import json",
-              "import logging",
-              "from typing import Dict, List",
-              "",
-              "class DataProcessor:",
-              "    \"\"\"Main data processor class\"\"\"",
-              ""
-            ]
-          },
-          {
-            "path": "module_1.py",
-            "exists": true,
-            "line_count": 7,
-            "import_count": 3,
-            "function_count": 1,
-            "class_count": 0,
-            "imports": [
-              "import os",
-              "import sys",
-              "from typing import Dict, List"
-            ],
-            "preview": [
-              "\"\"\"Module 1\"\"\"",
-              "import os",
-              "import sys",
-              "from typing import Dict, List",
-              "",
-              "def function_1(data: Dict) -> Dict:",
-              "    return {\\\"result\\\": data}"
-            ]
-          }
-        ]
-      }
+      ]
     },
     "patterns_detected": {
       "repo_id": "test/sample-project",
@@ -138,10 +93,27 @@
           ]
         ]
       }
+    },
+    "recommendations": {
+      "repo_id": "test/sample-project",
+      "summary": {
+        "total_recommendations": 1,
+        "high_priority": 0,
+        "medium_priority": 1
+      },
+      "recommendations": [
+        {
+          "type": "optimize_imports",
+          "priority": "medium",
+          "target": "imports",
+          "reason": "High import-to-line ratio",
+          "suggested_action": "Use lazy imports in non-critical paths"
+        }
+      ]
     }
   },
   "refactoring_plan": {
-    "summary": "Repozytorium test/sample-project wymaga refaktoryzacji w celu poprawy utrzymywalności.",
+    "summary": "Plan refaktoryzacji dla test/sample-project",
     "priority_actions": [
       {
         "priority": 1,
@@ -149,21 +121,35 @@
         "files_affected": [
           "imports"
         ],
-        "estimated_effort": "2-4 hours"
+        "estimated_effort": "2-4h"
       }
     ],
     "architectural_changes": [
-      "Wprowadź podział na warstwy (controllers, services, repositories)",
-      "Zastosuj wzorzec Dependency Injection",
-      "Wydziel wspólne komponenty do osobnych modułów"
+      "Utrzymuj mniejsze moduły",
+      "Wydziel odpowiedzialności do warstw"
     ],
     "risks": [
-      "Potencjalne zmiany w API publicznym",
-      "Testy integracyjne mogą wymagać aktualizacji",
-      "Ryzyko wprowadzenia regresji"
+      "Regresje funkcjonalne",
+      "Niespójny styl kodu"
     ],
-    "testing_strategy": "Wykonaj pełny zestaw testów przed i po refaktoryzacji. Użyj testów mutacyjnych."
+    "testing_strategy": "Uruchom py_compile lub testy projektu po commitach."
   },
-  "dry_run": true,
-  "status": "analysis_complete"
+  "status": "analysis_complete",
+  "dry_run": false,
+  "execution": {
+    "commit": {
+      "repo_id": "test/sample-project",
+      "commit": "b714101193b9736a516c7a22f139e8ba351dee8f",
+      "message": "chore(mcp): add autonomous refactoring plan artifacts"
+    },
+    "tests": {
+      "repo_id": "test/sample-project",
+      "command": "python -m compileall -q .",
+      "returncode": 1,
+      "stdout": "*** Error compiling './module_1.py'...\n  File \"./module_1.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n*** Error compiling './module_2.py'...\n  File \"./module_2.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n*** Error compiling './module_3.py'...\n  File \"./module_3.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n*** Error compiling './module_4.py'...\n  File \"./module_4.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n*** Error compiling './module_5.py'...\n  File \"./module_5.py\", line 7\n    return {\\\"result\\\": data}\n             ^\nSyntaxError: unexpected character after line continuation character\n\n",
+      "stderr": "",
+      "ok": false
+    },
+    "pushed": false
+  }
 }

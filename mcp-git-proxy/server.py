@@ -97,7 +97,7 @@ def import_package(request: ImportPackageRequest):
     return {"repo_id": request.repo_id, "imported_to": str(repo_path)}
 
 
-@app.post("/repos/{repo_id}/commit")
+@app.post("/repos/{repo_id:path}/commit")
 def commit(repo_id: str, request: CommitRequest):
     try:
         return manager.commit_changes(
@@ -111,7 +111,7 @@ def commit(repo_id: str, request: CommitRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@app.post("/repos/{repo_id}/push")
+@app.post("/repos/{repo_id:path}/push")
 def push(repo_id: str, request: PushRequest):
     try:
         return manager.push(repo_id, remote=request.remote, branch=request.branch)
@@ -119,7 +119,7 @@ def push(repo_id: str, request: PushRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@app.post("/repos/{repo_id}/run-tests")
+@app.post("/repos/{repo_id:path}/run-tests")
 def run_tests(repo_id: str, request: RunTestsRequest):
     repo_path = Path(os.getenv("GIT_PROXY_REPO_ROOT", "/git-repos")) / repo_id
     if not repo_path.exists():
