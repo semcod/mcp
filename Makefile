@@ -22,7 +22,7 @@ help:
 	@echo "  make smoke         - basic curl smoke-test against gateway/webui"
 	@echo "  make ansible-e2e   - run Ansible docker E2E (gateway/openwebui/prompts)"
 	@echo "  make ansible-gh2mcp - run Ansible gh2mcp E2E (token/org/repo endpoints + chat commands)"
-	@echo "  make reload-gateway - rebuild + restart mcp-gateway and gh2mcp-agent (preserves GH_TOKEN)"
+	@echo "  make reload-gateway - rebuild + restart mcp-gateway, mcp-gateway-worker and gh2mcp-agent (preserves GH_TOKEN)"
 	@echo "  make test          - run pytest + scripts/test.sh"
 	@echo "  make pytest        - run pytest only"
 	@echo "  make prod-up       - start production overlay"
@@ -118,8 +118,8 @@ ansible-gh2mcp:
 reload-gateway:
 	@GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \
 	if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \
-	$(COMPOSE) $(PROFILES) up -d --build mcp-gateway gh2mcp-agent
-	@echo "gateway + gh2mcp-agent rebuilt and restarted (GH_TOKEN preserved)"
+	$(COMPOSE) $(PROFILES) up -d --build mcp-gateway mcp-gateway-worker gh2mcp-agent
+	@echo "mcp-gateway + mcp-gateway-worker + gh2mcp-agent rebuilt and restarted (GH_TOKEN preserved)"
 
 ansible-github-test:
 	ansible-playbook -i ansible/inventory.ini ansible/test-github-integration.yml

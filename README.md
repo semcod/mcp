@@ -5,7 +5,7 @@
 
 ## AI Cost Tracking
 
-![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.0.3-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
+![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.0.4-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
 ![AI Cost](https://img.shields.io/badge/AI%20Cost-$3.30-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-5.4h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
 - 🤖 **LLM usage:** $3.3000 (22 commits)
@@ -267,13 +267,15 @@ docker-compose run --rm llm-agent python agent_git2mcp.py \
 
 ### MCP Gateway - Publiczny Entrypoint
 OpenAI-compatible HTTP API shim dla integracji z zewnętrznymi klientami:
-- **Endpointy**: `/v1/models`, `/v1/chat/completions` (z SSE streaming)
+- **Endpointy**: `/v1/models`, `/v1/chat/completions` (z SSE streaming), `/jobs/{job_id}`, `/jobs/{job_id}/stream`
 - **Autoryzacja**: Bearer token (per-tenant API keys)
 - **Multi-tenant**: Konfiguracja przez `tenants/*.yaml`
 - **Audit logging**: JSONL logi w wolumenie `audit-storage`
 - **Prompt parsing**: Automatyczne parsowanie pól (Repo, Repo URL, Source, Branch, Execute, Push, Draft, PR, Test, Remote, Zadanie, GitHub Token)
 - **Komendy systemowe**: sync/zapis tokenu, zarządzanie organizacjami, auto-resolve repo z szablonu `{{...}}`
 - **Repo template**: `Repo: {{pokaż ostatnie repo z github}}` → auto-resolve przez gh2mcp
+- **GitHub auth auto-recovery**: automatyczne odświeżenie tokenu przy błędzie 401 + 3-opcji recovery message
+- **Async mode (Redis/RQ)**: długie operacje wykonywane w tle z job streaming via SSE (`async_mode: true`)
 
 ### MCP WebUI - Panel Testowy
 FastAPI + HTMX + Tailwind dla QA i administratorów:

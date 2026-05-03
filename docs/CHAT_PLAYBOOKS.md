@@ -49,6 +49,38 @@ Zadanie: Przygotuj etapowy plan refaktoryzacji (Etap 1/2/3), oszacuj ryzyko i qu
 
 Opcjonalnie możesz podać owner/org w tym samym placeholderze:
 
+### 0.2 Auto-recovery przy błędzie autoryzacji GitHub
+
+Gdy template `{{show last pushed repo from github}}` zwróci błąd 401 lub podobny, gateway automatycznie:
+1. Wywołuje `gh2mcp /sync/token` — pobiera świeży token z `gh auth token`
+2. Zapisuje token do `.env` przez `env2mcp`
+3. Ponawia wywołanie `/repo/last-pushed`
+
+Jeśli auto-recovery nie zadziała, gateway zwraca **przyjazny komunikat** z 3 opcjami naprawy:
+- Opcja 1: Podaj token bezpośrednio w czacie: `Zapisz token github do .env: ghp_xxx...`
+- Opcja 2: Zaloguj się przez gh CLI: `gh auth login` → `Pobierz token github`
+- Opcja 3: Terminal: `env2mcp env set GITHUB_PAT ghp_xxx`
+
+### 0.3 Tryb asynchroniczny (Redis/RQ)
+
+Długie operacje można wykonywać w tle:
+
+```text
+Repo: {{show last pushed repo from github}}
+Branch: main
+Execute: true
+Push: true
+async_mode: true
+Zadanie: Wdróż pełną refaktoryzację.
+```
+
+W tym trybie:
+- Gateway zwraca natychmiast `job_id` i status `queued`
+- Workflow wykonuje się w tle (`mcp-gateway-worker`)
+- Status można sprawdzić: `GET /jobs/{job_id}`
+- Streaming via SSE: `GET /jobs/{job_id}/stream`
+- Fazy: `queued` → `analyzing` → `refactoring` → `testing` → `done`/`failed`
+
 ```text
 Repo: {{show last pushed repo from github owner=semcod}}
 ```
@@ -421,3 +453,62 @@ PR body: Kontynuacja etapowej refaktoryzacji z playbooka.
 Test: python3 -m compileall -q .
 Zadanie: Wdróż Etap 2 i przygotuj repo do review.
 ```
+
+### 9.4 Auto-recovery przy błędzie autoryzacji
+
+Gdy GitHub zwróci błąd 401 przy template resolution:
+
+```text
+Repo: {{show last pushed repo from github}}
+Branch: main
+Execute: false
+Zadanie: Przygotuj plan refaktoryzacji.
+```
+
+Gateway automatycznie próbuje odświeżyć token i ponowić żądanie. Jeśli to nie pomoże, zwróci instrukcję z 3 opcjami naprawy:
+1. `Zapisz token github do .env: ghp_xxx...` — bezpośredni zapis
+2. `gh auth login` → `Pobierz token github` — CLI auth + sync
+3. `env2mcp env set GITHUB_PAT ghp_xxx` — terminal
+
+### 9.5 Tryb asynchroniczny — długie operacje
+
+Dla operacji trwających >30s (duże repo, złożona analiza):
+
+```text
+Repo: {{show last pushed repo from github}}
+Branch: main
+Execute: true
+Push: true
+PR: true
+async_mode: true
+Zadanie: Wykonaj pełną refaktoryzację z migracją do nowej architektury.
+```
+
+Sprawdzenie statusu:
+```bash
+curl -sS -H 'Authorization: Bearer sk-mcp-default-dev-key' \
+  http://localhost:9000/jobs/job-abc123
+```
+
+Streaming statusu (SSE):
+```bash
+curl -N -H 'Authorization: Bearer sk-mcp-default-dev-key' \
+  http://localhost:9000/jobs/job-abc123/stream
+```
+
+Fazy:
+- `queued` → `analyzing` → `refactoring` → `testing` → `done` / `failed`
+
+---
+
+## Podsumowanie funkcji
+
+| Funkcja | Opis | Endpoint/Prompt |
+|---------|------|-----------------|
+| Repo template | Auto-resolve `{{show last pushed repo from github}}` | `Repo: {{...}}` |
+| Repo URL override | Ręczne repo_url ma wyższy priorytet | `Repo URL: https://...` |
+| GitHub auth auto-recovery | Auto-sync tokenu przy 401 + 3 opcje naprawy | Automatyczne |
+| Async mode | Background jobs via Redis/RQ | `async_mode: true` |
+| Job streaming | SSE status updates | `GET /jobs/{id}/stream` |
+| Copy/OpenWebUI buttons | Przyciski na blokach `<pre>` w docs | http://localhost:8093 |
+

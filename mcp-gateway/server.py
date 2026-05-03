@@ -68,6 +68,8 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 RQ_QUEUE_NAME = os.getenv("RQ_QUEUE_NAME", "mcp-jobs")
 JOB_POLL_INTERVAL_SECONDS = 1.0
 JOB_TTL_SECONDS = 86400
+REPO_USAGE_TTL_SECONDS = 604800  # 7 dni - TTL dla historii użycia repozytoriów
+MAX_REPO_HISTORY = 20  # Maksymalna liczba repozytoriów w historii
 
 
 def load_tenants() -> dict[str, dict]:
@@ -80,6 +82,118 @@ def load_tenants() -> dict[str, dict]:
         tenant_id = data.get("tenant_id") or path.stem
         tenants[tenant_id] = data
     return tenants
+
+
+def _get_redis_client() -> Redis | None:
+    """Zwraca klienta Redis jeśli dostępny, w przeciwnym razie None."""
+    if not RQ_AVAILABLE or not REDIS_URL:
+        return None
+    try:
+        return Redis.from_url(REDIS_URL, decode_responses=True)
+    except Exception:
+        return None
+
+
+def _track_repo_usage(tenant_id: str, repo_id: str, platform: str = "github") -> None:
+    """Zapisuje użycie repozytorium w Redis dla celów śledzenia."""
+    redis = _get_redis_client()
+    if not redis:
+        return
+    try:
+        # Klucz: mcp:repo_usage:{tenant_id}
+        key = f"mcp:repo_usage:{tenant_id}"
+        timestamp = int(time.time())
+        # Zapisz jako hash: repo_id -> {timestamp, platform, count}
+        redis.hset(key, repo_id, json.dumps({"timestamp": timestamp, "platform": platform, "count": 1}))
+        # Aktualizuj licznik użycia
+        redis.hincrby(f"mcp:repo_count:{tenant_id}", repo_id, 1)
+        # Ustaw TTL
+        redis.expire(key, REPO_USAGE_TTL_SECONDS)
+        redis.expire(f"mcp:repo_count:{tenant_id}", REPO_USAGE_TTL_SECONDS)
+    except Exception:
+        pass
+
+
+def _get_last_used_repo(tenant_id: str) -> str | None:
+    """Zwraca ostatnio używane repozytorium dla danego tenantu."""
+    redis = _get_redis_client()
+    if not redis:
+        return None
+    try:
+        key = f"mcp:repo_usage:{tenant_id}"
+        if not redis.exists(key):
+            return None
+        # Pobierz wszystkie repozytoria i znajdź najnowsze
+        repos = redis.hgetall(key)
+        if not repos:
+            return None
+        latest_repo = None
+        latest_timestamp = 0
+        for repo_id, data_str in repos.items():
+            try:
+                data = json.loads(data_str)
+                timestamp = data.get("timestamp", 0)
+                if timestamp > latest_timestamp:
+                    latest_timestamp = timestamp
+                    latest_repo = repo_id
+            except Exception:
+                continue
+        return latest_repo
+    except Exception:
+        return None
+
+
+def _get_most_used_repo(tenant_id: str) -> str | None:
+    """Zwraca najczęściej używane repozytorium dla danego tenantu."""
+    redis = _get_redis_client()
+    if not redis:
+        return None
+    try:
+        key = f"mcp:repo_count:{tenant_id}"
+        if not redis.exists(key):
+            return None
+        # Pobierz wszystkie liczniki i znajdź największy
+        counts = redis.hgetall(key)
+        if not counts:
+            return None
+        most_used_repo = None
+        max_count = 0
+        for repo_id, count_str in counts.items():
+            try:
+                count = int(count_str)
+                if count > max_count:
+                    max_count = count
+                    most_used_repo = repo_id
+            except Exception:
+                continue
+        return most_used_repo
+    except Exception:
+        return None
+
+
+def _get_preferred_repo(tenant_id: str) -> str | None:
+    """Zwraca preferowane repozytorium: ostatnio używane lub najczęściej używane."""
+    # Priorytet: ostatnio używane > najczęściej używane > None
+    return _get_last_used_repo(tenant_id) or _get_most_used_repo(tenant_id)
+
+
+def _is_github_configured() -> bool:
+    """Sprawdza czy GitHub jest skonfigurowany (token dostępny)."""
+    return bool(_runtime_github_token())
+
+
+async def _get_default_github_repo() -> str | None:
+    """Pobiera domyślne repo z GitHub: ostatnio pushowane lub pierwsze z listy."""
+    if not _is_github_configured() or not GH2MCP_URL:
+        return None
+    try:
+        # Spróbuj pobrać ostatnio pushowane repo
+        resolved = await _last_pushed_repo_via_gh2mcp(owner=None, limit=10)
+        if resolved.get("success") and resolved.get("repo"):
+            return resolved["repo"]
+    except Exception:
+        pass
+    return None
 
 
 PROMPT_FIELD_REGEX = {
@@ -132,6 +246,11 @@ def parse_prompt_context(user_msg: str) -> dict[str, str]:
             match = regex.match(line)
             if match:
                 parsed[key] = match.group(1).strip()
+    # Jeśli repo_id nie zostało znalezione przez regex, spróbuj ekstrakcji owner/repo z tekstu
+    if "repo_id" not in parsed:
+        repo_match = GITHUB_REPO_SLUG_REGEX.search(user_msg)
+        if repo_match:
+            parsed["repo_id"] = repo_match.group(1).strip()
     return parsed
 
 
@@ -148,6 +267,8 @@ def parse_bool(value: str | None, default: bool = False) -> bool:
 
 TOKEN_INLINE_REGEX = re.compile(r"(gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)", re.IGNORECASE)
 REPO_TEMPLATE_REGEX = re.compile(r"^\s*\{\{\s*(.+?)\s*\}\}\s*$")
+# Regex do rozpoznawania owner/repo bez 'Repo:' prefixu (np. semcod/code2schema)
+GITHUB_REPO_SLUG_REGEX = re.compile(r"\b([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)\b")
 
 
 def _normalize_command_text(text: str) -> str:
@@ -1316,7 +1437,9 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     org_list_command = _is_org_list_command(user_msg)
 
     tenant_id = tenant["tenant_id"]
-    repo_id_input = req.repo_id or prompt_ctx.get("repo_id") or f"{tenant_id}/default"
+    # Priorytet: jawne repo_id > repo_id z promptu > ostatnio/najczęściej używane > GitHub ostatnio pushowane > domyślne
+    preferred_repo = _get_preferred_repo(tenant_id)
+    repo_id_input = req.repo_id or prompt_ctx.get("repo_id") or preferred_repo
     repo_url = req.repo_url or prompt_ctx.get("repo_url")
     github_token = req.github_token or prompt_ctx.get("github_token")
     source_path = req.source_path or prompt_ctx.get("source_path")
@@ -1338,6 +1461,15 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
     async_mode = MCP_ASYNC_ENABLED if req.async_mode is None else req.async_mode
 
     async def runner() -> dict:
+        nonlocal repo_id_input
+        # Jeśli repo_id_input jest None, spróbuj pobrać domyślne z GitHub
+        if not repo_id_input:
+            github_default = await _get_default_github_repo()
+            if github_default:
+                repo_id_input = github_default
+            else:
+                repo_id_input = f"{tenant_id}/default"
+        
         if org_set_command:
             org_value = _extract_org_from_text(user_msg, prompt_ctx)
             result = await _set_default_org_via_gh2mcp(org_value)
@@ -1475,6 +1607,9 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
                 )
                 existing_note = result.get("note")
                 result["note"] = f"{existing_note} {fallback_note}" if existing_note else fallback_note
+            # Śledź użycie repozytorium po udanej operacji
+            if resolved_repo_id and not result.get("error"):
+                _track_repo_usage(tenant_id, resolved_repo_id, platform="github")
             return result
         except Exception as exc:
             return {"error": str(exc)}
