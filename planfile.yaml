@@ -940,3 +940,211 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
+  - id: ticket-6326f0c7
+    name: Fix string-concat issues
+    description: Resolve 2 string-concat issues in semcod_mcp/analyze.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/analyze.py
+    rule_id: string-concat
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b9c07cf9
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in semcod_mcp/analyze.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/analyze.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-37aea4c3
+    name: Fix magic-numbers issues
+    description: Resolve 4 magic-numbers issues in semcod_mcp/analyze.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - semcod_mcp/analyze.py
+    rule_id: magic-numbers
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e1cf1da3
+    name: Fix string-concat issues
+    description: Resolve 5 string-concat issues in semcod_mcp/doctor.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - semcod_mcp/doctor.py
+    rule_id: string-concat
+    count: 5
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-eb821ff7
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in semcod_mcp/doctor.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/doctor.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-dacf30cb
+    name: Fix magic-numbers issues
+    description: Resolve 4 magic-numbers issues in semcod_mcp/doctor.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - semcod_mcp/doctor.py
+    rule_id: magic-numbers
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-fb370ae2
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in semcod_mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/cli.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5d0a4086
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in semcod_mcp/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/cli.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ebaf86f2
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in semcod_mcp/init_cmd.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/init_cmd.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-849f75bc
+    name: Fix string-concat issues
+    description: Resolve 1 string-concat issues in semcod_mcp/merge.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/merge.py
+    rule_id: string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4ede378d
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in semcod_mcp/merge.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/merge.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b63499e5
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in semcod_mcp/templates.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/templates.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ed5bc004
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in semcod_mcp/paths.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/paths.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e70cd1db
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in semcod_mcp/validate.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - semcod_mcp/validate.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b5301998
+    name: Fix smart-return-type issues
+    description: Resolve 2 smart-return-type issues in tests/test_init.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - tests/test_init.py
+    rule_id: smart-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-823d6733
+    name: Fix smart-return-type issues
+    description: Resolve 4 smart-return-type issues in tests/test_merge.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - tests/test_merge.py
+    rule_id: smart-return-type
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced

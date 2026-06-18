@@ -1,7 +1,8 @@
-# mcp | 422 func | 30f | 26333L | python | 2026-05-03
+# mcp | 401 func | 35f | 16032L | python | 2026-06-18
+# generated in 0.00s
 
 HEALTH:
-  CC̄=3.7  critical=44 (limit:10)  dup=3  cycles=0
+  CC̄=4.3  critical=51 (limit:10)  dup=3  cycles=0
 
 ALERTS[20]:
   !!! high_fan_out     chat_completions = 56 (limit:10)
@@ -15,14 +16,14 @@ ALERTS[20]:
   !!! high_fan_out     dispatch_skill = 26 (limit:10)
   !!! high_fan_out     GitHubTokenSyncService.get_recent_repos = 24 (limit:10)
 
-MODULES[87] (top by size):
+MODULES[84] (top by size):
   M[mcp-gateway/server.py] 2908L C:2 F:86 CC↑40 D:0 (python)
-  M[mcp-skills/server.py] 1462L C:8 F:29 CC↑37 D:0 (python)
+  M[mcp-skills/server.py] 1482L C:8 F:30 CC↑37 D:0 (python)
+  M[planfile.yaml] 942L C:0 F:0 CC↑0 D:0 (yaml)
   M[mcp-webui/server.py] 621L C:0 F:19 CC↑16 D:0 (python)
   M[llm-agent/agent_standalone.py] 540L C:3 F:14 CC↑15 D:0 (python)
-  M[ansible/e2e-gh2mcp.yml] 520L C:0 F:1 CC↑0 D:0 (yml)
+  M[ansible/e2e-gh2mcp.yml] 520L C:0 F:0 CC↑0 D:0 (yml)
   M[goal.yaml] 510L C:0 F:0 CC↑0 D:0 (yaml)
-  M[planfile.yaml] 461L C:0 F:0 CC↑0 D:0 (yaml)
   M[mcp-git-proxy/server.py] 443L C:19 F:22 CC↑9 D:0 (python)
   M[git2mcp/git2mcp/proxy.py] 437L C:1 F:21 CC↑12 D:0 (python)
   M[gh2mcp/gh2mcp/sync.py] 430L C:1 F:7 CC↑32 D:0 (python)
@@ -31,7 +32,7 @@ MODULES[87] (top by size):
   M[llm-agent/agent.py] 375L C:2 F:13 CC↑4 D:0 (python)
   M[llm-agent/agent_git2mcp.py] 361L C:3 F:13 CC↑15 D:0 (python)
   M[env2mcp/env2mcp/github_cli.py] 330L C:1 F:11 CC↑14 D:1 (python)
-  LANGS: python:29/yaml:23/other:9/txt:8/yml:7/shell:7/toml:3/ini:1
+  LANGS: python:38/other:9/yaml:9/yml:7/shell:7/txt:6/toml:4/json:3/ini:1
 
 HOTSPOTS[10]:
   ★ chat_completions fan=56  // Orchestrates 56 calls
@@ -48,4 +49,4 @@ REFACTOR[15]:
   [5] H/L Split chat_completions (CC=31)
 
 EVOLUTION:
-  2026-05-03 CC̄=3.7 crit=44 26333L // Automated analysis
+  2026-06-18 CC̄=4.3 crit=51 16032L // Automated analysis

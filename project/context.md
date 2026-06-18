@@ -1,15 +1,16 @@
 # System Architecture Analysis
+<!-- generated in 0.00s -->
 
 ## Overview
 
 - **Project**: /home/tom/github/semcod/mcp
 - **Primary Language**: python
-- **Languages**: python: 29, yaml: 23, txt: 8, shell: 7, yml: 7
+- **Languages**: python: 38, yaml: 9, yml: 7, shell: 7, txt: 6
 - **Analysis Mode**: static
-- **Total Functions**: 422
-- **Total Classes**: 50
-- **Modules**: 87
-- **Entry Points**: 322
+- **Total Functions**: 401
+- **Total Classes**: 56
+- **Modules**: 84
+- **Entry Points**: 274
 
 ## Architecture by Module
 
@@ -18,12 +19,8 @@
 - **Classes**: 2
 - **File**: `server.py`
 
-### project.map.toon
-- **Functions**: 63
-- **File**: `map.toon.yaml`
-
 ### mcp-skills.server
-- **Functions**: 29
+- **Functions**: 30
 - **Classes**: 8
 - **File**: `server.py`
 
@@ -65,6 +62,11 @@
 - **Classes**: 3
 - **File**: `agent_git2mcp.py`
 
+### env2mcp.env2mcp.config
+- **Functions**: 13
+- **Classes**: 1
+- **File**: `config.py`
+
 ### llm-agent.agent
 - **Functions**: 13
 - **Classes**: 2
@@ -73,11 +75,6 @@
 ### scripts.refactor-last-repo
 - **Functions**: 12
 - **File**: `refactor-last-repo.sh`
-
-### env2mcp.env2mcp.config
-- **Functions**: 12
-- **Classes**: 1
-- **File**: `config.py`
 
 ### env2mcp.env2mcp.github_cli
 - **Functions**: 11
@@ -107,6 +104,10 @@
 - **Classes**: 1
 - **File**: `sync.py`
 
+### mcp-docs.server
+- **Functions**: 7
+- **File**: `server.py`
+
 ## Key Entry Points
 
 Main execution flows into the system:
@@ -116,6 +117,10 @@ Main execution flows into the system:
 
 ### git2mcp.examples.05_local_iterate.main
 - **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument
+
+### env2mcp.env2mcp.config.EnvConfig.save
+> Save configuration to .env file.
+- **Calls**: lines.append, lines.append, lines.append, any, any, any, self.env_path.write_text, self.env_path.exists
 
 ### mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
 - **Calls**: target_repo.mkdir, str, httpx.AsyncClient, path.relative_to, target_repo.rglob, path.is_file, fragments_response.raise_for_status, fragments_response.json
@@ -133,10 +138,6 @@ Kroki:
 
 ### git2mcp.git2mcp.proxy.GitProxyManager.sync_repo
 - **Calls**: self._repo_path, Path, repo_path.parent.mkdir, repo_path.exists, None.exists, str, source.exists, FileNotFoundError
-
-### env2mcp.env2mcp.config.EnvConfig.save
-> Save configuration to .env file.
-- **Calls**: lines.append, lines.append, lines.append, any, any, any, self.env_path.write_text, self.env_path.exists
 
 ### env2mcp.env2mcp.cli.main
 > Main entry point for CLI.
@@ -176,24 +177,27 @@ Kroki:
 ### llm-agent.agent_git2mcp.CachedCodeAnalyzer.compute_metrics
 - **Calls**: self._repo_path, files.sort, len, repo.exists, repo.rglob, text.splitlines, sum, sum
 
+### env2mcp.env2mcp.cli.cmd_github_status
+> Check GitHub authentication status.
+- **Calls**: GitHubCLI, gh.get_auth_status, status.get, EnvConfig, gh.is_available, scripts.test.print, scripts.test.print, scripts.test.print
+
 ### llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo
 > Obliczanie metryk dla całego repozytorium
 - **Calls**: file_metrics.sort, repo_path.exists, repo_path.rglob, str, content.splitlines, len, sum, sum
 
-### env2mcp.env2mcp.cli.cmd_github_status
-> Check GitHub authentication status.
-- **Calls**: GitHubCLI, gh.get_auth_status, status.get, EnvConfig, gh.is_available, scripts.test.print, scripts.test.print, scripts.test.print
+### mcp-webui.server.github_configure
+> Configure or clear GitHub token.
+- **Calls**: app.post, Form, Form, RedirectResponse, RedirectResponse, RedirectResponse, Path, EnvConfig
+
+### llm-agent.agent_git2mcp.CachedCodeAnalyzer.detect_patterns
+- **Calls**: self._repo_path, repo.rglob, repo.exists, file_path.read_text, text.splitlines, str, sorted, file_path.relative_to
 
 ### llm-agent.agent_standalone.main
 > Główna funkcja agenta
 - **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.parse_args, RefactoringAgent
 
-### llm-agent.agent_git2mcp.CachedCodeAnalyzer.detect_patterns
-- **Calls**: self._repo_path, repo.rglob, repo.exists, file_path.read_text, text.splitlines, str, sorted, file_path.relative_to
-
-### mcp-webui.server.github_configure
-> Configure or clear GitHub token.
-- **Calls**: app.post, Form, Form, RedirectResponse, RedirectResponse, RedirectResponse, Path, EnvConfig
+### llm-agent.agent_git2mcp.main
+- **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument
 
 ### llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure
 > Analiza struktury kodu dla podanych ścieżek
@@ -203,25 +207,22 @@ Kroki:
 > Generowanie rekomendacji refaktoryzacji
 - **Calls**: self.compute_metrics_for_repo, self.detect_code_patterns, metrics.get, metrics.get, recommendations.append, recommendations.append, metrics.get, recommendations.append
 
-### llm-agent.agent_git2mcp.main
-- **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument
-
 ### git2mcp.examples.03_agent_git2mcp.main
 - **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.parse_args
 
 ### git2mcp.examples.01_sync_and_commit.main
 - **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.parse_args, scripts.test.print, httpx.AsyncClient
 
-### git2mcp.git2mcp.proxy.GitProxyManager.export_fragments
-- **Calls**: self._repo_path, Repo, repo.commit, tree.traverse, repo_path.exists, FileNotFoundError, blob.data_stream.read, None.decode
-
 ### mcp-webui.server.github_create_repo
 > Create a new repository on GitHub.
 - **Calls**: app.post, Form, Form, Form, Form, mcp-webui.server._resolve_github_token, mcp-webui.server._get_github_config, templates.TemplateResponse
 
-### llm-agent.agent.RefactoringAgent._build_refactoring_prompt
-> Buduje prompt dla LLM
-- **Calls**: recs.get, metrics.get, metrics.get, metrics.get, metrics.get, metrics.get, metrics.get, None.get
+### git2mcp.git2mcp.proxy.GitProxyManager.export_fragments
+- **Calls**: self._repo_path, Repo, repo.commit, tree.traverse, repo_path.exists, FileNotFoundError, blob.data_stream.read, None.decode
+
+### mcp-webui.server.github_clone
+> Clone a repository from GitHub.
+- **Calls**: app.post, Form, Form, Form, mcp-webui.server._normalize_github_url, mcp-webui.server._resolve_github_token, mcp-webui.server._get_github_config, templates.TemplateResponse
 
 ## Process Flows
 
@@ -241,30 +242,30 @@ chat_completions [mcp-gateway.server]
 main [git2mcp.examples.05_local_iterate]
 ```
 
-### Flow 3: _sync_from_git_proxy
+### Flow 3: save
+```
+save [env2mcp.env2mcp.config.EnvConfig]
+```
+
+### Flow 4: _sync_from_git_proxy
 ```
 _sync_from_git_proxy [mcp-skills.server.MCPSkillsServer]
 ```
 
-### Flow 4: redsl_refactor
+### Flow 5: redsl_refactor
 ```
 redsl_refactor [mcp-skills.server]
 ```
 
-### Flow 5: get_recent_repos
+### Flow 6: get_recent_repos
 ```
 get_recent_repos [gh2mcp.gh2mcp.sync.GitHubTokenSyncService]
   └─ →> set
 ```
 
-### Flow 6: sync_repo
+### Flow 7: sync_repo
 ```
 sync_repo [git2mcp.git2mcp.proxy.GitProxyManager]
-```
-
-### Flow 7: save
-```
-save [env2mcp.env2mcp.config.EnvConfig]
 ```
 
 ### Flow 8: _detect_code_patterns
@@ -301,26 +302,26 @@ _compute_metrics_for_repo [mcp-skills.server.MCPSkillsServer]
 - **Methods**: 12
 - **Key Methods**: llm-agent.agent.RefactoringAgent.__init__, llm-agent.agent.RefactoringAgent.connect_skills, llm-agent.agent.RefactoringAgent.connect_git_mcp, llm-agent.agent.RefactoringAgent.analyze_repository, llm-agent.agent.RefactoringAgent.generate_refactoring_plan, llm-agent.agent.RefactoringAgent._build_refactoring_prompt, llm-agent.agent.RefactoringAgent._call_openai, llm-agent.agent.RefactoringAgent._call_ollama, llm-agent.agent.RefactoringAgent._mock_llm_response, llm-agent.agent.RefactoringAgent._mock_llm_response_from_prompt
 
+### env2mcp.env2mcp.config.EnvConfig
+> Manages .env file configuration.
+- **Methods**: 11
+- **Key Methods**: env2mcp.env2mcp.config.EnvConfig.__init__, env2mcp.env2mcp.config.EnvConfig._load, env2mcp.env2mcp.config.EnvConfig.get, env2mcp.env2mcp.config.EnvConfig.set, env2mcp.env2mcp.config.EnvConfig.remove, env2mcp.env2mcp.config.EnvConfig._format_value, env2mcp.env2mcp.config.EnvConfig.save, env2mcp.env2mcp.config.EnvConfig.__contains__, env2mcp.env2mcp.config.EnvConfig.__getitem__, env2mcp.env2mcp.config.EnvConfig.__setitem__
+
 ### mcp-skills.server.MCPSkillsServer
 > Serwer MCP Skills z narzędziami do analizy kodu
 - **Methods**: 11
 - **Key Methods**: mcp-skills.server.MCPSkillsServer.__init__, mcp-skills.server.MCPSkillsServer._sync_from_git_proxy, mcp-skills.server.MCPSkillsServer._setup_handlers, mcp-skills.server.MCPSkillsServer._handle_list_tools, mcp-skills.server.MCPSkillsServer._handle_call_tool, mcp-skills.server.MCPSkillsServer._analyze_code_structure, mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo, mcp-skills.server.MCPSkillsServer._detect_code_patterns, mcp-skills.server.MCPSkillsServer._sync_repo_tool, mcp-skills.server.MCPSkillsServer._recommend_refactoring
 
-### env2mcp.env2mcp.config.EnvConfig
-> Manages .env file configuration.
-- **Methods**: 10
-- **Key Methods**: env2mcp.env2mcp.config.EnvConfig.__init__, env2mcp.env2mcp.config.EnvConfig._load, env2mcp.env2mcp.config.EnvConfig.get, env2mcp.env2mcp.config.EnvConfig.set, env2mcp.env2mcp.config.EnvConfig.remove, env2mcp.env2mcp.config.EnvConfig.save, env2mcp.env2mcp.config.EnvConfig.__contains__, env2mcp.env2mcp.config.EnvConfig.__getitem__, env2mcp.env2mcp.config.EnvConfig.__setitem__, env2mcp.env2mcp.config.EnvConfig.items
+### env2mcp.env2mcp.github_cli.GitHubCLI
+> Interface to GitHub CLI (gh) tool.
+- **Methods**: 9
+- **Key Methods**: env2mcp.env2mcp.github_cli.GitHubCLI.__init__, env2mcp.env2mcp.github_cli.GitHubCLI.is_available, env2mcp.env2mcp.github_cli.GitHubCLI.get_auth_status, env2mcp.env2mcp.github_cli.GitHubCLI.get_token, env2mcp.env2mcp.github_cli.GitHubCLI.get_user, env2mcp.env2mcp.github_cli.GitHubCLI.login, env2mcp.env2mcp.github_cli.GitHubCLI.logout, env2mcp.env2mcp.github_cli.GitHubCLI.list_repos, env2mcp.env2mcp.github_cli.GitHubCLI.clone_url
 
 ### dashboard.server.DashboardHandler
 > Custom HTTP handler for dashboard
 - **Methods**: 9
 - **Key Methods**: dashboard.server.DashboardHandler.end_headers, dashboard.server.DashboardHandler.do_GET, dashboard.server.DashboardHandler.serve_file, dashboard.server.DashboardHandler.send_json, dashboard.server.DashboardHandler.get_content_type, dashboard.server.DashboardHandler.get_status, dashboard.server.DashboardHandler.get_analyses, dashboard.server.DashboardHandler.get_analysis, dashboard.server.DashboardHandler.get_repos
 - **Inherits**: http.server.SimpleHTTPRequestHandler
-
-### env2mcp.env2mcp.github_cli.GitHubCLI
-> Interface to GitHub CLI (gh) tool.
-- **Methods**: 9
-- **Key Methods**: env2mcp.env2mcp.github_cli.GitHubCLI.__init__, env2mcp.env2mcp.github_cli.GitHubCLI.is_available, env2mcp.env2mcp.github_cli.GitHubCLI.get_auth_status, env2mcp.env2mcp.github_cli.GitHubCLI.get_token, env2mcp.env2mcp.github_cli.GitHubCLI.get_user, env2mcp.env2mcp.github_cli.GitHubCLI.login, env2mcp.env2mcp.github_cli.GitHubCLI.logout, env2mcp.env2mcp.github_cli.GitHubCLI.list_repos, env2mcp.env2mcp.github_cli.GitHubCLI.clone_url
 
 ### llm-agent.agent_standalone.RefactoringAgent
 > Autonomiczny Agent Refaktoryzacji - Standalone
@@ -344,48 +345,60 @@ _compute_metrics_for_repo [mcp-skills.server.MCPSkillsServer]
 - **Methods**: 5
 - **Key Methods**: llm-agent.agent_standalone.LocalCodeAnalyzer.__init__, llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure, llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo, llm-agent.agent_standalone.LocalCodeAnalyzer.detect_code_patterns, llm-agent.agent_standalone.LocalCodeAnalyzer.recommend_refactoring
 
-### dashboard.server.TCPServer
-- **Methods**: 0
-- **Inherits**: socketserver.TCPServer
+### semcod_mcp.validate.ValidationReport
+- **Methods**: 3
+- **Key Methods**: semcod_mcp.validate.ValidationReport.ok, semcod_mcp.validate.ValidationReport.error, semcod_mcp.validate.ValidationReport.warn
 
-### llm-agent.agent_standalone.AnalysisResult
-> Wynik analizy repozytorium
+### semcod_mcp.doctor.DoctorReport
+- **Methods**: 2
+- **Key Methods**: semcod_mcp.doctor.DoctorReport.healthy, semcod_mcp.doctor.DoctorReport.add
+
+### scripts.test.DataProcessor
+- **Methods**: 0
+
+### semcod_mcp.analyze.AnalyzeReport
+- **Methods**: 0
+
+### semcod_mcp.doctor.Check
+- **Methods**: 0
+
+### semcod_mcp.validate.ValidationIssue
+- **Methods**: 0
+
+### semcod_mcp.init_cmd.InitResult
 - **Methods**: 0
 
 ### llm-agent.agent_git2mcp.AnalysisResult
 - **Methods**: 0
 
-### llm-agent.agent.AnalysisResult
-> Wynik analizy repozytorium
-- **Methods**: 0
-
-### scripts.test.DataProcessor
-- **Methods**: 0
-
-### gh2mcp.gh2mcp.server.SyncTokenRequest
-- **Methods**: 0
-- **Inherits**: BaseModel
-
-### gh2mcp.gh2mcp.server.SetOrgRequest
-- **Methods**: 0
-- **Inherits**: BaseModel
-
-### gh2mcp.gh2mcp.server.ListOrgsRequest
-- **Methods**: 0
-- **Inherits**: BaseModel
-
 ## Data Transformation Functions
 
 Key functions that process and transform data:
+
+### scripts.refactor-last-repo.parse_args
 
 ### scripts.test.process
 
 ### scripts.test._transform
 
-### scripts.refactor-last-repo.parse_args
-
 ### gh2mcp.gh2mcp.cli.build_parser
 - **Output to**: argparse.ArgumentParser, parser.add_argument, parser.add_subparsers, subparsers.add_parser, status.set_defaults
+
+### semcod_mcp.cli.validate_cmd
+> Validate local IDE integration files.
+- **Output to**: main.command, click.argument, semcod_mcp.validate.run_validate, console.print, console.print
+
+### semcod_mcp.validate._validate_mcp_json
+- **Output to**: data.get, servers.get, path.is_file, report.warn, semcod_mcp.merge.load_json
+
+### semcod_mcp.validate.run_validate
+- **Output to**: project_dir.resolve, ValidationReport, semcod_mcp.paths.detect_stack_path, semcod_mcp.templates.read_manifest, continue_cfg.is_file
+
+### env2mcp.env2mcp.config.EnvConfig._format_value
+> Format a value for .env file.
+
+Only quote values that contain spaces, special shell characters or ar
+- **Output to**: re.compile, None.replace, _NEEDS_QUOTE.search, len, value.replace
 
 ### mcp-skills.server._parse_tool_result
 - **Output to**: json.loads
@@ -416,43 +429,43 @@ Functions exposed as public API (no underscore prefix):
 - `mcp-gateway.server.chat_completions` - 114 calls
 - `git2mcp.examples.05_local_iterate.main` - 42 calls
 - `mcp-gateway.server.dispatch_skill` - 41 calls
+- `env2mcp.env2mcp.config.EnvConfig.save` - 39 calls
 - `mcp-skills.server.redsl_refactor` - 39 calls
+- `semcod_mcp.doctor.run_doctor` - 38 calls
 - `gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos` - 38 calls
+- `semcod_mcp.init_cmd.run_init` - 37 calls
 - `git2mcp.git2mcp.proxy.GitProxyManager.sync_repo` - 37 calls
-- `env2mcp.env2mcp.config.EnvConfig.save` - 35 calls
 - `env2mcp.env2mcp.cli.main` - 34 calls
 - `mcp-webui.server.github_fetch_token_from_cli` - 32 calls
 - `env2mcp.env2mcp.github_cli.configure_github` - 29 calls
 - `gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_last_pushed_repo` - 26 calls
 - `llm-agent.agent_standalone.LocalCodeAnalyzer.detect_code_patterns` - 25 calls
 - `mcp-git-proxy.server.github_create_repo` - 25 calls
+- `semcod_mcp.validate.run_validate` - 24 calls
 - `llm-agent.agent_git2mcp.CachedCodeAnalyzer.compute_metrics` - 24 calls
-- `llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo` - 22 calls
 - `env2mcp.env2mcp.cli.cmd_github_status` - 22 calls
-- `llm-agent.agent_standalone.main` - 21 calls
-- `llm-agent.agent_git2mcp.CachedCodeAnalyzer.detect_patterns` - 21 calls
+- `semcod_mcp.analyze.run_analyze` - 22 calls
+- `llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo` - 22 calls
 - `mcp-webui.server.github_configure` - 21 calls
+- `llm-agent.agent_git2mcp.CachedCodeAnalyzer.detect_patterns` - 21 calls
+- `llm-agent.agent_standalone.main` - 21 calls
+- `llm-agent.agent_git2mcp.main` - 20 calls
 - `llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure` - 20 calls
 - `llm-agent.agent_standalone.LocalCodeAnalyzer.recommend_refactoring` - 20 calls
-- `llm-agent.agent_git2mcp.main` - 20 calls
 - `git2mcp.examples.03_agent_git2mcp.main` - 19 calls
 - `mcp-gateway.server.message_content_to_text` - 19 calls
 - `git2mcp.examples.01_sync_and_commit.main` - 18 calls
-- `git2mcp.git2mcp.proxy.GitProxyManager.export_fragments` - 18 calls
 - `mcp-webui.server.github_create_repo` - 18 calls
-- `git2mcp.git2mcp.proxy.GitProxyManager.export_package` - 17 calls
+- `git2mcp.git2mcp.proxy.GitProxyManager.export_fragments` - 18 calls
 - `mcp-webui.server.github_clone` - 17 calls
+- `git2mcp.git2mcp.proxy.GitProxyManager.export_package` - 17 calls
 - `mcp-gateway.server.parse_tool_intent` - 17 calls
-- `dashboard.server.DashboardHandler.do_GET` - 16 calls
-- `llm-agent.agent.main` - 16 calls
 - `git2mcp.examples.04_dry_run_vs_execute.run` - 16 calls
 - `gh2mcp.gh2mcp.sync.GitHubTokenSyncService.sync_token` - 16 calls
+- `dashboard.server.DashboardHandler.do_GET` - 16 calls
+- `llm-agent.agent.main` - 16 calls
 - `mcp-git-proxy.server.sync_pull` - 16 calls
 - `git2mcp.examples.02_fragment_sync_to_skills.main` - 15 calls
-- `mcp-gateway.server.execute_dispatch_job` - 15 calls
-- `mcp-gateway.server.stream_job` - 15 calls
-- `llm-agent.agent_git2mcp.CachedCodeAnalyzer.import_package` - 14 calls
-- `llm-agent.agent.RefactoringAgent.analyze_repository` - 14 calls
 
 ## System Interactions
 
@@ -467,6 +480,8 @@ graph TD
     chat_completions --> next
     main --> ArgumentParser
     main --> add_argument
+    save --> append
+    save --> any
     _sync_from_git_proxy --> mkdir
     _sync_from_git_proxy --> str
     _sync_from_git_proxy --> AsyncClient
@@ -485,8 +500,6 @@ graph TD
     sync_repo --> Path
     sync_repo --> mkdir
     sync_repo --> exists
-    save --> append
-    save --> any
     main --> add_subparsers
     main --> add_parser
     _detect_code_pattern --> get

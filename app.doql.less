@@ -1,8 +1,13 @@
 // LESS format — define @variables here as needed
 
 app {
-  name: mcp;
+  name: semcod-mcp;
   version: 0.1.0;
+}
+
+dependencies {
+  runtime: "click>=8.0, httpx>=0.26.0, pyyaml>=6.0, rich>=13.0";
+  dev: pytest>=8.0;
 }
 
 database[name="redis"] {
@@ -13,6 +18,18 @@ database[name="redis"] {
 interface[type="api"] {
   type: rest;
   framework: fastapi;
+}
+
+interface[type="mcp"] {
+  framework: stdio;
+}
+interface[type="mcp"] page[name="semcod-mcp"] {
+  entry: semcod_mcp.cli:main;
+}
+
+interface[type="web"] {
+  type: spa;
+  framework: static;
 }
 
 integration[name="github"] {
@@ -39,21 +56,25 @@ workflow[name="kill-ports"] {
 
 workflow[name="start"] {
   trigger: manual;
-  step-1: run cmd=GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \;
-  step-2: run cmd=if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \;
-  step-3: run cmd=$(COMPOSE) $(PROFILES) build;
-  step-4: run cmd=GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \;
-  step-5: run cmd=if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \;
-  step-6: run cmd=$(COMPOSE) $(PROFILES) up -d;
-  step-7: run cmd=$(MAKE) smoke;
-  step-8: run cmd=echo "";
-  step-9: run cmd=echo "MCP Skills stack started:";
-  step-10: run cmd=echo "  OpenWebUI:  http://localhost:$(PORT_OPENWEBUI)";
-  step-11: run cmd=echo "  MCP WebUI:  http://localhost:$(PORT_WEBUI)";
-  step-12: run cmd=echo "  MCP Docs:   http://localhost:$(PORT_DOCS)";
-  step-13: run cmd=echo "  Gateway:    http://localhost:$(PORT_GATEWAY)";
-  step-14: run cmd=echo "  Dashboard:  http://localhost:$(PORT_DASHBOARD)";
-  step-15: run cmd=echo "  Git Proxy:  http://localhost:$(PORT_GIT_PROXY)";
+  step-1: run cmd=echo "Pruning orphaned containers to avoid name conflicts...";
+  step-2: run cmd=for c in mcp-redis mcp-git-proxy gh2mcp-agent mcp-skills-server llm-agent mcp-gateway mcp-gateway-worker mcp-webui mcp-docs openwebui mcp-dashboard; do \;
+  step-3: run cmd=docker rm -f $$c >/dev/null 2>&1 || true; \;
+  step-4: run cmd=done;
+  step-5: run cmd=GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \;
+  step-6: run cmd=if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \;
+  step-7: run cmd=$(COMPOSE) $(PROFILES) build;
+  step-8: run cmd=GH_TOKEN_VALUE=$$(gh auth token 2>/dev/null || true); \;
+  step-9: run cmd=if [ -n "$$GH_TOKEN_VALUE" ]; then export GH_TOKEN="$$GH_TOKEN_VALUE"; fi; \;
+  step-10: run cmd=$(COMPOSE) $(PROFILES) up -d;
+  step-11: run cmd=$(MAKE) smoke;
+  step-12: run cmd=echo "";
+  step-13: run cmd=echo "MCP Skills stack started:";
+  step-14: run cmd=echo "  OpenWebUI:  http://localhost:$(PORT_OPENWEBUI)";
+  step-15: run cmd=echo "  MCP WebUI:  http://localhost:$(PORT_WEBUI)";
+  step-16: run cmd=echo "  MCP Docs:   http://localhost:$(PORT_DOCS)";
+  step-17: run cmd=echo "  Gateway:    http://localhost:$(PORT_GATEWAY)";
+  step-18: run cmd=echo "  Dashboard:  http://localhost:$(PORT_DASHBOARD)";
+  step-19: run cmd=echo "  Git Proxy:  http://localhost:$(PORT_GIT_PROXY)";
 }
 
 workflow[name="stop"] {
@@ -212,6 +233,14 @@ workflow[name="generate-demo-repos-github"] {
   step-1: run cmd=GH_DEMO_PROVIDER=github bash scripts/generate_demo_repos.sh;
 }
 
+tests {
+  import: git2mcp/testql-scenarios/**/*.testql.toon.yaml;
+}
+
+env_vars {
+  keys: GITHUB_ORG, GITHUB_PAT, GITHUB_USER, OPENROUTER_API_KEY, LLM_MODEL, LLM_PROVIDER, COLLAPSE_CODE_BLOCKS, DEFAULT_LOCALE, ENABLE_ARTIFACTS, ENABLE_CODE_EXECUTION, ENABLE_LATEX, ENABLE_MERMAID, OPENAI_API_KEY, OPENWEBUI_URL, OUTPUT_PATH, PORT_DASHBOARD, PORT_DOCS, PORT_GATEWAY, PORT_GH2MCP, PORT_GIT_PROXY, PORT_OPENWEBUI, PORT_WEBUI, REDIS_URL, REPOS_PATH, GH2MCP_SYNC_ON_START, GH2MCP_SYNC_INTERVAL, GIT_PROXY_URL, WEBUI_API_KEY, OPENWEBUI_AUTH;
+}
+
 deploy {
   target: docker-compose;
   compose_file: docker-compose.yml;
@@ -221,6 +250,10 @@ deploy {
 environment[name="local"] {
   runtime: docker-compose;
   env_file: .env;
+  template_file: .env.example;
+  python_version: >=3.10;
+  vars: COLLAPSE_CODE_BLOCKS, DEFAULT_LOCALE, ENABLE_ARTIFACTS, ENABLE_CODE_EXECUTION, ENABLE_LATEX, ENABLE_MERMAID, GH2MCP_SYNC_INTERVAL, GH2MCP_SYNC_ON_START, GITHUB_ORG, GITHUB_PAT, GITHUB_USER, GIT_PROXY_URL, LLM_MODEL, LLM_PROVIDER, OPENAI_API_KEY, OPENROUTER_API_KEY, OPENWEBUI_AUTH, OPENWEBUI_URL, OUTPUT_PATH, PORT_DASHBOARD, PORT_DOCS, PORT_GATEWAY, PORT_GH2MCP, PORT_GIT_PROXY, PORT_OPENWEBUI, PORT_WEBUI, REDIS_URL, REPOS_PATH, WEBUI_API_KEY;
+  runtime_llm: OPENROUTER_API_KEY;
 }
 
 environment[name="prod"] {

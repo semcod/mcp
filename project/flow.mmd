@@ -1,37 +1,42 @@
 flowchart TD
+%% generated in 0.01s
 
     %% Entry points (blue)
     classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
 
+    subgraph CLI
+        semcod_mcp__cli__main["main"]
+        semcod_mcp__cli__init_cmd["init_cmd"]
+        semcod_mcp__cli__doctor_cmd["doctor_cmd"]
+        semcod_mcp__cli__validate_cmd["validate_cmd"]
+        semcod_mcp__cli__analyze_cmd["analyze_cmd"]
+    end
+
     subgraph Core
-        dashboard__server__DashboardHandler__end_headers["end_headers"]
-        dashboard__server__DashboardHandler__do_GET["do_GET"]
-        dashboard__server__DashboardHandler__serve_file["serve_file"]
-        dashboard__server__DashboardHandler__send_json["send_json"]
-        dashboard__server__DashboardHandler__get_content_type["get_content_type"]
-        dashboard__server__DashboardHandler__get_status["get_status"]
-        dashboard__server__DashboardHandler__get_analyses["get_analyses"]
-        dashboard__server__DashboardHandler__get_analysis["get_analysis"]
-        dashboard__server__DashboardHandler__get_repos["get_repos"]
-        dashboard__server__main["main"]
-        llm_agent__agent_standalone__LocalCodeAnalyzer__analyze_code_structure["analyze_code_structure"]
-        llm_agent__agent_standalone__LocalCodeAnalyzer__compute_metrics_for_repo["compute_metrics_for_repo"]
-        llm_agent__agent_standalone__LocalCodeAnalyzer__detect_code_patterns["detect_code_patterns"]
-        llm_agent__agent_standalone__LocalCodeAnalyzer__recommend_refactoring["recommend_refactoring"]
-        llm_agent__agent_standalone__RefactoringAgent__analyze_repository["analyze_repository"]
-        ...["+249 more"]
+        mcp_gateway__worker__main["main"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__is_available["is_available"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__get_auth_status["get_auth_status"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__get_token["get_token"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__get_user["get_user"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__login["login"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__logout["logout"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__list_repos["list_repos"]
+        env2mcp__env2mcp__github_cli__GitHubCLI__clone_url["clone_url"]
+        env2mcp__env2mcp__github_cli__get_github_token["get_github_token"]
+        env2mcp__env2mcp__github_cli__configure_github["configure_github"]
+        mcp_webui__server__index["index"]
+        mcp_webui__server__repos_page["repos_page"]
+        mcp_webui__server__repos_sync["repos_sync"]
+        mcp_webui__server__diff_page["diff_page"]
+        ...["+201 more"]
     end
 
     subgraph Exporters
-        git2mcp__project__map__toon__test_git_proxy_e2e_sync_export_commit_and_tests["test_git_proxy_e2e_sync_export"]
+        git2mcp__git2mcp__client__Git2MCPClient__export_package["export_package"]
         git2mcp__git2mcp__proxy__GitProxyManager__export_package["export_package"]
         git2mcp__git2mcp__proxy__GitProxyManager__export_fragments["export_fragments"]
-        git2mcp__git2mcp__client__Git2MCPClient__export_package["export_package"]
-        project__map__toon__test_git_proxy_e2e_sync_export_commit_and_tests["test_git_proxy_e2e_sync_export"]
-        project__map__toon__export_fragments["export_fragments"]
-        project__map__toon__export_package["export_package"]
         mcp_git_proxy__server__export_fragments["export_fragments"]
         mcp_git_proxy__server__export_package["export_package"]
     end
 
-    class dashboard__server__DashboardHandler__end_headers,dashboard__server__DashboardHandler__do_GET,dashboard__server__DashboardHandler__serve_file,dashboard__server__DashboardHandler__send_json,dashboard__server__DashboardHandler__get_content_type,dashboard__server__DashboardHandler__get_status,dashboard__server__DashboardHandler__get_analyses,dashboard__server__DashboardHandler__get_analysis,dashboard__server__DashboardHandler__get_repos,dashboard__server__main entry
+    class mcp_gateway__worker__main,env2mcp__env2mcp__github_cli__GitHubCLI__is_available,env2mcp__env2mcp__github_cli__GitHubCLI__get_auth_status,env2mcp__env2mcp__github_cli__GitHubCLI__get_token,env2mcp__env2mcp__github_cli__GitHubCLI__get_user,env2mcp__env2mcp__github_cli__GitHubCLI__login,env2mcp__env2mcp__github_cli__GitHubCLI__logout,env2mcp__env2mcp__github_cli__GitHubCLI__list_repos,env2mcp__env2mcp__github_cli__GitHubCLI__clone_url,env2mcp__env2mcp__github_cli__get_github_token entry
