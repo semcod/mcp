@@ -6,7 +6,7 @@ SUMMARY:
   dup_groups:    7
   dup_fragments: 18
   saved_lines:   107
-  scan_ms:       4640
+  scan_ms:       4784
 
 HOTSPOTS[7] (files with most duplication):
   llm-agent/agent.py  dup=41L  groups=2  frags=2  (0.4%)

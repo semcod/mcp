@@ -1,5 +1,5 @@
 % ── Project Metadata ─────────────────────────────────────
-project_metadata('mcp', '0.1.1', 'python').
+project_metadata('mcp', '0.1.2', 'python').
 
 % ── Project Files ────────────────────────────────────────
 project_file('app.doql.less', 262, 'less').

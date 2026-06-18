@@ -1,5 +1,5 @@
 flowchart TD
-%% generated in 0.01s
+%% generated in 0.00s
     subgraph dashboard__server
         dashboard__server__DashboardHandler__end_headers["end_headers"]
         dashboard__server__DashboardHandler__do_GET("do_GET CC=8")

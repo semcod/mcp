@@ -187,11 +187,11 @@ tickets:
   dedupe_key: 'code2llm:smell:god_function:semcod_mcp/init_cmd.py:78:God Function:
     run_init'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: args'
-  description: 'code2llm reports `Shotgun Surgery: args` in `mcp-gateway/gateway_render.py:482`.
+  title: 'Address code smell: Shotgun Surgery: action'
+  description: 'code2llm reports `Shotgun Surgery: action` in `semcod_mcp/init_cmd.py:50`.
 
 
-    Mutation of variable ''args'' spans 14 functions. Changing this logic requires
+    Mutation of variable ''action'' spans 7 functions. Changing this logic requires
     work in many places.
 
 
@@ -203,32 +203,12 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - mcp-gateway/gateway_render.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/gateway_render.py:482:Shotgun
-    Surgery: args'
-- signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: branch'
-  description: 'code2llm reports `Shotgun Surgery: branch` in `mcp-gateway/gateway_render.py:186`.
-
-
-    Mutation of variable ''branch'' spans 5 functions. Changing this logic requires
-    work in many places.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: high
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - shotgun-surgery
-  files:
-  - mcp-gateway/gateway_render.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/gateway_render.py:186:Shotgun
-    Surgery: branch'
+  - semcod_mcp/init_cmd.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/init_cmd.py:50:Shotgun Surgery:
+    action'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: cfg'
-  description: 'code2llm reports `Shotgun Surgery: cfg` in `mcp-webui/server.py:173`.
+  description: 'code2llm reports `Shotgun Surgery: cfg` in `mcp-webui/server.py:144`.
 
 
     Mutation of variable ''cfg'' spans 8 functions. Changing this logic requires work
@@ -244,14 +224,14 @@ tickets:
   - shotgun-surgery
   files:
   - mcp-webui/server.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-webui/server.py:173:Shotgun Surgery:
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-webui/server.py:144:Shotgun Surgery:
     cfg'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: classes'
-  description: 'code2llm reports `Shotgun Surgery: classes` in `mcp-skills/code_analysis.py:16`.
+  title: 'Address code smell: Shotgun Surgery: commit'
+  description: 'code2llm reports `Shotgun Surgery: commit` in `mcp-git-proxy/server.py:378`.
 
 
-    Mutation of variable ''classes'' spans 5 functions. Changing this logic requires
+    Mutation of variable ''commit'' spans 7 functions. Changing this logic requires
     work in many places.
 
 
@@ -263,32 +243,12 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - mcp-skills/code_analysis.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-skills/code_analysis.py:16:Shotgun
-    Surgery: classes'
-- signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: cmd'
-  description: 'code2llm reports `Shotgun Surgery: cmd` in `mcp-gateway/gateway_render.py:482`.
-
-
-    Mutation of variable ''cmd'' spans 6 functions. Changing this logic requires work
-    in many places.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: high
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - shotgun-surgery
-  files:
-  - mcp-gateway/gateway_render.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/gateway_render.py:482:Shotgun
-    Surgery: cmd'
+  - mcp-git-proxy/server.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-git-proxy/server.py:378:Shotgun
+    Surgery: commit'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: config'
-  description: 'code2llm reports `Shotgun Surgery: config` in `env2mcp/env2mcp/cli.py:155`.
+  description: 'code2llm reports `Shotgun Surgery: config` in `env2mcp/env2mcp/cli.py:124`.
 
 
     Mutation of variable ''config'' spans 8 functions. Changing this logic requires
@@ -304,51 +264,11 @@ tickets:
   - shotgun-surgery
   files:
   - env2mcp/env2mcp/cli.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:env2mcp/env2mcp/cli.py:155:Shotgun Surgery:
+  dedupe_key: 'code2llm:smell:shotgun_surgery:env2mcp/env2mcp/cli.py:124:Shotgun Surgery:
     config'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: content'
-  description: 'code2llm reports `Shotgun Surgery: content` in `mcp-skills/code_analysis.py:16`.
-
-
-    Mutation of variable ''content'' spans 12 functions. Changing this logic requires
-    work in many places.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: high
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - shotgun-surgery
-  files:
-  - mcp-skills/code_analysis.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-skills/code_analysis.py:16:Shotgun
-    Surgery: content'
-- signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: data'
-  description: 'code2llm reports `Shotgun Surgery: data` in `semcod_mcp/doctor.py:47`.
-
-
-    Mutation of variable ''data'' spans 18 functions. Changing this logic requires
-    work in many places.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: high
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - shotgun-surgery
-  files:
-  - semcod_mcp/doctor.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/doctor.py:47:Shotgun Surgery:
-    data'
-- signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: env_path'
-  description: 'code2llm reports `Shotgun Surgery: env_path` in `env2mcp/env2mcp/cli.py:155`.
+  description: 'code2llm reports `Shotgun Surgery: env_path` in `env2mcp/env2mcp/cli.py:124`.
 
 
     Mutation of variable ''env_path'' spans 8 functions. Changing this logic requires
@@ -364,35 +284,15 @@ tickets:
   - shotgun-surgery
   files:
   - env2mcp/env2mcp/cli.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:env2mcp/env2mcp/cli.py:155:Shotgun Surgery:
+  dedupe_key: 'code2llm:smell:shotgun_surgery:env2mcp/env2mcp/cli.py:124:Shotgun Surgery:
     env_path'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: functions'
-  description: 'code2llm reports `Shotgun Surgery: functions` in `mcp-skills/code_analysis.py:16`.
+  title: 'Address code smell: Shotgun Surgery: gh'
+  description: 'code2llm reports `Shotgun Surgery: gh` in `env2mcp/env2mcp/cli.py:66`.
 
 
-    Mutation of variable ''functions'' spans 6 functions. Changing this logic requires
-    work in many places.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: high
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - shotgun-surgery
-  files:
-  - mcp-skills/code_analysis.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-skills/code_analysis.py:16:Shotgun
-    Surgery: functions'
-- signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: imports'
-  description: 'code2llm reports `Shotgun Surgery: imports` in `mcp-skills/code_analysis.py:16`.
-
-
-    Mutation of variable ''imports'' spans 5 functions. Changing this logic requires
-    work in many places.
+    Mutation of variable ''gh'' spans 14 functions. Changing this logic requires work
+    in many places.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -403,9 +303,9 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - mcp-skills/code_analysis.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-skills/code_analysis.py:16:Shotgun
-    Surgery: imports'
+  - env2mcp/env2mcp/cli.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:env2mcp/env2mcp/cli.py:66:Shotgun Surgery:
+    gh'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: line_count'
   description: 'code2llm reports `Shotgun Surgery: line_count` in `mcp-skills/code_analysis.py:16`.
@@ -427,8 +327,28 @@ tickets:
   dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-skills/code_analysis.py:16:Shotgun
     Surgery: line_count'
 - signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: lines'
+  description: 'code2llm reports `Shotgun Surgery: lines` in `mcp-gateway/gateway_render.py:186`.
+
+
+    Mutation of variable ''lines'' spans 20 functions. Changing this logic requires
+    work in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - mcp-gateway/gateway_render.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/gateway_render.py:186:Shotgun
+    Surgery: lines'
+- signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: match'
-  description: 'code2llm reports `Shotgun Surgery: match` in `mcp-gateway/server.py:475`.
+  description: 'code2llm reports `Shotgun Surgery: match` in `mcp-gateway/server.py:327`.
 
 
     Mutation of variable ''match'' spans 8 functions. Changing this logic requires
@@ -444,11 +364,11 @@ tickets:
   - shotgun-surgery
   files:
   - mcp-gateway/server.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/server.py:475:Shotgun Surgery:
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/server.py:327:Shotgun Surgery:
     match'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: messages'
-  description: 'code2llm reports `Shotgun Surgery: messages` in `semcod_mcp/merge.py:61`.
+  description: 'code2llm reports `Shotgun Surgery: messages` in `semcod_mcp/merge.py:148`.
 
 
     Mutation of variable ''messages'' spans 6 functions. Changing this logic requires
@@ -464,7 +384,7 @@ tickets:
   - shotgun-surgery
   files:
   - semcod_mcp/merge.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/merge.py:61:Shotgun Surgery:
+  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/merge.py:148:Shotgun Surgery:
     messages'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: normalized'
@@ -488,7 +408,7 @@ tickets:
     normalized'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: out'
-  description: 'code2llm reports `Shotgun Surgery: out` in `semcod_mcp/merge.py:61`.
+  description: 'code2llm reports `Shotgun Surgery: out` in `semcod_mcp/merge.py:148`.
 
 
     Mutation of variable ''out'' spans 6 functions. Changing this logic requires work
@@ -504,11 +424,31 @@ tickets:
   - shotgun-surgery
   files:
   - semcod_mcp/merge.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/merge.py:61:Shotgun Surgery:
+  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/merge.py:148:Shotgun Surgery:
     out'
 - signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: parsed'
+  description: 'code2llm reports `Shotgun Surgery: parsed` in `mcp-gateway/server.py:551`.
+
+
+    Mutation of variable ''parsed'' spans 7 functions. Changing this logic requires
+    work in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - mcp-gateway/server.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/server.py:551:Shotgun Surgery:
+    parsed'
+- signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: parts'
-  description: 'code2llm reports `Shotgun Surgery: parts` in `mcp-gateway/server.py:228`.
+  description: 'code2llm reports `Shotgun Surgery: parts` in `mcp-gateway/server.py:551`.
 
 
     Mutation of variable ''parts'' spans 6 functions. Changing this logic requires
@@ -524,14 +464,14 @@ tickets:
   - shotgun-surgery
   files:
   - mcp-gateway/server.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/server.py:228:Shotgun Surgery:
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/server.py:551:Shotgun Surgery:
     parts'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: payload'
-  description: 'code2llm reports `Shotgun Surgery: payload` in `git2mcp/examples/03_agent_git2mcp.py:9`.
+  title: 'Address code smell: Shotgun Surgery: path'
+  description: 'code2llm reports `Shotgun Surgery: path` in `mcp-gateway/server.py:1055`.
 
 
-    Mutation of variable ''payload'' spans 11 functions. Changing this logic requires
+    Mutation of variable ''path'' spans 7 functions. Changing this logic requires
     work in many places.
 
 
@@ -543,12 +483,12 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - git2mcp/examples/03_agent_git2mcp.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:git2mcp/examples/03_agent_git2mcp.py:9:Shotgun
-    Surgery: payload'
+  - mcp-gateway/server.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/server.py:1055:Shotgun Surgery:
+    path'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: project_dir'
-  description: 'code2llm reports `Shotgun Surgery: project_dir` in `semcod_mcp/doctor.py:47`.
+  description: 'code2llm reports `Shotgun Surgery: project_dir` in `semcod_mcp/analyze.py:24`.
 
 
     Mutation of variable ''project_dir'' spans 5 functions. Changing this logic requires
@@ -563,15 +503,15 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - semcod_mcp/doctor.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/doctor.py:47:Shotgun Surgery:
+  - semcod_mcp/analyze.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/analyze.py:24:Shotgun Surgery:
     project_dir'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: repo_id'
-  description: 'code2llm reports `Shotgun Surgery: repo_id` in `mcp-gateway/gateway_render.py:186`.
+  title: 'Address code smell: Shotgun Surgery: prompt'
+  description: 'code2llm reports `Shotgun Surgery: prompt` in `semcod_mcp/analyze.py:24`.
 
 
-    Mutation of variable ''repo_id'' spans 12 functions. Changing this logic requires
+    Mutation of variable ''prompt'' spans 6 functions. Changing this logic requires
     work in many places.
 
 
@@ -583,12 +523,32 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - mcp-gateway/gateway_render.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/gateway_render.py:186:Shotgun
-    Surgery: repo_id'
+  - semcod_mcp/analyze.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/analyze.py:24:Shotgun Surgery:
+    prompt'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: repo_path'
+  description: 'code2llm reports `Shotgun Surgery: repo_path` in `mcp-git-proxy/server.py:296`.
+
+
+    Mutation of variable ''repo_path'' spans 24 functions. Changing this logic requires
+    work in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - mcp-git-proxy/server.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-git-proxy/server.py:296:Shotgun
+    Surgery: repo_path'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: report'
-  description: 'code2llm reports `Shotgun Surgery: report` in `semcod_mcp/doctor.py:47`.
+  description: 'code2llm reports `Shotgun Surgery: report` in `semcod_mcp/cli.py:86`.
 
 
     Mutation of variable ''report'' spans 5 functions. Changing this logic requires
@@ -603,15 +563,15 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - semcod_mcp/doctor.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/doctor.py:47:Shotgun Surgery:
+  - semcod_mcp/cli.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/cli.py:86:Shotgun Surgery:
     report'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: response'
-  description: 'code2llm reports `Shotgun Surgery: response` in `mcp-webui/server.py:161`.
+  title: 'Address code smell: Shotgun Surgery: repos'
+  description: 'code2llm reports `Shotgun Surgery: repos` in `mcp-webui/server.py:173`.
 
 
-    Mutation of variable ''response'' spans 8 functions. Changing this logic requires
+    Mutation of variable ''repos'' spans 11 functions. Changing this logic requires
     work in many places.
 
 
@@ -624,14 +584,14 @@ tickets:
   - shotgun-surgery
   files:
   - mcp-webui/server.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-webui/server.py:161:Shotgun Surgery:
-    response'
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-webui/server.py:173:Shotgun Surgery:
+    repos'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: status'
-  description: 'code2llm reports `Shotgun Surgery: status` in `git2mcp/examples/03_agent_git2mcp.py:9`.
+  title: 'Address code smell: Shotgun Surgery: service'
+  description: 'code2llm reports `Shotgun Surgery: service` in `gh2mcp/gh2mcp/cli.py:10`.
 
 
-    Mutation of variable ''status'' spans 9 functions. Changing this logic requires
+    Mutation of variable ''service'' spans 5 functions. Changing this logic requires
     work in many places.
 
 
@@ -643,15 +603,35 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - git2mcp/examples/03_agent_git2mcp.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:git2mcp/examples/03_agent_git2mcp.py:9:Shotgun
-    Surgery: status'
+  - gh2mcp/gh2mcp/cli.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:gh2mcp/gh2mcp/cli.py:10:Shotgun Surgery:
+    service'
 - signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: target'
-  description: 'code2llm reports `Shotgun Surgery: target` in `mcp-skills/code_analysis.py:224`.
+  title: 'Address code smell: Shotgun Surgery: url'
+  description: 'code2llm reports `Shotgun Surgery: url` in `semcod_mcp/analyze.py:24`.
 
 
-    Mutation of variable ''target'' spans 8 functions. Changing this logic requires
+    Mutation of variable ''url'' spans 5 functions. Changing this logic requires work
+    in many places.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - shotgun-surgery
+  files:
+  - semcod_mcp/analyze.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:semcod_mcp/analyze.py:24:Shotgun Surgery:
+    url'
+- signal: code2llm_smell_shotgun_surgery
+  title: 'Address code smell: Shotgun Surgery: user'
+  description: 'code2llm reports `Shotgun Surgery: user` in `mcp-webui/server.py:173`.
+
+
+    Mutation of variable ''user'' spans 8 functions. Changing this logic requires
     work in many places.
 
 
@@ -663,69 +643,9 @@ tickets:
   - code-smell
   - shotgun-surgery
   files:
-  - mcp-skills/code_analysis.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-skills/code_analysis.py:224:Shotgun
-    Surgery: target'
-- signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: text'
-  description: 'code2llm reports `Shotgun Surgery: text` in `mcp-gateway/server.py:228`.
-
-
-    Mutation of variable ''text'' spans 10 functions. Changing this logic requires
-    work in many places.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: high
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - shotgun-surgery
-  files:
-  - mcp-gateway/server.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/server.py:228:Shotgun Surgery:
-    text'
-- signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: token'
-  description: 'code2llm reports `Shotgun Surgery: token` in `env2mcp/env2mcp/cli.py:30`.
-
-
-    Mutation of variable ''token'' spans 13 functions. Changing this logic requires
-    work in many places.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: high
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - shotgun-surgery
-  files:
-  - env2mcp/env2mcp/cli.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:env2mcp/env2mcp/cli.py:30:Shotgun Surgery:
-    token'
-- signal: code2llm_smell_shotgun_surgery
-  title: 'Address code smell: Shotgun Surgery: value'
-  description: 'code2llm reports `Shotgun Surgery: value` in `mcp-gateway/server.py:475`.
-
-
-    Mutation of variable ''value'' spans 10 functions. Changing this logic requires
-    work in many places.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: high
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - shotgun-surgery
-  files:
-  - mcp-gateway/server.py
-  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-gateway/server.py:475:Shotgun Surgery:
-    value'
+  - mcp-webui/server.py
+  dedupe_key: 'code2llm:smell:shotgun_surgery:mcp-webui/server.py:173:Shotgun Surgery:
+    user'
 - signal: code2llm_smell_shotgun_surgery
   title: 'Address code smell: Shotgun Surgery: words'
   description: 'code2llm reports `Shotgun Surgery: words` in `mcp-gateway/server.py:405`.
@@ -1065,133 +985,11 @@ tickets:
   - semcod_mcp/deinit_cmd.py
   dedupe_key: code2llm:cc:semcod_mcp/deinit_cmd.py:semcod_mcp.deinit_cmd.run_deinit
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: branch, remote, repo_id, self'
-  description: 'code2llm reports `Data Clump: branch, remote, repo_id, self` in `git2mcp/git2mcp/proxy.py:258`.
+  title: 'Address code smell: Data Clump: args, command, self'
+  description: 'code2llm reports `Data Clump: args, command, self` in `llm-agent/agent.py:45`.
 
 
-    Arguments (branch, remote, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.push, git2mcp.git2mcp.client.Git2MCPClient.push.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:258:Data Clump:
-    branch, remote, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: branch, remote, repo_id, self'
-  description: 'code2llm reports `Data Clump: branch, remote, repo_id, self` in `git2mcp/git2mcp/client.py:59`.
-
-
-    Arguments (branch, remote, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.push, git2mcp.git2mcp.client.Git2MCPClient.push.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:59:Data Clump:
-    branch, remote, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: check_only, patch, repo_id, self'
-  description: 'code2llm reports `Data Clump: check_only, patch, repo_id, self` in
-    `git2mcp/git2mcp/proxy.py:321`.
-
-
-    Arguments (check_only, patch, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.patch_apply, git2mcp.git2mcp.client.Git2MCPClient.patch_apply.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:321:Data Clump:
-    check_only, patch, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: check_only, patch, repo_id, self'
-  description: 'code2llm reports `Data Clump: check_only, patch, repo_id, self` in
-    `git2mcp/git2mcp/client.py:79`.
-
-
-    Arguments (check_only, patch, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.patch_apply, git2mcp.git2mcp.client.Git2MCPClient.patch_apply.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:79:Data Clump:
-    check_only, patch, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: checkpoint_id, repo_id, self'
-  description: 'code2llm reports `Data Clump: checkpoint_id, repo_id, self` in `git2mcp/git2mcp/proxy.py:401`.
-
-
-    Arguments (checkpoint_id, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_restore, git2mcp.git2mcp.client.Git2MCPClient.checkpoint_restore.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:401:Data Clump:
-    checkpoint_id, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: checkpoint_id, repo_id, self'
-  description: 'code2llm reports `Data Clump: checkpoint_id, repo_id, self` in `git2mcp/git2mcp/client.py:102`.
-
-
-    Arguments (checkpoint_id, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_restore, git2mcp.git2mcp.client.Git2MCPClient.checkpoint_restore.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:102:Data Clump:
-    checkpoint_id, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: command, args, self'
-  description: 'code2llm reports `Data Clump: command, args, self` in `llm-agent/agent.py:45`.
-
-
-    Arguments (command, args, self) are used together in multiple functions: llm-agent.agent.RefactoringAgent.connect_skills,
+    Arguments (args, command, self) are used together in multiple functions: llm-agent.agent.RefactoringAgent.connect_skills,
     llm-agent.agent.RefactoringAgent.connect_git_mcp.
 
 
@@ -1204,14 +1002,14 @@ tickets:
   - data-clump
   files:
   - llm-agent/agent.py
-  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent.py:45:Data Clump: command,
-    args, self'
+  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent.py:45:Data Clump: args, command,
+    self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: command, args, self'
-  description: 'code2llm reports `Data Clump: command, args, self` in `llm-agent/agent.py:57`.
+  title: 'Address code smell: Data Clump: args, command, self'
+  description: 'code2llm reports `Data Clump: args, command, self` in `llm-agent/agent.py:57`.
 
 
-    Arguments (command, args, self) are used together in multiple functions: llm-agent.agent.RefactoringAgent.connect_skills,
+    Arguments (args, command, self) are used together in multiple functions: llm-agent.agent.RefactoringAgent.connect_skills,
     llm-agent.agent.RefactoringAgent.connect_git_mcp.
 
 
@@ -1224,15 +1022,18 @@ tickets:
   - data-clump
   files:
   - llm-agent/agent.py
-  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent.py:57:Data Clump: command,
-    args, self'
+  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent.py:57:Data Clump: args, command,
+    self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: encoding, path, repo_id, self'
-  description: 'code2llm reports `Data Clump: encoding, path, repo_id, self` in `git2mcp/git2mcp/proxy.py:303`.
+  title: 'Address code smell: Data Clump: author_name, changes, self, author_email,
+    message, repo_id'
+  description: 'code2llm reports `Data Clump: author_name, changes, self, author_email,
+    message, repo_id` in `git2mcp/git2mcp/proxy.py:221`.
 
 
-    Arguments (encoding, path, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.worktree_read, git2mcp.git2mcp.client.Git2MCPClient.worktree_read.
+    Arguments (author_name, changes, self, author_email, message, repo_id) are used
+    together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.commit_changes,
+    git2mcp.git2mcp.client.Git2MCPClient.commit_changes.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1244,15 +1045,18 @@ tickets:
   - data-clump
   files:
   - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:303:Data Clump:
-    encoding, path, repo_id, self'
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:221:Data Clump:
+    author_name, changes, self, author_email, message, repo_id'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: encoding, path, repo_id, self'
-  description: 'code2llm reports `Data Clump: encoding, path, repo_id, self` in `git2mcp/git2mcp/client.py:71`.
+  title: 'Address code smell: Data Clump: author_name, changes, self, author_email,
+    message, repo_id'
+  description: 'code2llm reports `Data Clump: author_name, changes, self, author_email,
+    message, repo_id` in `git2mcp/git2mcp/client.py:46`.
 
 
-    Arguments (encoding, path, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.worktree_read, git2mcp.git2mcp.client.Git2MCPClient.worktree_read.
+    Arguments (author_name, changes, self, author_email, message, repo_id) are used
+    together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.commit_changes,
+    git2mcp.git2mcp.client.Git2MCPClient.commit_changes.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1264,15 +1068,15 @@ tickets:
   - data-clump
   files:
   - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:71:Data Clump:
-    encoding, path, repo_id, self'
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:46:Data Clump:
+    author_name, changes, self, author_email, message, repo_id'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: extensions, repo_id, self'
-  description: 'code2llm reports `Data Clump: extensions, repo_id, self` in `llm-agent/agent_standalone.py:90`.
+  title: 'Address code smell: Data Clump: key, value, self'
+  description: 'code2llm reports `Data Clump: key, value, self` in `env2mcp/env2mcp/config.py:43`.
 
 
-    Arguments (extensions, repo_id, self) are used together in multiple functions:
-    llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo, llm-agent.agent_git2mcp.CachedCodeAnalyzer.compute_metrics.
+    Arguments (key, value, self) are used together in multiple functions: env2mcp.env2mcp.config.EnvConfig.set,
+    env2mcp.env2mcp.config.EnvConfig._format_value, env2mcp.env2mcp.config.EnvConfig.__setitem__.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1283,16 +1087,16 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - llm-agent/agent_standalone.py
-  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_standalone.py:90:Data Clump:
-    extensions, repo_id, self'
+  - env2mcp/env2mcp/config.py
+  dedupe_key: 'code2llm:smell:data_clump:env2mcp/env2mcp/config.py:43:Data Clump:
+    key, value, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: extensions, repo_id, self'
-  description: 'code2llm reports `Data Clump: extensions, repo_id, self` in `llm-agent/agent_git2mcp.py:62`.
+  title: 'Address code smell: Data Clump: key, value, self'
+  description: 'code2llm reports `Data Clump: key, value, self` in `env2mcp/env2mcp/config.py:51`.
 
 
-    Arguments (extensions, repo_id, self) are used together in multiple functions:
-    llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo, llm-agent.agent_git2mcp.CachedCodeAnalyzer.compute_metrics.
+    Arguments (key, value, self) are used together in multiple functions: env2mcp.env2mcp.config.EnvConfig.set,
+    env2mcp.env2mcp.config.EnvConfig._format_value, env2mcp.env2mcp.config.EnvConfig.__setitem__.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1303,16 +1107,16 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - llm-agent/agent_git2mcp.py
-  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_git2mcp.py:62:Data Clump:
-    extensions, repo_id, self'
+  - env2mcp/env2mcp/config.py
+  dedupe_key: 'code2llm:smell:data_clump:env2mcp/env2mcp/config.py:51:Data Clump:
+    key, value, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: label, repo_id, self'
-  description: 'code2llm reports `Data Clump: label, repo_id, self` in `git2mcp/git2mcp/proxy.py:385`.
+  title: 'Address code smell: Data Clump: key, value, self'
+  description: 'code2llm reports `Data Clump: key, value, self` in `env2mcp/env2mcp/config.py:138`.
 
 
-    Arguments (label, repo_id, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_create,
-    git2mcp.git2mcp.client.Git2MCPClient.checkpoint_create.
+    Arguments (key, value, self) are used together in multiple functions: env2mcp.env2mcp.config.EnvConfig.set,
+    env2mcp.env2mcp.config.EnvConfig._format_value, env2mcp.env2mcp.config.EnvConfig.__setitem__.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1323,149 +1127,9 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:385:Data Clump:
-    label, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: label, repo_id, self'
-  description: 'code2llm reports `Data Clump: label, repo_id, self` in `git2mcp/git2mcp/client.py:98`.
-
-
-    Arguments (label, repo_id, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_create,
-    git2mcp.git2mcp.client.Git2MCPClient.checkpoint_create.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:98:Data Clump:
-    label, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: message, path, self'
-  description: 'code2llm reports `Data Clump: message, path, self` in `semcod_mcp/validate.py:29`.
-
-
-    Arguments (message, path, self) are used together in multiple functions: semcod_mcp.validate.ValidationReport.error,
-    semcod_mcp.validate.ValidationReport.warn.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - semcod_mcp/validate.py
-  dedupe_key: 'code2llm:smell:data_clump:semcod_mcp/validate.py:29:Data Clump: message,
-    path, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: message, path, self'
-  description: 'code2llm reports `Data Clump: message, path, self` in `semcod_mcp/validate.py:32`.
-
-
-    Arguments (message, path, self) are used together in multiple functions: semcod_mcp.validate.ValidationReport.error,
-    semcod_mcp.validate.ValidationReport.warn.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - semcod_mcp/validate.py
-  dedupe_key: 'code2llm:smell:data_clump:semcod_mcp/validate.py:32:Data Clump: message,
-    path, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: message, repo_id, self'
-  description: 'code2llm reports `Data Clump: message, repo_id, self` in `git2mcp/git2mcp/proxy.py:351`.
-
-
-    Arguments (message, repo_id, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.stash_save,
-    git2mcp.git2mcp.client.Git2MCPClient.stash_save.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:351:Data Clump:
-    message, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: message, repo_id, self'
-  description: 'code2llm reports `Data Clump: message, repo_id, self` in `git2mcp/git2mcp/client.py:87`.
-
-
-    Arguments (message, repo_id, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.stash_save,
-    git2mcp.git2mcp.client.Git2MCPClient.stash_save.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:87:Data Clump:
-    message, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: name, base, repo_id, self'
-  description: 'code2llm reports `Data Clump: name, base, repo_id, self` in `git2mcp/git2mcp/proxy.py:373`.
-
-
-    Arguments (name, base, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.branch_draft, git2mcp.git2mcp.client.Git2MCPClient.branch_draft.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:373:Data Clump:
-    name, base, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: name, base, repo_id, self'
-  description: 'code2llm reports `Data Clump: name, base, repo_id, self` in `git2mcp/git2mcp/client.py:94`.
-
-
-    Arguments (name, base, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.branch_draft, git2mcp.git2mcp.client.Git2MCPClient.branch_draft.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:94:Data Clump:
-    name, base, repo_id, self'
+  - env2mcp/env2mcp/config.py
+  dedupe_key: 'code2llm:smell:data_clump:env2mcp/env2mcp/config.py:138:Data Clump:
+    key, value, self'
 - signal: code2llm_smell_data_clump
   title: 'Address code smell: Data Clump: owner, limit, self'
   description: 'code2llm reports `Data Clump: owner, limit, self` in `gh2mcp/gh2mcp/sync.py:124`.
@@ -1507,13 +1171,53 @@ tickets:
   dedupe_key: 'code2llm:smell:data_clump:env2mcp/env2mcp/github_cli.py:172:Data Clump:
     owner, limit, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: path, repo_id, self, encoding, content'
-  description: 'code2llm reports `Data Clump: path, repo_id, self, encoding, content`
-    in `git2mcp/git2mcp/proxy.py:292`.
+  title: 'Address code smell: Data Clump: path, message, self'
+  description: 'code2llm reports `Data Clump: path, message, self` in `semcod_mcp/validate.py:29`.
 
 
-    Arguments (path, repo_id, self, encoding, content) are used together in multiple
-    functions: git2mcp.git2mcp.proxy.GitProxyManager.worktree_write, git2mcp.git2mcp.client.Git2MCPClient.worktree_write.
+    Arguments (path, message, self) are used together in multiple functions: semcod_mcp.validate.ValidationReport.error,
+    semcod_mcp.validate.ValidationReport.warn.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - semcod_mcp/validate.py
+  dedupe_key: 'code2llm:smell:data_clump:semcod_mcp/validate.py:29:Data Clump: path,
+    message, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: path, message, self'
+  description: 'code2llm reports `Data Clump: path, message, self` in `semcod_mcp/validate.py:32`.
+
+
+    Arguments (path, message, self) are used together in multiple functions: semcod_mcp.validate.ValidationReport.error,
+    semcod_mcp.validate.ValidationReport.warn.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - semcod_mcp/validate.py
+  dedupe_key: 'code2llm:smell:data_clump:semcod_mcp/validate.py:32:Data Clump: path,
+    message, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, check_only, patch, self'
+  description: 'code2llm reports `Data Clump: repo_id, check_only, patch, self` in
+    `git2mcp/git2mcp/proxy.py:321`.
+
+
+    Arguments (repo_id, check_only, patch, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.patch_apply, git2mcp.git2mcp.client.Git2MCPClient.patch_apply.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1525,16 +1229,16 @@ tickets:
   - data-clump
   files:
   - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:292:Data Clump:
-    path, repo_id, self, encoding, content'
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:321:Data Clump:
+    repo_id, check_only, patch, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: path, repo_id, self, encoding, content'
-  description: 'code2llm reports `Data Clump: path, repo_id, self, encoding, content`
-    in `git2mcp/git2mcp/client.py:67`.
+  title: 'Address code smell: Data Clump: repo_id, check_only, patch, self'
+  description: 'code2llm reports `Data Clump: repo_id, check_only, patch, self` in
+    `git2mcp/git2mcp/client.py:79`.
 
 
-    Arguments (path, repo_id, self, encoding, content) are used together in multiple
-    functions: git2mcp.git2mcp.proxy.GitProxyManager.worktree_write, git2mcp.git2mcp.client.Git2MCPClient.worktree_write.
+    Arguments (repo_id, check_only, patch, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.patch_apply, git2mcp.git2mcp.client.Git2MCPClient.patch_apply.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1546,35 +1250,15 @@ tickets:
   - data-clump
   files:
   - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:67:Data Clump:
-    path, repo_id, self, encoding, content'
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:79:Data Clump:
+    repo_id, check_only, patch, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: paths, repo_id, self'
-  description: 'code2llm reports `Data Clump: paths, repo_id, self` in `llm-agent/agent_standalone.py:35`.
+  title: 'Address code smell: Data Clump: repo_id, checkpoint_id, self'
+  description: 'code2llm reports `Data Clump: repo_id, checkpoint_id, self` in `git2mcp/git2mcp/proxy.py:401`.
 
 
-    Arguments (paths, repo_id, self) are used together in multiple functions: llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure,
-    git2mcp.git2mcp.proxy.GitProxyManager.stage, git2mcp.git2mcp.client.Git2MCPClient.stage.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - llm-agent/agent_standalone.py
-  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_standalone.py:35:Data Clump:
-    paths, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: paths, repo_id, self'
-  description: 'code2llm reports `Data Clump: paths, repo_id, self` in `git2mcp/git2mcp/proxy.py:340`.
-
-
-    Arguments (paths, repo_id, self) are used together in multiple functions: llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure,
-    git2mcp.git2mcp.proxy.GitProxyManager.stage, git2mcp.git2mcp.client.Git2MCPClient.stage.
+    Arguments (repo_id, checkpoint_id, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_restore, git2mcp.git2mcp.client.Git2MCPClient.checkpoint_restore.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1586,15 +1270,15 @@ tickets:
   - data-clump
   files:
   - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:340:Data Clump:
-    paths, repo_id, self'
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:401:Data Clump:
+    repo_id, checkpoint_id, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: paths, repo_id, self'
-  description: 'code2llm reports `Data Clump: paths, repo_id, self` in `git2mcp/git2mcp/client.py:83`.
+  title: 'Address code smell: Data Clump: repo_id, checkpoint_id, self'
+  description: 'code2llm reports `Data Clump: repo_id, checkpoint_id, self` in `git2mcp/git2mcp/client.py:102`.
 
 
-    Arguments (paths, repo_id, self) are used together in multiple functions: llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure,
-    git2mcp.git2mcp.proxy.GitProxyManager.stage, git2mcp.git2mcp.client.Git2MCPClient.stage.
+    Arguments (repo_id, checkpoint_id, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_restore, git2mcp.git2mcp.client.Git2MCPClient.checkpoint_restore.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1606,267 +1290,15 @@ tickets:
   - data-clump
   files:
   - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:83:Data Clump:
-    paths, repo_id, self'
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:102:Data Clump:
+    repo_id, checkpoint_id, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: ref, mode, repo_id, self'
-  description: 'code2llm reports `Data Clump: ref, mode, repo_id, self` in `git2mcp/git2mcp/proxy.py:419`.
-
-
-    Arguments (ref, mode, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.reset, git2mcp.git2mcp.client.Git2MCPClient.reset.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:419:Data Clump:
-    ref, mode, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: ref, mode, repo_id, self'
-  description: 'code2llm reports `Data Clump: ref, mode, repo_id, self` in `git2mcp/git2mcp/client.py:63`.
-
-
-    Arguments (ref, mode, repo_id, self) are used together in multiple functions:
-    git2mcp.git2mcp.proxy.GitProxyManager.reset, git2mcp.git2mcp.client.Git2MCPClient.reset.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:63:Data Clump:
-    ref, mode, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: ref, repo_id, self'
-  description: 'code2llm reports `Data Clump: ref, repo_id, self` in `mcp-skills/server.py:74`.
-
-
-    Arguments (ref, repo_id, self) are used together in multiple functions: mcp-skills.server.MCPSkillsServer._sync_from_git_proxy,
-    git2mcp.git2mcp.proxy.GitProxyManager.export_package, git2mcp.git2mcp.client.Git2MCPClient.export_package.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - mcp-skills/server.py
-  dedupe_key: 'code2llm:smell:data_clump:mcp-skills/server.py:74:Data Clump: ref,
-    repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: ref, repo_id, self'
-  description: 'code2llm reports `Data Clump: ref, repo_id, self` in `git2mcp/git2mcp/proxy.py:131`.
-
-
-    Arguments (ref, repo_id, self) are used together in multiple functions: mcp-skills.server.MCPSkillsServer._sync_from_git_proxy,
-    git2mcp.git2mcp.proxy.GitProxyManager.export_package, git2mcp.git2mcp.client.Git2MCPClient.export_package.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:131:Data Clump:
-    ref, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: ref, repo_id, self'
-  description: 'code2llm reports `Data Clump: ref, repo_id, self` in `git2mcp/git2mcp/client.py:43`.
-
-
-    Arguments (ref, repo_id, self) are used together in multiple functions: mcp-skills.server.MCPSkillsServer._sync_from_git_proxy,
-    git2mcp.git2mcp.proxy.GitProxyManager.export_package, git2mcp.git2mcp.client.Git2MCPClient.export_package.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:43:Data Clump:
-    ref, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: repo_id, self, author_email, changes, author_name,
-    message'
-  description: 'code2llm reports `Data Clump: repo_id, self, author_email, changes,
-    author_name, message` in `git2mcp/git2mcp/proxy.py:221`.
-
-
-    Arguments (repo_id, self, author_email, changes, author_name, message) are used
-    together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.commit_changes,
-    git2mcp.git2mcp.client.Git2MCPClient.commit_changes.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:221:Data Clump:
-    repo_id, self, author_email, changes, author_name, message'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: repo_id, self, author_email, changes, author_name,
-    message'
-  description: 'code2llm reports `Data Clump: repo_id, self, author_email, changes,
-    author_name, message` in `git2mcp/git2mcp/client.py:46`.
-
-
-    Arguments (repo_id, self, author_email, changes, author_name, message) are used
-    together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.commit_changes,
-    git2mcp.git2mcp.client.Git2MCPClient.commit_changes.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:46:Data Clump:
-    repo_id, self, author_email, changes, author_name, message'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: source_path, repo_id, repo_url, self, branch'
-  description: 'code2llm reports `Data Clump: source_path, repo_id, repo_url, self,
-    branch` in `llm-agent/agent_git2mcp.py:199`.
-
-
-    Arguments (source_path, repo_id, repo_url, self, branch) are used together in
-    multiple functions: llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.sync_and_cache_repo,
-    git2mcp.git2mcp.proxy.GitProxyManager.sync_repo, git2mcp.git2mcp.client.Git2MCPClient.sync_repo.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - llm-agent/agent_git2mcp.py
-  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_git2mcp.py:199:Data Clump:
-    source_path, repo_id, repo_url, self, branch'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: source_path, repo_id, repo_url, self, branch'
-  description: 'code2llm reports `Data Clump: source_path, repo_id, repo_url, self,
-    branch` in `git2mcp/git2mcp/proxy.py:74`.
-
-
-    Arguments (source_path, repo_id, repo_url, self, branch) are used together in
-    multiple functions: llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.sync_and_cache_repo,
-    git2mcp.git2mcp.proxy.GitProxyManager.sync_repo, git2mcp.git2mcp.client.Git2MCPClient.sync_repo.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:74:Data Clump: source_path,
-    repo_id, repo_url, self, branch'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: source_path, repo_id, repo_url, self, branch'
-  description: 'code2llm reports `Data Clump: source_path, repo_id, repo_url, self,
-    branch` in `git2mcp/git2mcp/client.py:34`.
-
-
-    Arguments (source_path, repo_id, repo_url, self, branch) are used together in
-    multiple functions: llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.sync_and_cache_repo,
-    git2mcp.git2mcp.proxy.GitProxyManager.sync_repo, git2mcp.git2mcp.client.Git2MCPClient.sync_repo.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:34:Data Clump:
-    source_path, repo_id, repo_url, self, branch'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: staged, repo_id, self'
-  description: 'code2llm reports `Data Clump: staged, repo_id, self` in `git2mcp/git2mcp/proxy.py:312`.
-
-
-    Arguments (staged, repo_id, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.worktree_diff,
-    git2mcp.git2mcp.client.Git2MCPClient.worktree_diff.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/proxy.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:312:Data Clump:
-    staged, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: staged, repo_id, self'
-  description: 'code2llm reports `Data Clump: staged, repo_id, self` in `git2mcp/git2mcp/client.py:75`.
-
-
-    Arguments (staged, repo_id, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.worktree_diff,
-    git2mcp.git2mcp.client.Git2MCPClient.worktree_diff.
-
-
-    Make the smallest refactor that removes the smell and run local tests.'
-  priority: normal
-  labels:
-  - llm-ready
-  - code2llm
-  - code-smell
-  - data-clump
-  files:
-  - git2mcp/git2mcp/client.py
-  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:75:Data Clump:
-    staged, repo_id, self'
-- signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: target_paths, dry_run, repo_id, self'
-  description: 'code2llm reports `Data Clump: target_paths, dry_run, repo_id, self`
+  title: 'Address code smell: Data Clump: repo_id, dry_run, target_paths, self'
+  description: 'code2llm reports `Data Clump: repo_id, dry_run, target_paths, self`
     in `llm-agent/agent_standalone.py:448`.
 
 
-    Arguments (target_paths, dry_run, repo_id, self) are used together in multiple
+    Arguments (repo_id, dry_run, target_paths, self) are used together in multiple
     functions: llm-agent.agent_standalone.RefactoringAgent.execute_refactoring_workflow,
     llm-agent.agent.RefactoringAgent.execute_refactoring_workflow.
 
@@ -1881,14 +1313,14 @@ tickets:
   files:
   - llm-agent/agent_standalone.py
   dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_standalone.py:448:Data Clump:
-    target_paths, dry_run, repo_id, self'
+    repo_id, dry_run, target_paths, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: target_paths, dry_run, repo_id, self'
-  description: 'code2llm reports `Data Clump: target_paths, dry_run, repo_id, self`
+  title: 'Address code smell: Data Clump: repo_id, dry_run, target_paths, self'
+  description: 'code2llm reports `Data Clump: repo_id, dry_run, target_paths, self`
     in `llm-agent/agent.py:275`.
 
 
-    Arguments (target_paths, dry_run, repo_id, self) are used together in multiple
+    Arguments (repo_id, dry_run, target_paths, self) are used together in multiple
     functions: llm-agent.agent_standalone.RefactoringAgent.execute_refactoring_workflow,
     llm-agent.agent.RefactoringAgent.execute_refactoring_workflow.
 
@@ -1902,14 +1334,454 @@ tickets:
   - data-clump
   files:
   - llm-agent/agent.py
-  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent.py:275:Data Clump: target_paths,
-    dry_run, repo_id, self'
+  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent.py:275:Data Clump: repo_id,
+    dry_run, target_paths, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: target_paths, repo_id, self'
-  description: 'code2llm reports `Data Clump: target_paths, repo_id, self` in `llm-agent/agent_standalone.py:309`.
+  title: 'Address code smell: Data Clump: repo_id, extensions, self'
+  description: 'code2llm reports `Data Clump: repo_id, extensions, self` in `llm-agent/agent_standalone.py:90`.
 
 
-    Arguments (target_paths, repo_id, self) are used together in multiple functions:
+    Arguments (repo_id, extensions, self) are used together in multiple functions:
+    llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo, llm-agent.agent_git2mcp.CachedCodeAnalyzer.compute_metrics.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - llm-agent/agent_standalone.py
+  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_standalone.py:90:Data Clump:
+    repo_id, extensions, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, extensions, self'
+  description: 'code2llm reports `Data Clump: repo_id, extensions, self` in `llm-agent/agent_git2mcp.py:62`.
+
+
+    Arguments (repo_id, extensions, self) are used together in multiple functions:
+    llm-agent.agent_standalone.LocalCodeAnalyzer.compute_metrics_for_repo, llm-agent.agent_git2mcp.CachedCodeAnalyzer.compute_metrics.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - llm-agent/agent_git2mcp.py
+  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_git2mcp.py:62:Data Clump:
+    repo_id, extensions, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, label, self'
+  description: 'code2llm reports `Data Clump: repo_id, label, self` in `git2mcp/git2mcp/proxy.py:385`.
+
+
+    Arguments (repo_id, label, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_create,
+    git2mcp.git2mcp.client.Git2MCPClient.checkpoint_create.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:385:Data Clump:
+    repo_id, label, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, label, self'
+  description: 'code2llm reports `Data Clump: repo_id, label, self` in `git2mcp/git2mcp/client.py:98`.
+
+
+    Arguments (repo_id, label, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.checkpoint_create,
+    git2mcp.git2mcp.client.Git2MCPClient.checkpoint_create.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:98:Data Clump:
+    repo_id, label, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, message, self'
+  description: 'code2llm reports `Data Clump: repo_id, message, self` in `git2mcp/git2mcp/proxy.py:351`.
+
+
+    Arguments (repo_id, message, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.stash_save,
+    git2mcp.git2mcp.client.Git2MCPClient.stash_save.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:351:Data Clump:
+    repo_id, message, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, message, self'
+  description: 'code2llm reports `Data Clump: repo_id, message, self` in `git2mcp/git2mcp/client.py:87`.
+
+
+    Arguments (repo_id, message, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.stash_save,
+    git2mcp.git2mcp.client.Git2MCPClient.stash_save.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:87:Data Clump:
+    repo_id, message, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, mode, ref, self'
+  description: 'code2llm reports `Data Clump: repo_id, mode, ref, self` in `git2mcp/git2mcp/proxy.py:419`.
+
+
+    Arguments (repo_id, mode, ref, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.reset, git2mcp.git2mcp.client.Git2MCPClient.reset.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:419:Data Clump:
+    repo_id, mode, ref, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, mode, ref, self'
+  description: 'code2llm reports `Data Clump: repo_id, mode, ref, self` in `git2mcp/git2mcp/client.py:63`.
+
+
+    Arguments (repo_id, mode, ref, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.reset, git2mcp.git2mcp.client.Git2MCPClient.reset.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:63:Data Clump:
+    repo_id, mode, ref, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, name, base, self'
+  description: 'code2llm reports `Data Clump: repo_id, name, base, self` in `git2mcp/git2mcp/proxy.py:373`.
+
+
+    Arguments (repo_id, name, base, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.branch_draft, git2mcp.git2mcp.client.Git2MCPClient.branch_draft.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:373:Data Clump:
+    repo_id, name, base, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, name, base, self'
+  description: 'code2llm reports `Data Clump: repo_id, name, base, self` in `git2mcp/git2mcp/client.py:94`.
+
+
+    Arguments (repo_id, name, base, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.branch_draft, git2mcp.git2mcp.client.Git2MCPClient.branch_draft.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:94:Data Clump:
+    repo_id, name, base, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, path, encoding, self'
+  description: 'code2llm reports `Data Clump: repo_id, path, encoding, self` in `git2mcp/git2mcp/proxy.py:303`.
+
+
+    Arguments (repo_id, path, encoding, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.worktree_read, git2mcp.git2mcp.client.Git2MCPClient.worktree_read.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:303:Data Clump:
+    repo_id, path, encoding, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, path, encoding, self'
+  description: 'code2llm reports `Data Clump: repo_id, path, encoding, self` in `git2mcp/git2mcp/client.py:71`.
+
+
+    Arguments (repo_id, path, encoding, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.worktree_read, git2mcp.git2mcp.client.Git2MCPClient.worktree_read.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:71:Data Clump:
+    repo_id, path, encoding, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, paths, self'
+  description: 'code2llm reports `Data Clump: repo_id, paths, self` in `llm-agent/agent_standalone.py:35`.
+
+
+    Arguments (repo_id, paths, self) are used together in multiple functions: llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure,
+    git2mcp.git2mcp.proxy.GitProxyManager.stage, git2mcp.git2mcp.client.Git2MCPClient.stage.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - llm-agent/agent_standalone.py
+  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_standalone.py:35:Data Clump:
+    repo_id, paths, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, paths, self'
+  description: 'code2llm reports `Data Clump: repo_id, paths, self` in `git2mcp/git2mcp/proxy.py:340`.
+
+
+    Arguments (repo_id, paths, self) are used together in multiple functions: llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure,
+    git2mcp.git2mcp.proxy.GitProxyManager.stage, git2mcp.git2mcp.client.Git2MCPClient.stage.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:340:Data Clump:
+    repo_id, paths, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, paths, self'
+  description: 'code2llm reports `Data Clump: repo_id, paths, self` in `git2mcp/git2mcp/client.py:83`.
+
+
+    Arguments (repo_id, paths, self) are used together in multiple functions: llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure,
+    git2mcp.git2mcp.proxy.GitProxyManager.stage, git2mcp.git2mcp.client.Git2MCPClient.stage.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:83:Data Clump:
+    repo_id, paths, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, ref, self'
+  description: 'code2llm reports `Data Clump: repo_id, ref, self` in `mcp-skills/server.py:74`.
+
+
+    Arguments (repo_id, ref, self) are used together in multiple functions: mcp-skills.server.MCPSkillsServer._sync_from_git_proxy,
+    git2mcp.git2mcp.proxy.GitProxyManager.export_package, git2mcp.git2mcp.client.Git2MCPClient.export_package.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - mcp-skills/server.py
+  dedupe_key: 'code2llm:smell:data_clump:mcp-skills/server.py:74:Data Clump: repo_id,
+    ref, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, ref, self'
+  description: 'code2llm reports `Data Clump: repo_id, ref, self` in `git2mcp/git2mcp/proxy.py:131`.
+
+
+    Arguments (repo_id, ref, self) are used together in multiple functions: mcp-skills.server.MCPSkillsServer._sync_from_git_proxy,
+    git2mcp.git2mcp.proxy.GitProxyManager.export_package, git2mcp.git2mcp.client.Git2MCPClient.export_package.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:131:Data Clump:
+    repo_id, ref, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, ref, self'
+  description: 'code2llm reports `Data Clump: repo_id, ref, self` in `git2mcp/git2mcp/client.py:43`.
+
+
+    Arguments (repo_id, ref, self) are used together in multiple functions: mcp-skills.server.MCPSkillsServer._sync_from_git_proxy,
+    git2mcp.git2mcp.proxy.GitProxyManager.export_package, git2mcp.git2mcp.client.Git2MCPClient.export_package.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:43:Data Clump:
+    repo_id, ref, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, remote, branch, self'
+  description: 'code2llm reports `Data Clump: repo_id, remote, branch, self` in `git2mcp/git2mcp/proxy.py:258`.
+
+
+    Arguments (repo_id, remote, branch, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.push, git2mcp.git2mcp.client.Git2MCPClient.push.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:258:Data Clump:
+    repo_id, remote, branch, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, remote, branch, self'
+  description: 'code2llm reports `Data Clump: repo_id, remote, branch, self` in `git2mcp/git2mcp/client.py:59`.
+
+
+    Arguments (repo_id, remote, branch, self) are used together in multiple functions:
+    git2mcp.git2mcp.proxy.GitProxyManager.push, git2mcp.git2mcp.client.Git2MCPClient.push.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:59:Data Clump:
+    repo_id, remote, branch, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, staged, self'
+  description: 'code2llm reports `Data Clump: repo_id, staged, self` in `git2mcp/git2mcp/proxy.py:312`.
+
+
+    Arguments (repo_id, staged, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.worktree_diff,
+    git2mcp.git2mcp.client.Git2MCPClient.worktree_diff.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:312:Data Clump:
+    repo_id, staged, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, staged, self'
+  description: 'code2llm reports `Data Clump: repo_id, staged, self` in `git2mcp/git2mcp/client.py:75`.
+
+
+    Arguments (repo_id, staged, self) are used together in multiple functions: git2mcp.git2mcp.proxy.GitProxyManager.worktree_diff,
+    git2mcp.git2mcp.client.Git2MCPClient.worktree_diff.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:75:Data Clump:
+    repo_id, staged, self'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: repo_id, target_paths, self'
+  description: 'code2llm reports `Data Clump: repo_id, target_paths, self` in `llm-agent/agent_standalone.py:309`.
+
+
+    Arguments (repo_id, target_paths, self) are used together in multiple functions:
     llm-agent.agent_standalone.RefactoringAgent.analyze_repository, llm-agent.agent.RefactoringAgent.analyze_repository.
 
 
@@ -1923,13 +1795,13 @@ tickets:
   files:
   - llm-agent/agent_standalone.py
   dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_standalone.py:309:Data Clump:
-    target_paths, repo_id, self'
+    repo_id, target_paths, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: target_paths, repo_id, self'
-  description: 'code2llm reports `Data Clump: target_paths, repo_id, self` in `llm-agent/agent.py:74`.
+  title: 'Address code smell: Data Clump: repo_id, target_paths, self'
+  description: 'code2llm reports `Data Clump: repo_id, target_paths, self` in `llm-agent/agent.py:74`.
 
 
-    Arguments (target_paths, repo_id, self) are used together in multiple functions:
+    Arguments (repo_id, target_paths, self) are used together in multiple functions:
     llm-agent.agent_standalone.RefactoringAgent.analyze_repository, llm-agent.agent.RefactoringAgent.analyze_repository.
 
 
@@ -1942,15 +1814,17 @@ tickets:
   - data-clump
   files:
   - llm-agent/agent.py
-  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent.py:74:Data Clump: target_paths,
-    repo_id, self'
+  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent.py:74:Data Clump: repo_id,
+    target_paths, self'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: value, key, self'
-  description: 'code2llm reports `Data Clump: value, key, self` in `env2mcp/env2mcp/config.py:43`.
+  title: 'Address code smell: Data Clump: repo_url, self, branch, source_path, repo_id'
+  description: 'code2llm reports `Data Clump: repo_url, self, branch, source_path,
+    repo_id` in `llm-agent/agent_git2mcp.py:199`.
 
 
-    Arguments (value, key, self) are used together in multiple functions: env2mcp.env2mcp.config.EnvConfig.set,
-    env2mcp.env2mcp.config.EnvConfig._format_value, env2mcp.env2mcp.config.EnvConfig.__setitem__.
+    Arguments (repo_url, self, branch, source_path, repo_id) are used together in
+    multiple functions: llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.sync_and_cache_repo,
+    git2mcp.git2mcp.proxy.GitProxyManager.sync_repo, git2mcp.git2mcp.client.Git2MCPClient.sync_repo.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1961,16 +1835,18 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - env2mcp/env2mcp/config.py
-  dedupe_key: 'code2llm:smell:data_clump:env2mcp/env2mcp/config.py:43:Data Clump:
-    value, key, self'
+  - llm-agent/agent_git2mcp.py
+  dedupe_key: 'code2llm:smell:data_clump:llm-agent/agent_git2mcp.py:199:Data Clump:
+    repo_url, self, branch, source_path, repo_id'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: value, key, self'
-  description: 'code2llm reports `Data Clump: value, key, self` in `env2mcp/env2mcp/config.py:51`.
+  title: 'Address code smell: Data Clump: repo_url, self, branch, source_path, repo_id'
+  description: 'code2llm reports `Data Clump: repo_url, self, branch, source_path,
+    repo_id` in `git2mcp/git2mcp/proxy.py:74`.
 
 
-    Arguments (value, key, self) are used together in multiple functions: env2mcp.env2mcp.config.EnvConfig.set,
-    env2mcp.env2mcp.config.EnvConfig._format_value, env2mcp.env2mcp.config.EnvConfig.__setitem__.
+    Arguments (repo_url, self, branch, source_path, repo_id) are used together in
+    multiple functions: llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.sync_and_cache_repo,
+    git2mcp.git2mcp.proxy.GitProxyManager.sync_repo, git2mcp.git2mcp.client.Git2MCPClient.sync_repo.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -1981,16 +1857,18 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - env2mcp/env2mcp/config.py
-  dedupe_key: 'code2llm:smell:data_clump:env2mcp/env2mcp/config.py:51:Data Clump:
-    value, key, self'
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:74:Data Clump: repo_url,
+    self, branch, source_path, repo_id'
 - signal: code2llm_smell_data_clump
-  title: 'Address code smell: Data Clump: value, key, self'
-  description: 'code2llm reports `Data Clump: value, key, self` in `env2mcp/env2mcp/config.py:138`.
+  title: 'Address code smell: Data Clump: repo_url, self, branch, source_path, repo_id'
+  description: 'code2llm reports `Data Clump: repo_url, self, branch, source_path,
+    repo_id` in `git2mcp/git2mcp/client.py:34`.
 
 
-    Arguments (value, key, self) are used together in multiple functions: env2mcp.env2mcp.config.EnvConfig.set,
-    env2mcp.env2mcp.config.EnvConfig._format_value, env2mcp.env2mcp.config.EnvConfig.__setitem__.
+    Arguments (repo_url, self, branch, source_path, repo_id) are used together in
+    multiple functions: llm-agent.agent_git2mcp.Git2MCPRefactoringAgent.sync_and_cache_repo,
+    git2mcp.git2mcp.proxy.GitProxyManager.sync_repo, git2mcp.git2mcp.client.Git2MCPClient.sync_repo.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -2001,9 +1879,51 @@ tickets:
   - code-smell
   - data-clump
   files:
-  - env2mcp/env2mcp/config.py
-  dedupe_key: 'code2llm:smell:data_clump:env2mcp/env2mcp/config.py:138:Data Clump:
-    value, key, self'
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:34:Data Clump:
+    repo_url, self, branch, source_path, repo_id'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: self, encoding, content, path, repo_id'
+  description: 'code2llm reports `Data Clump: self, encoding, content, path, repo_id`
+    in `git2mcp/git2mcp/proxy.py:292`.
+
+
+    Arguments (self, encoding, content, path, repo_id) are used together in multiple
+    functions: git2mcp.git2mcp.proxy.GitProxyManager.worktree_write, git2mcp.git2mcp.client.Git2MCPClient.worktree_write.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/proxy.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/proxy.py:292:Data Clump:
+    self, encoding, content, path, repo_id'
+- signal: code2llm_smell_data_clump
+  title: 'Address code smell: Data Clump: self, encoding, content, path, repo_id'
+  description: 'code2llm reports `Data Clump: self, encoding, content, path, repo_id`
+    in `git2mcp/git2mcp/client.py:67`.
+
+
+    Arguments (self, encoding, content, path, repo_id) are used together in multiple
+    functions: git2mcp.git2mcp.proxy.GitProxyManager.worktree_write, git2mcp.git2mcp.client.Git2MCPClient.worktree_write.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - data-clump
+  files:
+  - git2mcp/git2mcp/client.py
+  dedupe_key: 'code2llm:smell:data_clump:git2mcp/git2mcp/client.py:67:Data Clump:
+    self, encoding, content, path, repo_id'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: _analyze_code_structure'
   description: 'code2llm reports `God Function: _analyze_code_structure` in `mcp-skills/server.py:317`.

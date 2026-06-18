@@ -159,6 +159,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-06-18
+
+### Docs
+- Update README.md
+- Update SUMD.md
+- Update SUMR.md
+- Update TODO.md
+
+### Other
+- Update app.doql.less
+- Update env2mcp/env2mcp/__init__.py
+- Update gh2mcp/gh2mcp/__init__.py
+- Update mcp-gateway/gateway_github.py
+- Update mcp-gateway/gateway_prompt.py
+- Update mcp-gateway/server.py
+- Update project/analysis.toon.yaml
+- Update project/calls.mmd
+- Update project/calls.png
+- Update project/calls.toon.yaml
+- ... and 6 more files
+
 ## [0.1.2] - 2026-06-18
 
 ### Docs
