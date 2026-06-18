@@ -1,17 +1,19 @@
-# code2llm | 87f 15354L | python:29,yaml:23,txt:8,shell:7,yml:7,toml:3,ini:1 | 2026-05-03
-# CC̄=3.7 | critical:22/422 | dups:0 | cycles:0
+# code2llm | 84f 16032L | python:38,yaml:9,yml:7,shell:7,txt:6,toml:4,json:3,ini:1 | 2026-06-18
+# generated in 0.03s
+# CC̅=4.3 | critical:23/401 | dups:0 | cycles:0
 
 HEALTH[20]:
-  🔴 GOD   mcp-skills/server.py = 1462L, 8 classes, 29m, max CC=37
-  🟡 CC    compute_metrics_for_repo CC=15 (limit:15)
-  🟡 CC    detect_code_patterns CC=15 (limit:15)
-  🟡 CC    compute_metrics CC=15 (limit:15)
+  🔴 GOD   mcp-skills/server.py = 1482L, 8 classes, 30m, max CC=37
+  🟡 CC    _get_github_config CC=16 (limit:15)
+  🟡 CC    github_fetch_token_from_cli CC=16 (limit:15)
   🟡 CC    get_last_pushed_repo CC=23 (limit:15)
   🟡 CC    get_recent_repos CC=32 (limit:15)
   🟡 CC    sync_token CC=20 (limit:15)
+  🟡 CC    run_init CC=15 (limit:15)
+  🟡 CC    compute_metrics CC=15 (limit:15)
   🟡 CC    save CC=20 (limit:15)
-  🟡 CC    _get_github_config CC=16 (limit:15)
-  🟡 CC    github_fetch_token_from_cli CC=16 (limit:15)
+  🟡 CC    compute_metrics_for_repo CC=15 (limit:15)
+  🟡 CC    detect_code_patterns CC=15 (limit:15)
   🟡 CC    _sync_from_git_proxy CC=15 (limit:15)
   🟡 CC    _compute_metrics_for_repo CC=15 (limit:15)
   🟡 CC    _recommend_refactoring CC=15 (limit:15)
@@ -21,70 +23,170 @@ HEALTH[20]:
   🟡 CC    _is_repo_list_command CC=23 (limit:15)
   🟡 CC    parse_tool_intent CC=23 (limit:15)
   🟡 CC    _render_system_text CC=27 (limit:15)
-  🟡 CC    _render_refactor_text CC=17 (limit:15)
 
 REFACTOR[2]:
   1. split mcp-skills/server.py  (god module)
   2. split 19 high-CC methods  (CC>15)
 
-PIPELINES[211]:
-  [1] Src [end_headers]: end_headers
+PIPELINES[220]:
+  [1] Src [main]: main
       PURITY: 100% pure
-  [2] Src [do_GET]: do_GET
+  [2] Src [is_available]: is_available
       PURITY: 100% pure
-  [3] Src [serve_file]: serve_file
+  [3] Src [get_auth_status]: get_auth_status
       PURITY: 100% pure
-  [4] Src [send_json]: send_json
+  [4] Src [get_token]: get_token
       PURITY: 100% pure
-  [5] Src [get_content_type]: get_content_type
+  [5] Src [get_user]: get_user
+      PURITY: 100% pure
+  [6] Src [login]: login
+      PURITY: 100% pure
+  [7] Src [logout]: logout
+      PURITY: 100% pure
+  [8] Src [list_repos]: list_repos
+      PURITY: 100% pure
+  [9] Src [clone_url]: clone_url
+      PURITY: 100% pure
+  [10] Src [get_github_token]: get_github_token
+      PURITY: 100% pure
+  [11] Src [main]: main → print
+      PURITY: 100% pure
+  [12] Src [main]: main → print
+      PURITY: 100% pure
+  [13] Src [main]: main → print
+      PURITY: 100% pure
+  [14] Src [main]: main → print
+      PURITY: 100% pure
+  [15] Src [main]: main → print
+      PURITY: 100% pure
+  [16] Src [index]: index → gateway_headers
+      PURITY: 100% pure
+  [17] Src [repos_page]: repos_page
+      PURITY: 100% pure
+  [18] Src [repos_sync]: repos_sync
+      PURITY: 100% pure
+  [19] Src [diff_page]: diff_page
+      PURITY: 100% pure
+  [20] Src [skills_page]: skills_page
+      PURITY: 100% pure
+  [21] Src [skills_run]: skills_run → gateway_headers
+      PURITY: 100% pure
+  [22] Src [playground]: playground
+      PURITY: 100% pure
+  [23] Src [github_page]: github_page → _get_github_config → _resolve_github_token
+      PURITY: 100% pure
+  [24] Src [github_configure]: github_configure
+      PURITY: 100% pure
+  [25] Src [github_fetch_token_from_cli]: github_fetch_token_from_cli → _get_github_config → _resolve_github_token
+      PURITY: 100% pure
+  [26] Src [github_clone]: github_clone → _normalize_github_url
+      PURITY: 100% pure
+  [27] Src [github_create_repo]: github_create_repo → _resolve_github_token
+      PURITY: 100% pure
+  [28] Src [github_sync]: github_sync → _get_github_config → _resolve_github_token
+      PURITY: 100% pure
+  [29] Src [_cmd_status]: _cmd_status → print
+      PURITY: 100% pure
+  [30] Src [_cmd_sync]: _cmd_sync → print
+      PURITY: 100% pure
+  [31] Src [_cmd_agent]: _cmd_agent → print
+      PURITY: 100% pure
+  [32] Src [main]: main → build_parser
+      PURITY: 100% pure
+  [33] Src [__init__]: __init__
+      PURITY: 100% pure
+  [34] Src [_request]: _request
+      PURITY: 100% pure
+  [35] Src [health]: health
+      PURITY: 100% pure
+  [36] Src [list_repos]: list_repos
+      PURITY: 100% pure
+  [37] Src [sync_repo]: sync_repo
+      PURITY: 100% pure
+  [38] Src [export_package]: export_package
+      PURITY: 100% pure
+  [39] Src [commit_changes]: commit_changes
+      PURITY: 100% pure
+  [40] Src [run_tests]: run_tests
+      PURITY: 100% pure
+  [41] Src [push]: push
+      PURITY: 100% pure
+  [42] Src [reset]: reset
+      PURITY: 100% pure
+  [43] Src [worktree_write]: worktree_write
+      PURITY: 100% pure
+  [44] Src [worktree_read]: worktree_read
+      PURITY: 100% pure
+  [45] Src [worktree_diff]: worktree_diff
+      PURITY: 100% pure
+  [46] Src [patch_apply]: patch_apply
+      PURITY: 100% pure
+  [47] Src [stage]: stage
+      PURITY: 100% pure
+  [48] Src [stash_save]: stash_save
+      PURITY: 100% pure
+  [49] Src [stash_pop]: stash_pop
+      PURITY: 100% pure
+  [50] Src [branch_draft]: branch_draft
       PURITY: 100% pure
 
 LAYERS:
   mcp-skills/                     CC̄=7.2    ←in:0  →out:2
-  │ !! server                    1462L  8C   29m  CC=37     ←0
+  │ !! server                    1482L  8C   30m  CC=37     ←0
+  │ Dockerfile                  35L  0C    0m  CC=0.0    ←0
   │ requirements.txt             5L  0C    0m  CC=0.0    ←0
-  │ Dockerfile                   0L  0C    0m  CC=0.0    ←0
   │
   mcp-gateway/                    CC̄=6.8    ←in:0  →out:8  !! split
-  │ !! server                    2908L  2C   86m  CC=40     ←1
+  │ !! server                    2908L  2C   86m  CC=40     ←0
   │ worker                      18L  0C    1m  CC=2      ←0
   │ default.yaml                16L  0C    0m  CC=0.0    ←0
+  │ Dockerfile                  16L  0C    0m  CC=0.0    ←0
   │ requirements.txt             9L  0C    0m  CC=0.0    ←0
-  │ Dockerfile                   0L  0C    0m  CC=0.0    ←0
   │
   gh2mcp/                         CC̄=5.4    ←in:0  →out:0
   │ !! sync                       430L  1C    7m  CC=32     ←0
   │ server                     110L  5C   10m  CC=3      ←0
   │ cli                         68L  0C    5m  CC=3      ←0
   │ pyproject.toml              52L  0C    0m  CC=0.0    ←0
+  │ Dockerfile                  18L  0C    0m  CC=0.0    ←0
   │ goal.yaml                    4L  0C    0m  CC=0.0    ←0
   │ __init__                     4L  0C    0m  CC=0.0    ←0
-  │ Dockerfile                   0L  0C    0m  CC=0.0    ←0
   │
-  env2mcp/                        CC̄=5.0    ←in:0  →out:0
+  env2mcp/                        CC̄=5.1    ←in:0  →out:0
   │ github_cli                 330L  1C   11m  CC=14     ←1
   │ cli                        252L  0C    8m  CC=11     ←0
-  │ !! config                     134L  1C   12m  CC=20     ←3
+  │ !! config                     158L  1C   13m  CC=20     ←4
   │ pyproject.toml              68L  0C    0m  CC=0.0    ←0
   │ __init__                    13L  0C    0m  CC=0.0    ←0
   │
   mcp-webui/                      CC̄=4.9    ←in:0  →out:0
   │ !! server                     621L  0C   19m  CC=16     ←0
+  │ Dockerfile                  15L  0C    0m  CC=0.0    ←0
   │ requirements.txt             5L  0C    0m  CC=0.0    ←0
-  │ Dockerfile                   0L  0C    0m  CC=0.0    ←0
+  │
+  semcod_mcp/                     CC̄=4.7    ←in:0  →out:1
+  │ !! init_cmd                   161L  1C    4m  CC=15     ←1
+  │ templates                  119L  0C    7m  CC=3      ←4
+  │ doctor                     116L  2C    3m  CC=11     ←1
+  │ merge                      109L  0C    5m  CC=10     ←3
+  │ cli                        108L  0C    5m  CC=6      ←0
+  │ analyze                    105L  1C    1m  CC=12     ←1
+  │ validate                   101L  2C    4m  CC=13     ←1
+  │ paths                       70L  0C    5m  CC=10     ←6
+  │ __init__                     3L  0C    0m  CC=0.0    ←0
   │
   llm-agent/                      CC̄=4.0    ←in:0  →out:10  !! split
   │ !! agent_standalone           540L  3C   14m  CC=15     ←0
   │ agent                      375L  2C   13m  CC=4      ←0
   │ !! agent_git2mcp              361L  3C   13m  CC=15     ←0
+  │ Dockerfile                  10L  0C    0m  CC=0.0    ←0
   │ requirements.txt             5L  0C    0m  CC=0.0    ←0
-  │ Dockerfile                   0L  0C    0m  CC=0.0    ←0
   │
   dashboard/                      CC̄=3.2    ←in:0  →out:8  !! split
   │ server                     189L  2C   10m  CC=8      ←0
-  │ Dockerfile                   0L  0C    0m  CC=0.0    ←0
+  │ Dockerfile                  10L  0C    0m  CC=0.0    ←0
   │
-  git2mcp/                        CC̄=2.6    ←in:0  →out:0
+  git2mcp/                        CC̄=2.9    ←in:0  →out:0
   │ proxy                      437L  1C   21m  CC=12     ←0
   │ 05_local_iterate           126L  0C    1m  CC=5      ←0
   │ planfile.yaml              123L  0C    0m  CC=0.0    ←0
@@ -96,16 +198,8 @@ LAYERS:
   │ pyproject.toml              57L  0C    0m  CC=0.0    ←0
   │ 03_agent_git2mcp            55L  0C    1m  CC=4      ←0
   │ generated-from-pytests.testql.toon.yaml    55L  0C    0m  CC=0.0    ←0
-  │ prompt.txt                  49L  0C    0m  CC=0.0    ←0
   │ project.sh                  47L  0C    0m  CC=0.0    ←0
-  │ analysis.toon.yaml          43L  0C    0m  CC=0.0    ←0
-  │ evolution.toon.yaml         39L  0C    0m  CC=0.0    ←0
-  │ project.toon.yaml           39L  0C    0m  CC=0.0    ←0
-  │ map.toon.yaml               33L  0C    4m  CC=0.0    ←0
-  │ calls.yaml                  29L  0C    0m  CC=0.0    ←0
   │ generated-api-integration.testql.toon.yaml    18L  0C    0m  CC=0.0    ←0
-  │ duplication.toon.yaml        9L  0C    0m  CC=0.0    ←0
-  │ calls.toon.yaml              9L  0C    0m  CC=0.0    ←0
   │ proxy                        3L  0C    0m  CC=0.0    ←0
   │ __init__                     3L  0C    0m  CC=0.0    ←0
   │ client                       3L  0C    0m  CC=0.0    ←0
@@ -113,13 +207,13 @@ LAYERS:
   │
   mcp-git-proxy/                  CC̄=2.5    ←in:0  →out:0
   │ server                     443L  19C   22m  CC=9      ←0
+  │ Dockerfile                  18L  0C    0m  CC=0.0    ←0
   │ requirements.txt             4L  0C    0m  CC=0.0    ←0
-  │ Dockerfile                   0L  0C    0m  CC=0.0    ←0
   │
   mcp-docs/                       CC̄=2.1    ←in:0  →out:0
   │ server                     273L  0C    7m  CC=4      ←0
+  │ Dockerfile                  14L  0C    0m  CC=0.0    ←0
   │ requirements.txt             3L  0C    0m  CC=0.0    ←0
-  │ Dockerfile                   0L  0C    0m  CC=0.0    ←0
   │
   scripts/                        CC̄=0.0    ←in:64  →out:0
   │ test.sh                    404L  1C   14m  CC=0.0    ←12
@@ -127,63 +221,50 @@ LAYERS:
   │ refactor-last-repo.sh      312L  0C   12m  CC=0.0    ←0
   │ deploy.sh                  135L  0C    7m  CC=0.0    ←0
   │
-  project/                        CC̄=0.0    ←in:0  →out:0
-  │ calls.yaml                 316L  0C    0m  CC=0.0    ←0
-  │ map.toon.yaml              191L  0C   52m  CC=0.0    ←0
-  │ analysis.toon.yaml         120L  0C    0m  CC=0.0    ←0
-  │ evolution.toon.yaml         73L  0C    0m  CC=0.0    ←0
-  │ calls.toon.yaml             66L  0C    0m  CC=0.0    ←0
-  │ duplication.toon.yaml       62L  0C    0m  CC=0.0    ←0
-  │ project.toon.yaml           51L  0C    0m  CC=0.0    ←0
-  │ prompt.txt                  49L  0C    0m  CC=0.0    ←0
+  ./                              CC̄=0.0    ←in:0  →out:0
+  │ !! planfile.yaml              942L  0C    0m  CC=0.0    ←0
+  │ !! goal.yaml                  510L  0C    0m  CC=0.0    ←0
+  │ docker-compose.yml         319L  0C    0m  CC=0.0    ←0
+  │ Makefile                   197L  0C    0m  CC=0.0    ←0
+  │ prefact.yaml                91L  0C    0m  CC=0.0    ←0
+  │ project.sh                  47L  0C    0m  CC=0.0    ←0
+  │ docker-compose.prod.yml     34L  0C    0m  CC=0.0    ←0
+  │ pyproject.toml              31L  0C    0m  CC=0.0    ←0
+  │ tree.sh                      1L  0C    0m  CC=0.0    ←0
+  │
+  examples/                       CC̄=0.0    ←in:0  →out:0
+  │ continue-config.snippet.json    25L  0C    0m  CC=0.0    ←0
+  │ cursor-mcp.json             22L  0C    0m  CC=0.0    ←0
+  │ claude-desktop-mcp.json     22L  0C    0m  CC=0.0    ←0
   │
   ansible/                        CC̄=0.0    ←in:0  →out:0
-  │ !! e2e-gh2mcp.yml             520L  0C    1m  CC=0.0    ←0
+  │ !! e2e-gh2mcp.yml             520L  0C    0m  CC=0.0    ←0
   │ e2e-tools.yml              285L  0C    0m  CC=0.0    ←0
   │ e2e-github-qa.yml          232L  0C    0m  CC=0.0    ←0
   │ test-github-integration.yml   189L  0C    0m  CC=0.0    ←0
   │ e2e-docker-stack.yml       172L  0C    0m  CC=0.0    ←0
   │ inventory.ini                2L  0C    0m  CC=0.0    ←0
   │
-  ./                              CC̄=0.0    ←in:0  →out:0
-  │ !! goal.yaml                  510L  0C    0m  CC=0.0    ←0
-  │ planfile.yaml              461L  0C    0m  CC=0.0    ←0
-  │ docker-compose.yml         313L  0C    0m  CC=0.0    ←0
-  │ prefact.yaml                91L  0C    0m  CC=0.0    ←0
-  │ project.sh                  47L  0C    0m  CC=0.0    ←0
-  │ docker-compose.prod.yml     34L  0C    0m  CC=0.0    ←0
-  │ tree.sh                      1L  0C    0m  CC=0.0    ←0
-  │ Makefile                     0L  0C    0m  CC=0.0    ←0
-  │
-  ── zero ──
-     Makefile                                  0L
-     dashboard/Dockerfile                      0L
-     gh2mcp/Dockerfile                         0L
-     llm-agent/Dockerfile                      0L
-     mcp-docs/Dockerfile                       0L
-     mcp-gateway/Dockerfile                    0L
-     mcp-git-proxy/Dockerfile                  0L
-     mcp-skills/Dockerfile                     0L
-     mcp-webui/Dockerfile                      0L
 
 COUPLING:
-                             scripts   env2mcp.env2mcp         llm-agent         dashboard  git2mcp.examples       mcp-gateway     gh2mcp.gh2mcp        mcp-skills
-           scripts                ──               ←34               ←10                ←8                ←8                                  ←4                    hub
-   env2mcp.env2mcp                34                ──                                                                      ←8                ←1                ←2  hub
-         llm-agent                10                                  ──                                                                                            !! fan-out
-         dashboard                 8                                                    ──                                                                          !! fan-out
-  git2mcp.examples                 8                                                                      ──                                                        !! fan-out
-       mcp-gateway                                   8                                                                      ──                                      !! fan-out
-     gh2mcp.gh2mcp                 4                 1                                                                                        ──                  
-        mcp-skills                                   2                                                                                                          ──
+                             scripts   env2mcp.env2mcp         llm-agent         dashboard  git2mcp.examples       mcp-gateway     gh2mcp.gh2mcp        mcp-skills        semcod_mcp
+           scripts                ──               ←34               ←10                ←8                ←8                                  ←4                                      hub
+   env2mcp.env2mcp                34                ──                                                                      ←8                ←1                ←2                ←1  hub
+         llm-agent                10                                  ──                                                                                                              !! fan-out
+         dashboard                 8                                                    ──                                                                                            !! fan-out
+  git2mcp.examples                 8                                                                      ──                                                                          !! fan-out
+       mcp-gateway                                   8                                                                      ──                                                        !! fan-out
+     gh2mcp.gh2mcp                 4                 1                                                                                        ──                                    
+        mcp-skills                                   2                                                                                                          ──                  
+        semcod_mcp                                   1                                                                                                                            ──
   CYCLES: none
+  HUB: env2mcp.env2mcp/ (fan-in=12)
   HUB: scripts/ (fan-in=64)
-  HUB: env2mcp.env2mcp/ (fan-in=11)
-  SMELL: mcp-gateway/ fan-out=8 → split needed
-  SMELL: dashboard/ fan-out=8 → split needed
-  SMELL: git2mcp.examples/ fan-out=8 → split needed
   SMELL: env2mcp.env2mcp/ fan-out=34 → split needed
+  SMELL: dashboard/ fan-out=8 → split needed
   SMELL: llm-agent/ fan-out=10 → split needed
+  SMELL: git2mcp.examples/ fan-out=8 → split needed
+  SMELL: mcp-gateway/ fan-out=8 → split needed
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon

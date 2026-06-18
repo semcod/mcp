@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2026-06-18
+
+### Fixed
+- Fix string-concat issues (ticket-6326f0c7)
+- Fix unused-imports issues (ticket-b9c07cf9)
+- Fix magic-numbers issues (ticket-37aea4c3)
+- Fix string-concat issues (ticket-e1cf1da3)
+- Fix unused-imports issues (ticket-eb821ff7)
+- Fix magic-numbers issues (ticket-dacf30cb)
+- Fix unused-imports issues (ticket-fb370ae2)
+- Fix ai-boilerplate issues (ticket-5d0a4086)
+- Fix unused-imports issues (ticket-ebaf86f2)
+- Fix string-concat issues (ticket-849f75bc)
+- Fix unused-imports issues (ticket-4ede378d)
+- Fix unused-imports issues (ticket-b63499e5)
+- Fix unused-imports issues (ticket-ed5bc004)
+- Fix unused-imports issues (ticket-e70cd1db)
+- Fix smart-return-type issues (ticket-b5301998)
+- Fix smart-return-type issues (ticket-823d6733)
+
 ## [0.1.10] - 2026-05-03
 
 ### Fixed
@@ -89,6 +109,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix magic-numbers issues (ticket-4ee2ec52)
 
 ## [Unreleased]
+
+## [0.1.1] - 2026-06-18
+
+### Docs
+- Update CHANGELOG.md
+- Update README.md
+- Update SUMD.md
+- Update SUMR.md
+- Update TODO.md
+- Update project/README.md
+- Update project/context.md
+
+### Other
+- Update .continue/config.json
+- Update .cursor/mcp.json
+- Update .cursor/rules/semcod-mcp.mdc
+- Update .semcod-mcp.yaml
+- Update .vscode/mcp.json
+- Update .vscode/settings.json
+- Update .windsurf/mcp.json
+- Update VERSION
+- Update app.doql.less
+- Update env2mcp/VERSION
+- ... and 38 more files
 
 ## [0.0.7] - 2026-05-03
 
