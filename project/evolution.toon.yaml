@@ -1,20 +1,20 @@
-# code2llm/evolution | 344 func | 26f | 2026-06-18
+# code2llm/evolution | 364 func | 32f | 2026-06-18
 # generated in 0.00s
 
 NEXT[10] (ranked by impact):
   [1] !! SPLIT           mcp-gateway/server.py
-      WHY: 2908L, 2 classes, max CC=40
-      EFFORT: ~4h  IMPACT: 116320
+      WHY: 2468L, 2 classes, max CC=31
+      EFFORT: ~4h  IMPACT: 76508
 
   [2] !! SPLIT           mcp-skills/server.py
-      WHY: 1482L, 8 classes, max CC=37
-      EFFORT: ~4h  IMPACT: 54834
+      WHY: 691L, 1 classes, max CC=15
+      EFFORT: ~4h  IMPACT: 10365
 
   [3] !! SPLIT-FUNC      chat_completions  CC=31  fan=56
       WHY: CC=31 exceeds 15
       EFFORT: ~1h  IMPACT: 1736
 
-  [4] !! SPLIT-FUNC      _run_tool_against_repo  CC=37  fan=41
+  [4] !! SPLIT-FUNC      run_tool_against_repo  CC=37  fan=41
       WHY: CC=37 exceeds 15
       EFFORT: ~1h  IMPACT: 1517
 
@@ -22,7 +22,7 @@ NEXT[10] (ranked by impact):
       WHY: CC=32 exceeds 15
       EFFORT: ~1h  IMPACT: 768
 
-  [6] !! SPLIT-FUNC      _render_tool_text  CC=40  fan=15
+  [6] !! SPLIT-FUNC      render_tool_text  CC=40  fan=15
       WHY: CC=40 exceeds 15
       EFFORT: ~1h  IMPACT: 600
 
@@ -44,14 +44,14 @@ NEXT[10] (ranked by impact):
 
 
 RISKS[3]:
-  ⚠ Splitting mcp-gateway/server.py may break 86 import paths
-  ⚠ Splitting mcp-skills/server.py may break 30 import paths
+  ⚠ Splitting mcp-gateway/server.py may break 74 import paths
   ⚠ Splitting planfile.yaml may break 0 import paths
+  ⚠ Splitting mcp-skills/server.py may break 22 import paths
 
 METRICS-TARGET:
   CC̄:          5.0 → ≤3.5
   max-CC:      40 → ≤20
-  god-modules: 7 → 0
+  god-modules: 8 → 0
   high-CC(≥15): 23 → ≤11
   hub-types:   0 → ≤0
 
@@ -80,4 +80,4 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=4.2 → now CC̄=5.0
+  prev CC̄=5.0 → now CC̄=5.0

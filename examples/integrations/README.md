@@ -1,6 +1,10 @@
 # Przykłady integracji IDE i agentów
 
-Gotowe pliki konfiguracyjne dla [`docs/IDE_AND_AGENT_INTEGRATION.md`](../docs/IDE_AND_AGENT_INTEGRATION.md).
+Gotowe pliki konfiguracyjne — pełny przewodnik: [`docs/IDE_AND_AGENT_INTEGRATION.md`](../docs/IDE_AND_AGENT_INTEGRATION.md).
+
+Zalecane: **`semcod-mcp init`** zamiast ręcznego kopiowania — [`docs/SEMCOD_MCP_CLI.md`](../docs/SEMCOD_MCP_CLI.md).
+
+Spis dokumentacji: [`docs/README.md`](../docs/README.md).
 
 | Plik | Narzędzie |
 |------|-----------|

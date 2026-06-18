@@ -15,9 +15,10 @@ SUMD - Structured Unified Markdown Descriptor for AI-aware project refactorizati
 ## Metadata
 
 - **name**: `semcod-mcp`
-- **version**: `0.1.0`
+- **version**: `0.1.1`
 - **python_requires**: `>=3.10`
 - **license**: Apache-2.0
+- **ai_model**: `openrouter/qwen/qwen3-coder-next`
 - **ecosystem**: SUMD + DOQL + testql + taskfile
 - **generated_from**: pyproject.toml, Makefile, app.doql.less, goal.yaml, .env.example, docker-compose.yml, project/(5 analysis files)
 
@@ -34,12 +35,12 @@ SUMD (description) → DOQL/source (code) → taskfile (automation) → testql (
 
 app {
   name: semcod-mcp;
-  version: 0.1.0;
+  version: 0.1.1;
 }
 
 dependencies {
   runtime: "click>=8.0, httpx>=0.26.0, pyyaml>=6.0, rich>=13.0";
-  dev: pytest>=8.0;
+  dev: "pytest>=8.0, goal>=2.1.0, costs>=0.1.20, pfix>=0.1.60";
 }
 
 database[name="redis"] {
@@ -310,72 +311,75 @@ rich>=13.0
 
 ```text markpact:deps python scope=dev
 pytest>=8.0
+goal>=2.1.0
+costs>=0.1.20
+pfix>=0.1.60
 ```
 
 ## Call Graph
 
-*146 nodes · 162 edges · 25 modules · CC̄=4.3*
+*171 nodes · 189 edges · 30 modules · CC̄=4.4*
 
 ### Hubs (by degree)
 
 | Function | CC | in | out | total |
 |----------|----|----|-----|-------|
 | `chat_completions` *(in mcp-gateway.server)* | 31 ⚠ | 0 | 114 | **114** |
-| `_run_tool_against_repo` *(in mcp-skills.server)* | 37 ⚠ | 1 | 80 | **81** |
-| `_render_tool_text` *(in mcp-gateway.server)* | 40 ⚠ | 1 | 80 | **81** |
+| `run_tool_against_repo` *(in mcp-skills.tool_run)* | 37 ⚠ | 2 | 80 | **82** |
+| `render_tool_text` *(in mcp-gateway.gateway_render)* | 40 ⚠ | 1 | 80 | **81** |
 | `print` *(in scripts.test)* | 0 | 64 | 0 | **64** |
-| `_render_refactor_text` *(in mcp-gateway.server)* | 17 ⚠ | 1 | 51 | **52** |
-| `_render_system_text` *(in mcp-gateway.server)* | 27 ⚠ | 1 | 45 | **46** |
+| `render_refactor_text` *(in mcp-gateway.gateway_render)* | 17 ⚠ | 1 | 51 | **52** |
+| `render_system_text` *(in mcp-gateway.gateway_render)* | 27 ⚠ | 1 | 45 | **46** |
+| `redsl_refactor` *(in mcp-skills.server)* | 9 | 0 | 44 | **44** |
 | `dispatch_skill` *(in mcp-gateway.server)* | 19 ⚠ | 2 | 41 | **43** |
-| `run_doctor` *(in semcod_mcp.doctor)* | 11 ⚠ | 1 | 38 | **39** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/semcod/mcp
-# generated in 0.09s
-# nodes: 146 | edges: 162 | modules: 25
-# CC̄=4.3
+# generated in 0.08s
+# nodes: 171 | edges: 189 | modules: 30
+# CC̄=4.4
 
 HUBS[20]:
   mcp-gateway.server.chat_completions
     CC=31  in:0  out:114  total:114
-  mcp-skills.server._run_tool_against_repo
-    CC=37  in:1  out:80  total:81
-  mcp-gateway.server._render_tool_text
+  mcp-skills.tool_run.run_tool_against_repo
+    CC=37  in:2  out:80  total:82
+  mcp-gateway.gateway_render.render_tool_text
     CC=40  in:1  out:80  total:81
   scripts.test.print
     CC=0  in:64  out:0  total:64
-  mcp-gateway.server._render_refactor_text
+  mcp-gateway.gateway_render.render_refactor_text
     CC=17  in:1  out:51  total:52
-  mcp-gateway.server._render_system_text
+  mcp-gateway.gateway_render.render_system_text
     CC=27  in:1  out:45  total:46
+  mcp-skills.server.redsl_refactor
+    CC=9  in:0  out:44  total:44
   mcp-gateway.server.dispatch_skill
     CC=19  in:2  out:41  total:43
-  semcod_mcp.doctor.run_doctor
-    CC=11  in:1  out:38  total:39
   mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
     CC=15  in:0  out:39  total:39
+  semcod_mcp.doctor.run_doctor
+    CC=11  in:1  out:38  total:39
   semcod_mcp.init_cmd.run_init
-    CC=15  in:1  out:37  total:38
+    CC=14  in:1  out:37  total:38
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
     CC=32  in:0  out:38  total:38
+  mcp-skills.code_analysis.build_maintainability_recommendations
+    CC=24  in:2  out:34  total:36
+  semcod_mcp.deinit_cmd.run_deinit
+    CC=15  in:1  out:33  total:34
   mcp-webui.server.github_fetch_token_from_cli
     CC=16  in:0  out:32  total:32
+  mcp-gateway.gateway_render.render_analyze_text
+    CC=14  in:1  out:30  total:31
   env2mcp.env2mcp.github_cli.configure_github
     CC=14  in:1  out:29  total:30
   mcp-gateway.server._resolve_repo_id_template
     CC=14  in:1  out:28  total:29
-  semcod_mcp.validate.run_validate
-    CC=13  in:1  out:24  total:25
-  mcp-gateway.server._summary_text
+  mcp-skills.code_analysis.compute_repo_file_metrics
+    CC=15  in:2  out:23  total:25
+  mcp-gateway.gateway_render.summary_text
     CC=9  in:1  out:24  total:25
-  semcod_mcp.validate._validate_mcp_json
-    CC=13  in:1  out:23  total:24
-  mcp-gateway.server._render_analyze_text
-    CC=10  in:1  out:23  total:24
-  semcod_mcp.analyze.run_analyze
-    CC=12  in:1  out:22  total:23
-  mcp-gateway.server._expect_json
-    CC=3  in:18  out:4  total:22
 
 MODULES:
   dashboard.server  [1 funcs]
@@ -419,9 +423,18 @@ MODULES:
     _safe_doc_path  CC=4  out:9
     index  CC=4  out:11
     render_doc  CC=1  out:6
-  mcp-gateway.server  [66 funcs]
+  mcp-gateway.gateway_render  [7 funcs]
+    render_analyze_text  CC=14  out:30
+    render_chat_content  CC=13  out:16
+    render_queued_text  CC=6  out:7
+    render_refactor_text  CC=17  out:51
+    render_system_text  CC=27  out:45
+    render_tool_text  CC=40  out:80
+    summary_text  CC=9  out:24
+  mcp-gateway.server  [60 funcs]
     _ask_openrouter_github_qa  CC=12  out:15
     _create_github_pr  CC=3  out:14
+    _enrich_analysis_with_file_metrics  CC=13  out:12
     _expect_json  CC=3  out:4
     _extract_github_token_from_text  CC=2  out:2
     _extract_org_from_text  CC=9  out:9
@@ -429,18 +442,33 @@ MODULES:
     _extract_repo_template_expression  CC=3  out:3
     _get_default_github_repo  CC=7  out:7
     _get_last_used_repo  CC=8  out:6
-    _get_most_used_repo  CC=8  out:5
-  mcp-skills.server  [13 funcs]
+  mcp-skills.code_analysis  [6 funcs]
+    _should_skip_path  CC=2  out:1
+    build_maintainability_recommendations  CC=24  out:34
+    compute_repo_file_metrics  CC=15  out:23
+    detect_repo_patterns  CC=10  out:18
+    merge_recommendations  CC=9  out:13
+    recommendations_payload  CC=5  out:9
+  mcp-skills.mcp_parse  [1 funcs]
+    parse_tool_result  CC=3  out:1
+  mcp-skills.server  [11 funcs]
+    _compute_metrics_for_repo  CC=3  out:12
+    _detect_code_patterns  CC=2  out:10
+    _recommend_refactoring  CC=2  out:15
     _sync_from_git_proxy  CC=15  out:39
-    _collect_output_files  CC=9  out:17
+    _run_tool_against_repo  CC=1  out:1
+    analyze_code_structure  CC=2  out:6
+    compute_metrics  CC=2  out:6
+    detect_patterns  CC=2  out:6
+    recommend_refactoring  CC=2  out:6
+    redsl_refactor  CC=9  out:44
+  mcp-skills.tool_run  [6 funcs]
     _ensure_tool_installed  CC=10  out:11
     _git_clone_or_update  CC=10  out:19
     _inject_github_token  CC=5  out:3
-    _parse_tool_result  CC=3  out:1
-    _run_tool_against_repo  CC=37  out:80
     _truncate_text  CC=3  out:4
-    analyze_code_structure  CC=2  out:6
-    compute_metrics  CC=2  out:6
+    collect_output_files  CC=9  out:17
+    run_tool_against_repo  CC=37  out:80
   mcp-webui.server  [12 funcs]
     _get_github_config  CC=16  out:15
     _github_page_ctx  CC=2  out:4
@@ -456,22 +484,34 @@ MODULES:
     print  CC=0  out:0
   semcod_mcp.analyze  [1 funcs]
     run_analyze  CC=12  out:22
-  semcod_mcp.cli  [4 funcs]
+  semcod_mcp.cli  [5 funcs]
     analyze_cmd  CC=4  out:10
+    deinit_cmd  CC=2  out:9
     doctor_cmd  CC=6  out:12
     init_cmd  CC=4  out:14
     validate_cmd  CC=4  out:8
-  semcod_mcp.doctor  [2 funcs]
+  semcod_mcp.deinit_cmd  [3 funcs]
+    _deinit_mcp_json  CC=8  out:7
+    print_deinit_result  CC=5  out:4
+    run_deinit  CC=15  out:33
+  semcod_mcp.doctor  [3 funcs]
+    add  CC=1  out:2
     _http_ok  CC=4  out:2
     run_doctor  CC=11  out:38
   semcod_mcp.init_cmd  [3 funcs]
     _init_mcp_json  CC=5  out:8
-    print_init_result  CC=4  out:4
-    run_init  CC=15  out:37
-  semcod_mcp.merge  [4 funcs]
+    print_init_result  CC=5  out:4
+    run_init  CC=14  out:37
+  semcod_mcp.merge  [11 funcs]
+    _continue_json_is_empty  CC=3  out:3
+    _mcp_json_is_empty  CC=3  out:3
+    delete_file  CC=3  out:2
     load_json  CC=4  out:6
     merge_mcp_servers  CC=5  out:8
     merge_vscode_settings  CC=4  out:5
+    remove_continue_models  CC=8  out:9
+    remove_mcp_server  CC=4  out:6
+    remove_vscode_settings  CC=4  out:3
     save_json  CC=2  out:3
   semcod_mcp.paths  [5 funcs]
     default_api_key  CC=1  out:2
@@ -479,21 +519,45 @@ MODULES:
     expand  CC=1  out:3
     gateway_url  CC=1  out:2
     infer_repo_id  CC=5  out:6
-  semcod_mcp.templates  [5 funcs]
-    manifest_data  CC=1  out:8
+  semcod_mcp.templates  [6 funcs]
+    _manifest_compare_keys  CC=2  out:6
+    manifest_data  CC=2  out:10
     mcp_server_block  CC=1  out:1
     read_manifest  CC=3  out:3
     vscode_settings_snippet  CC=1  out:2
-    write_manifest  CC=2  out:2
+    write_manifest  CC=8  out:10
   semcod_mcp.validate  [2 funcs]
     _validate_mcp_json  CC=13  out:23
     run_validate  CC=13  out:24
 
 EDGES:
+  dashboard.server.main → scripts.test.print
+  mcp-docs.server.index → mcp-docs.server._page
+  mcp-docs.server.render_doc → mcp-docs.server._safe_doc_path
+  mcp-docs.server.render_doc → mcp-docs.server._markdown_to_html
+  mcp-docs.server.render_doc → mcp-docs.server._page
+  gh2mcp.gh2mcp.cli._cmd_status → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_sync → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_agent → scripts.test.print
+  gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
+  gh2mcp.gh2mcp.server.on_startup → gh2mcp.gh2mcp.server._periodic_sync
+  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
+  llm-agent.agent_standalone.main → scripts.test.print
+  llm-agent.agent.main → scripts.test.print
+  mcp-skills.code_analysis.compute_repo_file_metrics → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.detect_repo_patterns → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.build_maintainability_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.code_analysis.build_maintainability_recommendations → semcod_mcp.doctor.DoctorReport.add
+  mcp-skills.code_analysis.merge_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
+  env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_set → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_get → scripts.test.print
   env2mcp.env2mcp.github_cli.configure_github → scripts.test.print
-  git2mcp.examples.03_agent_git2mcp.main → scripts.test.print
-  git2mcp.examples.02_fragment_sync_to_skills.main → scripts.test.print
-  git2mcp.examples.01_sync_and_commit.main → scripts.test.print
   mcp-webui.server.index → mcp-webui.server.gateway_headers
   mcp-webui.server._get_github_config → mcp-webui.server._resolve_github_token
   mcp-webui.server._get_github_config → mcp-webui.server._read_gh2mcp_status
@@ -506,40 +570,17 @@ EDGES:
   mcp-webui.server.github_create_repo → mcp-webui.server._resolve_github_token
   mcp-webui.server.github_create_repo → mcp-webui.server._get_github_config
   mcp-webui.server.github_sync → mcp-webui.server._get_github_config
-  gh2mcp.gh2mcp.cli._cmd_status → scripts.test.print
-  gh2mcp.gh2mcp.cli._cmd_sync → scripts.test.print
-  gh2mcp.gh2mcp.cli._cmd_agent → scripts.test.print
-  gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
-  semcod_mcp.cli.init_cmd → semcod_mcp.init_cmd.run_init
-  semcod_mcp.cli.init_cmd → semcod_mcp.init_cmd.print_init_result
-  semcod_mcp.cli.init_cmd → semcod_mcp.paths.detect_stack_path
-  semcod_mcp.cli.doctor_cmd → semcod_mcp.doctor.run_doctor
-  semcod_mcp.cli.validate_cmd → semcod_mcp.validate.run_validate
-  semcod_mcp.cli.analyze_cmd → semcod_mcp.analyze.run_analyze
-  env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
-  env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_env_set → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_env_get → scripts.test.print
+  git2mcp.examples.03_agent_git2mcp.main → scripts.test.print
+  git2mcp.examples.02_fragment_sync_to_skills.main → scripts.test.print
+  git2mcp.examples.01_sync_and_commit.main → scripts.test.print
+  semcod_mcp.init_cmd._init_mcp_json → semcod_mcp.merge.load_json
+  semcod_mcp.init_cmd._init_mcp_json → semcod_mcp.merge.merge_mcp_servers
+  semcod_mcp.init_cmd._init_mcp_json → semcod_mcp.templates.mcp_server_block
+  semcod_mcp.init_cmd._init_mcp_json → semcod_mcp.merge.save_json
+  semcod_mcp.init_cmd.run_init → semcod_mcp.paths.infer_repo_id
+  semcod_mcp.init_cmd.run_init → semcod_mcp.merge.merge_vscode_settings
+  semcod_mcp.init_cmd.run_init → semcod_mcp.templates.write_manifest
   semcod_mcp.analyze.run_analyze → semcod_mcp.templates.read_manifest
-  semcod_mcp.analyze.run_analyze → semcod_mcp.paths.default_api_key
-  semcod_mcp.analyze.run_analyze → semcod_mcp.paths.infer_repo_id
-  semcod_mcp.analyze.run_analyze → semcod_mcp.paths.gateway_url
-  semcod_mcp.doctor.run_doctor → semcod_mcp.paths.detect_stack_path
-  semcod_mcp.doctor.run_doctor → semcod_mcp.templates.read_manifest
-  semcod_mcp.doctor.run_doctor → semcod_mcp.paths.gateway_url
-  semcod_mcp.doctor.run_doctor → semcod_mcp.paths.default_api_key
-  semcod_mcp.doctor.run_doctor → semcod_mcp.doctor._http_ok
-  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-docs.server.index → mcp-docs.server._page
-  mcp-docs.server.render_doc → mcp-docs.server._safe_doc_path
-  mcp-docs.server.render_doc → mcp-docs.server._markdown_to_html
-  mcp-docs.server.render_doc → mcp-docs.server._page
-  semcod_mcp.paths.detect_stack_path → semcod_mcp.paths.expand
-  semcod_mcp.validate._validate_mcp_json → semcod_mcp.merge.load_json
 ```
 
 ## Refactoring Analysis
@@ -550,51 +591,51 @@ EDGES:
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/semcod/mcp
-# generated in 0.09s
-# nodes: 146 | edges: 162 | modules: 25
-# CC̄=4.3
+# generated in 0.08s
+# nodes: 171 | edges: 189 | modules: 30
+# CC̄=4.4
 
 HUBS[20]:
   mcp-gateway.server.chat_completions
     CC=31  in:0  out:114  total:114
-  mcp-skills.server._run_tool_against_repo
-    CC=37  in:1  out:80  total:81
-  mcp-gateway.server._render_tool_text
+  mcp-skills.tool_run.run_tool_against_repo
+    CC=37  in:2  out:80  total:82
+  mcp-gateway.gateway_render.render_tool_text
     CC=40  in:1  out:80  total:81
   scripts.test.print
     CC=0  in:64  out:0  total:64
-  mcp-gateway.server._render_refactor_text
+  mcp-gateway.gateway_render.render_refactor_text
     CC=17  in:1  out:51  total:52
-  mcp-gateway.server._render_system_text
+  mcp-gateway.gateway_render.render_system_text
     CC=27  in:1  out:45  total:46
+  mcp-skills.server.redsl_refactor
+    CC=9  in:0  out:44  total:44
   mcp-gateway.server.dispatch_skill
     CC=19  in:2  out:41  total:43
-  semcod_mcp.doctor.run_doctor
-    CC=11  in:1  out:38  total:39
   mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
     CC=15  in:0  out:39  total:39
+  semcod_mcp.doctor.run_doctor
+    CC=11  in:1  out:38  total:39
   semcod_mcp.init_cmd.run_init
-    CC=15  in:1  out:37  total:38
+    CC=14  in:1  out:37  total:38
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
     CC=32  in:0  out:38  total:38
+  mcp-skills.code_analysis.build_maintainability_recommendations
+    CC=24  in:2  out:34  total:36
+  semcod_mcp.deinit_cmd.run_deinit
+    CC=15  in:1  out:33  total:34
   mcp-webui.server.github_fetch_token_from_cli
     CC=16  in:0  out:32  total:32
+  mcp-gateway.gateway_render.render_analyze_text
+    CC=14  in:1  out:30  total:31
   env2mcp.env2mcp.github_cli.configure_github
     CC=14  in:1  out:29  total:30
   mcp-gateway.server._resolve_repo_id_template
     CC=14  in:1  out:28  total:29
-  semcod_mcp.validate.run_validate
-    CC=13  in:1  out:24  total:25
-  mcp-gateway.server._summary_text
+  mcp-skills.code_analysis.compute_repo_file_metrics
+    CC=15  in:2  out:23  total:25
+  mcp-gateway.gateway_render.summary_text
     CC=9  in:1  out:24  total:25
-  semcod_mcp.validate._validate_mcp_json
-    CC=13  in:1  out:23  total:24
-  mcp-gateway.server._render_analyze_text
-    CC=10  in:1  out:23  total:24
-  semcod_mcp.analyze.run_analyze
-    CC=12  in:1  out:22  total:23
-  mcp-gateway.server._expect_json
-    CC=3  in:18  out:4  total:22
 
 MODULES:
   dashboard.server  [1 funcs]
@@ -638,9 +679,18 @@ MODULES:
     _safe_doc_path  CC=4  out:9
     index  CC=4  out:11
     render_doc  CC=1  out:6
-  mcp-gateway.server  [66 funcs]
+  mcp-gateway.gateway_render  [7 funcs]
+    render_analyze_text  CC=14  out:30
+    render_chat_content  CC=13  out:16
+    render_queued_text  CC=6  out:7
+    render_refactor_text  CC=17  out:51
+    render_system_text  CC=27  out:45
+    render_tool_text  CC=40  out:80
+    summary_text  CC=9  out:24
+  mcp-gateway.server  [60 funcs]
     _ask_openrouter_github_qa  CC=12  out:15
     _create_github_pr  CC=3  out:14
+    _enrich_analysis_with_file_metrics  CC=13  out:12
     _expect_json  CC=3  out:4
     _extract_github_token_from_text  CC=2  out:2
     _extract_org_from_text  CC=9  out:9
@@ -648,18 +698,33 @@ MODULES:
     _extract_repo_template_expression  CC=3  out:3
     _get_default_github_repo  CC=7  out:7
     _get_last_used_repo  CC=8  out:6
-    _get_most_used_repo  CC=8  out:5
-  mcp-skills.server  [13 funcs]
+  mcp-skills.code_analysis  [6 funcs]
+    _should_skip_path  CC=2  out:1
+    build_maintainability_recommendations  CC=24  out:34
+    compute_repo_file_metrics  CC=15  out:23
+    detect_repo_patterns  CC=10  out:18
+    merge_recommendations  CC=9  out:13
+    recommendations_payload  CC=5  out:9
+  mcp-skills.mcp_parse  [1 funcs]
+    parse_tool_result  CC=3  out:1
+  mcp-skills.server  [11 funcs]
+    _compute_metrics_for_repo  CC=3  out:12
+    _detect_code_patterns  CC=2  out:10
+    _recommend_refactoring  CC=2  out:15
     _sync_from_git_proxy  CC=15  out:39
-    _collect_output_files  CC=9  out:17
+    _run_tool_against_repo  CC=1  out:1
+    analyze_code_structure  CC=2  out:6
+    compute_metrics  CC=2  out:6
+    detect_patterns  CC=2  out:6
+    recommend_refactoring  CC=2  out:6
+    redsl_refactor  CC=9  out:44
+  mcp-skills.tool_run  [6 funcs]
     _ensure_tool_installed  CC=10  out:11
     _git_clone_or_update  CC=10  out:19
     _inject_github_token  CC=5  out:3
-    _parse_tool_result  CC=3  out:1
-    _run_tool_against_repo  CC=37  out:80
     _truncate_text  CC=3  out:4
-    analyze_code_structure  CC=2  out:6
-    compute_metrics  CC=2  out:6
+    collect_output_files  CC=9  out:17
+    run_tool_against_repo  CC=37  out:80
   mcp-webui.server  [12 funcs]
     _get_github_config  CC=16  out:15
     _github_page_ctx  CC=2  out:4
@@ -675,22 +740,34 @@ MODULES:
     print  CC=0  out:0
   semcod_mcp.analyze  [1 funcs]
     run_analyze  CC=12  out:22
-  semcod_mcp.cli  [4 funcs]
+  semcod_mcp.cli  [5 funcs]
     analyze_cmd  CC=4  out:10
+    deinit_cmd  CC=2  out:9
     doctor_cmd  CC=6  out:12
     init_cmd  CC=4  out:14
     validate_cmd  CC=4  out:8
-  semcod_mcp.doctor  [2 funcs]
+  semcod_mcp.deinit_cmd  [3 funcs]
+    _deinit_mcp_json  CC=8  out:7
+    print_deinit_result  CC=5  out:4
+    run_deinit  CC=15  out:33
+  semcod_mcp.doctor  [3 funcs]
+    add  CC=1  out:2
     _http_ok  CC=4  out:2
     run_doctor  CC=11  out:38
   semcod_mcp.init_cmd  [3 funcs]
     _init_mcp_json  CC=5  out:8
-    print_init_result  CC=4  out:4
-    run_init  CC=15  out:37
-  semcod_mcp.merge  [4 funcs]
+    print_init_result  CC=5  out:4
+    run_init  CC=14  out:37
+  semcod_mcp.merge  [11 funcs]
+    _continue_json_is_empty  CC=3  out:3
+    _mcp_json_is_empty  CC=3  out:3
+    delete_file  CC=3  out:2
     load_json  CC=4  out:6
     merge_mcp_servers  CC=5  out:8
     merge_vscode_settings  CC=4  out:5
+    remove_continue_models  CC=8  out:9
+    remove_mcp_server  CC=4  out:6
+    remove_vscode_settings  CC=4  out:3
     save_json  CC=2  out:3
   semcod_mcp.paths  [5 funcs]
     default_api_key  CC=1  out:2
@@ -698,21 +775,45 @@ MODULES:
     expand  CC=1  out:3
     gateway_url  CC=1  out:2
     infer_repo_id  CC=5  out:6
-  semcod_mcp.templates  [5 funcs]
-    manifest_data  CC=1  out:8
+  semcod_mcp.templates  [6 funcs]
+    _manifest_compare_keys  CC=2  out:6
+    manifest_data  CC=2  out:10
     mcp_server_block  CC=1  out:1
     read_manifest  CC=3  out:3
     vscode_settings_snippet  CC=1  out:2
-    write_manifest  CC=2  out:2
+    write_manifest  CC=8  out:10
   semcod_mcp.validate  [2 funcs]
     _validate_mcp_json  CC=13  out:23
     run_validate  CC=13  out:24
 
 EDGES:
+  dashboard.server.main → scripts.test.print
+  mcp-docs.server.index → mcp-docs.server._page
+  mcp-docs.server.render_doc → mcp-docs.server._safe_doc_path
+  mcp-docs.server.render_doc → mcp-docs.server._markdown_to_html
+  mcp-docs.server.render_doc → mcp-docs.server._page
+  gh2mcp.gh2mcp.cli._cmd_status → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_sync → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_agent → scripts.test.print
+  gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
+  gh2mcp.gh2mcp.server.on_startup → gh2mcp.gh2mcp.server._periodic_sync
+  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
+  llm-agent.agent_standalone.main → scripts.test.print
+  llm-agent.agent.main → scripts.test.print
+  mcp-skills.code_analysis.compute_repo_file_metrics → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.detect_repo_patterns → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.build_maintainability_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.code_analysis.build_maintainability_recommendations → semcod_mcp.doctor.DoctorReport.add
+  mcp-skills.code_analysis.merge_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
+  env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_set → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_get → scripts.test.print
   env2mcp.env2mcp.github_cli.configure_github → scripts.test.print
-  git2mcp.examples.03_agent_git2mcp.main → scripts.test.print
-  git2mcp.examples.02_fragment_sync_to_skills.main → scripts.test.print
-  git2mcp.examples.01_sync_and_commit.main → scripts.test.print
   mcp-webui.server.index → mcp-webui.server.gateway_headers
   mcp-webui.server._get_github_config → mcp-webui.server._resolve_github_token
   mcp-webui.server._get_github_config → mcp-webui.server._read_gh2mcp_status
@@ -725,189 +826,173 @@ EDGES:
   mcp-webui.server.github_create_repo → mcp-webui.server._resolve_github_token
   mcp-webui.server.github_create_repo → mcp-webui.server._get_github_config
   mcp-webui.server.github_sync → mcp-webui.server._get_github_config
-  gh2mcp.gh2mcp.cli._cmd_status → scripts.test.print
-  gh2mcp.gh2mcp.cli._cmd_sync → scripts.test.print
-  gh2mcp.gh2mcp.cli._cmd_agent → scripts.test.print
-  gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
-  semcod_mcp.cli.init_cmd → semcod_mcp.init_cmd.run_init
-  semcod_mcp.cli.init_cmd → semcod_mcp.init_cmd.print_init_result
-  semcod_mcp.cli.init_cmd → semcod_mcp.paths.detect_stack_path
-  semcod_mcp.cli.doctor_cmd → semcod_mcp.doctor.run_doctor
-  semcod_mcp.cli.validate_cmd → semcod_mcp.validate.run_validate
-  semcod_mcp.cli.analyze_cmd → semcod_mcp.analyze.run_analyze
-  env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
-  env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_env_set → scripts.test.print
-  env2mcp.env2mcp.cli.cmd_env_get → scripts.test.print
+  git2mcp.examples.03_agent_git2mcp.main → scripts.test.print
+  git2mcp.examples.02_fragment_sync_to_skills.main → scripts.test.print
+  git2mcp.examples.01_sync_and_commit.main → scripts.test.print
+  semcod_mcp.init_cmd._init_mcp_json → semcod_mcp.merge.load_json
+  semcod_mcp.init_cmd._init_mcp_json → semcod_mcp.merge.merge_mcp_servers
+  semcod_mcp.init_cmd._init_mcp_json → semcod_mcp.templates.mcp_server_block
+  semcod_mcp.init_cmd._init_mcp_json → semcod_mcp.merge.save_json
+  semcod_mcp.init_cmd.run_init → semcod_mcp.paths.infer_repo_id
+  semcod_mcp.init_cmd.run_init → semcod_mcp.merge.merge_vscode_settings
+  semcod_mcp.init_cmd.run_init → semcod_mcp.templates.write_manifest
   semcod_mcp.analyze.run_analyze → semcod_mcp.templates.read_manifest
-  semcod_mcp.analyze.run_analyze → semcod_mcp.paths.default_api_key
-  semcod_mcp.analyze.run_analyze → semcod_mcp.paths.infer_repo_id
-  semcod_mcp.analyze.run_analyze → semcod_mcp.paths.gateway_url
-  semcod_mcp.doctor.run_doctor → semcod_mcp.paths.detect_stack_path
-  semcod_mcp.doctor.run_doctor → semcod_mcp.templates.read_manifest
-  semcod_mcp.doctor.run_doctor → semcod_mcp.paths.gateway_url
-  semcod_mcp.doctor.run_doctor → semcod_mcp.paths.default_api_key
-  semcod_mcp.doctor.run_doctor → semcod_mcp.doctor._http_ok
-  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-docs.server.index → mcp-docs.server._page
-  mcp-docs.server.render_doc → mcp-docs.server._safe_doc_path
-  mcp-docs.server.render_doc → mcp-docs.server._markdown_to_html
-  mcp-docs.server.render_doc → mcp-docs.server._page
-  semcod_mcp.paths.detect_stack_path → semcod_mcp.paths.expand
-  semcod_mcp.validate._validate_mcp_json → semcod_mcp.merge.load_json
 ```
 
 ### Code Analysis (`project/analysis.toon.yaml`)
 
 ```toon markpact:analysis path=project/analysis.toon.yaml
-# code2llm | 84f 16032L | python:38,yaml:9,yml:7,shell:7,txt:6,toml:4,json:3,ini:1 | 2026-06-18
-# generated in 0.03s
-# CC̅=4.3 | critical:23/401 | dups:0 | cycles:0
+# code2llm | 92f 16887L | python:47,yaml:9,yml:7,shell:7,txt:6,toml:4,json:2,ini:1 | 2026-06-18
+# generated in 0.02s
+# CC̅=4.4 | critical:23/421 | dups:0 | cycles:0
 
 HEALTH[20]:
-  🔴 GOD   mcp-skills/server.py = 1482L, 8 classes, 30m, max CC=37
-  🟡 CC    _get_github_config CC=16 (limit:15)
-  🟡 CC    github_fetch_token_from_cli CC=16 (limit:15)
   🟡 CC    get_last_pushed_repo CC=23 (limit:15)
   🟡 CC    get_recent_repos CC=32 (limit:15)
   🟡 CC    sync_token CC=20 (limit:15)
-  🟡 CC    run_init CC=15 (limit:15)
-  🟡 CC    compute_metrics CC=15 (limit:15)
-  🟡 CC    save CC=20 (limit:15)
   🟡 CC    compute_metrics_for_repo CC=15 (limit:15)
   🟡 CC    detect_code_patterns CC=15 (limit:15)
-  🟡 CC    _sync_from_git_proxy CC=15 (limit:15)
-  🟡 CC    _compute_metrics_for_repo CC=15 (limit:15)
-  🟡 CC    _recommend_refactoring CC=15 (limit:15)
-  🟡 CC    _run_tool_against_repo CC=37 (limit:15)
+  🟡 CC    compute_metrics CC=15 (limit:15)
+  🟡 CC    compute_repo_file_metrics CC=15 (limit:15)
+  🟡 CC    build_maintainability_recommendations CC=24 (limit:15)
+  🟡 CC    save CC=20 (limit:15)
+  🟡 CC    _get_github_config CC=16 (limit:15)
+  🟡 CC    github_fetch_token_from_cli CC=16 (limit:15)
   🟡 CC    _is_last_pushed_repo_template CC=15 (limit:15)
   🟡 CC    _is_github_token_save_command CC=15 (limit:15)
   🟡 CC    _is_repo_list_command CC=23 (limit:15)
   🟡 CC    parse_tool_intent CC=23 (limit:15)
-  🟡 CC    _render_system_text CC=27 (limit:15)
+  🟡 CC    chat_completions CC=31 (limit:15)
+  🟡 CC    dispatch_skill CC=19 (limit:15)
+  🟡 CC    render_system_text CC=27 (limit:15)
+  🟡 CC    render_refactor_text CC=17 (limit:15)
+  🟡 CC    render_tool_text CC=40 (limit:15)
 
-REFACTOR[2]:
-  1. split mcp-skills/server.py  (god module)
-  2. split 19 high-CC methods  (CC>15)
+REFACTOR[1]:
+  1. split 20 high-CC methods  (CC>15)
 
-PIPELINES[220]:
-  [1] Src [main]: main
+PIPELINES[221]:
+  [1] Src [end_headers]: end_headers
       PURITY: 100% pure
-  [2] Src [is_available]: is_available
+  [2] Src [do_GET]: do_GET
       PURITY: 100% pure
-  [3] Src [get_auth_status]: get_auth_status
+  [3] Src [serve_file]: serve_file
       PURITY: 100% pure
-  [4] Src [get_token]: get_token
+  [4] Src [send_json]: send_json
       PURITY: 100% pure
-  [5] Src [get_user]: get_user
+  [5] Src [get_content_type]: get_content_type
       PURITY: 100% pure
-  [6] Src [login]: login
+  [6] Src [get_status]: get_status
       PURITY: 100% pure
-  [7] Src [logout]: logout
+  [7] Src [get_analyses]: get_analyses
       PURITY: 100% pure
-  [8] Src [list_repos]: list_repos
+  [8] Src [get_analysis]: get_analysis
       PURITY: 100% pure
-  [9] Src [clone_url]: clone_url
+  [9] Src [get_repos]: get_repos
       PURITY: 100% pure
-  [10] Src [get_github_token]: get_github_token
+  [10] Src [main]: main → print
       PURITY: 100% pure
-  [11] Src [main]: main → print
+  [11] Src [health]: health
       PURITY: 100% pure
-  [12] Src [main]: main → print
+  [12] Src [list_repos]: list_repos
       PURITY: 100% pure
-  [13] Src [main]: main → print
+  [13] Src [sync_repo]: sync_repo
       PURITY: 100% pure
-  [14] Src [main]: main → print
+  [14] Src [export_fragments]: export_fragments
       PURITY: 100% pure
-  [15] Src [main]: main → print
+  [15] Src [export_package]: export_package
       PURITY: 100% pure
-  [16] Src [index]: index → gateway_headers
+  [16] Src [import_package]: import_package
       PURITY: 100% pure
-  [17] Src [repos_page]: repos_page
+  [17] Src [commit]: commit
       PURITY: 100% pure
-  [18] Src [repos_sync]: repos_sync
+  [18] Src [push]: push
       PURITY: 100% pure
-  [19] Src [diff_page]: diff_page
+  [19] Src [reset]: reset
       PURITY: 100% pure
-  [20] Src [skills_page]: skills_page
+  [20] Src [worktree_write]: worktree_write
       PURITY: 100% pure
-  [21] Src [skills_run]: skills_run → gateway_headers
+  [21] Src [worktree_read]: worktree_read
       PURITY: 100% pure
-  [22] Src [playground]: playground
+  [22] Src [worktree_diff]: worktree_diff
       PURITY: 100% pure
-  [23] Src [github_page]: github_page → _get_github_config → _resolve_github_token
+  [23] Src [patch_apply]: patch_apply
       PURITY: 100% pure
-  [24] Src [github_configure]: github_configure
+  [24] Src [stage]: stage
       PURITY: 100% pure
-  [25] Src [github_fetch_token_from_cli]: github_fetch_token_from_cli → _get_github_config → _resolve_github_token
+  [25] Src [stash_save]: stash_save
       PURITY: 100% pure
-  [26] Src [github_clone]: github_clone → _normalize_github_url
+  [26] Src [stash_pop]: stash_pop
       PURITY: 100% pure
-  [27] Src [github_create_repo]: github_create_repo → _resolve_github_token
+  [27] Src [branch_draft]: branch_draft
       PURITY: 100% pure
-  [28] Src [github_sync]: github_sync → _get_github_config → _resolve_github_token
+  [28] Src [checkpoint_create]: checkpoint_create
       PURITY: 100% pure
-  [29] Src [_cmd_status]: _cmd_status → print
+  [29] Src [checkpoint_restore]: checkpoint_restore
       PURITY: 100% pure
-  [30] Src [_cmd_sync]: _cmd_sync → print
+  [30] Src [run_tests]: run_tests
       PURITY: 100% pure
-  [31] Src [_cmd_agent]: _cmd_agent → print
+  [31] Src [github_create_repo]: github_create_repo
       PURITY: 100% pure
-  [32] Src [main]: main → build_parser
+  [32] Src [sync_pull]: sync_pull
       PURITY: 100% pure
-  [33] Src [__init__]: __init__
+  [33] Src [health]: health
       PURITY: 100% pure
-  [34] Src [_request]: _request
+  [34] Src [list_docs]: list_docs
       PURITY: 100% pure
-  [35] Src [health]: health
+  [35] Src [index]: index → _page
       PURITY: 100% pure
-  [36] Src [list_repos]: list_repos
+  [36] Src [render_doc]: render_doc → _safe_doc_path
       PURITY: 100% pure
-  [37] Src [sync_repo]: sync_repo
+  [37] Src [_cmd_status]: _cmd_status → print
       PURITY: 100% pure
-  [38] Src [export_package]: export_package
+  [38] Src [_cmd_sync]: _cmd_sync → print
       PURITY: 100% pure
-  [39] Src [commit_changes]: commit_changes
+  [39] Src [_cmd_agent]: _cmd_agent → print
       PURITY: 100% pure
-  [40] Src [run_tests]: run_tests
+  [40] Src [main]: main → build_parser
       PURITY: 100% pure
-  [41] Src [push]: push
+  [41] Src [on_startup]: on_startup → _periodic_sync
       PURITY: 100% pure
-  [42] Src [reset]: reset
+  [42] Src [on_shutdown]: on_shutdown
       PURITY: 100% pure
-  [43] Src [worktree_write]: worktree_write
+  [43] Src [health]: health
       PURITY: 100% pure
-  [44] Src [worktree_read]: worktree_read
+  [44] Src [status]: status
       PURITY: 100% pure
-  [45] Src [worktree_diff]: worktree_diff
+  [45] Src [sync_token]: sync_token
       PURITY: 100% pure
-  [46] Src [patch_apply]: patch_apply
+  [46] Src [set_org]: set_org
       PURITY: 100% pure
-  [47] Src [stage]: stage
+  [47] Src [list_orgs]: list_orgs
       PURITY: 100% pure
-  [48] Src [stash_save]: stash_save
+  [48] Src [last_pushed_repo]: last_pushed_repo
       PURITY: 100% pure
-  [49] Src [stash_pop]: stash_pop
+  [49] Src [recent_repos]: recent_repos
       PURITY: 100% pure
-  [50] Src [branch_draft]: branch_draft
+  [50] Src [__init__]: __init__
       PURITY: 100% pure
 
 LAYERS:
-  mcp-skills/                     CC̄=7.2    ←in:0  →out:2
-  │ !! server                    1482L  8C   30m  CC=37     ←0
-  │ Dockerfile                  35L  0C    0m  CC=0.0    ←0
-  │ requirements.txt             5L  0C    0m  CC=0.0    ←0
-  │
-  mcp-gateway/                    CC̄=6.8    ←in:0  →out:8  !! split
-  │ !! server                    2908L  2C   86m  CC=40     ←0
+  mcp-gateway/                    CC̄=6.9    ←in:0  →out:9  !! split
+  │ !! server                    2468L  2C   74m  CC=31     ←0
+  │ !! gateway_render             502L  0C   13m  CC=40     ←1
+  │ gateway_config              56L  0C    0m  CC=0.0    ←0
   │ worker                      18L  0C    1m  CC=2      ←0
   │ default.yaml                16L  0C    0m  CC=0.0    ←0
-  │ Dockerfile                  16L  0C    0m  CC=0.0    ←0
+  │ Dockerfile                  15L  0C    0m  CC=0.0    ←0
   │ requirements.txt             9L  0C    0m  CC=0.0    ←0
+  │
+  mcp-skills/                     CC̄=6.5    ←in:0  →out:10  !! split
+  │ !! server                     691L  1C   22m  CC=15     ←0
+  │ !! tool_run                   388L  0C    7m  CC=37     ←1
+  │ !! code_analysis              282L  0C    6m  CC=24     ←1
+  │ tools_registry             150L  0C    0m  CC=0.0    ←0
+  │ redsl_runner                71L  0C    1m  CC=14     ←1
+  │ http_models                 60L  7C    0m  CC=0.0    ←0
+  │ Dockerfile                  37L  0C    0m  CC=0.0    ←0
+  │ mcp_parse                   18L  0C    1m  CC=3      ←1
+  │ requirements.txt             5L  0C    0m  CC=0.0    ←0
   │
   gh2mcp/                         CC̄=5.4    ←in:0  →out:0
   │ !! sync                       430L  1C    7m  CC=32     ←0
@@ -921,30 +1006,31 @@ LAYERS:
   env2mcp/                        CC̄=5.1    ←in:0  →out:0
   │ github_cli                 330L  1C   11m  CC=14     ←1
   │ cli                        252L  0C    8m  CC=11     ←0
-  │ !! config                     158L  1C   13m  CC=20     ←4
+  │ !! config                     158L  1C   13m  CC=20     ←8
   │ pyproject.toml              68L  0C    0m  CC=0.0    ←0
   │ __init__                    13L  0C    0m  CC=0.0    ←0
+  │
+  semcod_mcp/                     CC̄=5.0    ←in:6  →out:3
+  │ merge                      216L  0C   12m  CC=10     ←4
+  │ init_cmd                   176L  1C    4m  CC=14     ←1
+  │ templates                  162L  0C    8m  CC=8      ←4
+  │ !! deinit_cmd                 137L  1C    3m  CC=15     ←1
+  │ cli                        132L  0C    6m  CC=6      ←0
+  │ doctor                     116L  2C    3m  CC=11     ←2
+  │ analyze                    105L  1C    1m  CC=12     ←1
+  │ validate                   101L  2C    4m  CC=13     ←1
+  │ paths                       70L  0C    5m  CC=10     ←6
+  │ __init__                     3L  0C    0m  CC=0.0    ←0
   │
   mcp-webui/                      CC̄=4.9    ←in:0  →out:0
   │ !! server                     621L  0C   19m  CC=16     ←0
   │ Dockerfile                  15L  0C    0m  CC=0.0    ←0
   │ requirements.txt             5L  0C    0m  CC=0.0    ←0
   │
-  semcod_mcp/                     CC̄=4.7    ←in:0  →out:1
-  │ !! init_cmd                   161L  1C    4m  CC=15     ←1
-  │ templates                  119L  0C    7m  CC=3      ←4
-  │ doctor                     116L  2C    3m  CC=11     ←1
-  │ merge                      109L  0C    5m  CC=10     ←3
-  │ cli                        108L  0C    5m  CC=6      ←0
-  │ analyze                    105L  1C    1m  CC=12     ←1
-  │ validate                   101L  2C    4m  CC=13     ←1
-  │ paths                       70L  0C    5m  CC=10     ←6
-  │ __init__                     3L  0C    0m  CC=0.0    ←0
-  │
-  llm-agent/                      CC̄=4.0    ←in:0  →out:10  !! split
+  llm-agent/                      CC̄=4.0    ←in:1  →out:10  !! split
   │ !! agent_standalone           540L  3C   14m  CC=15     ←0
   │ agent                      375L  2C   13m  CC=4      ←0
-  │ !! agent_git2mcp              361L  3C   13m  CC=15     ←0
+  │ !! agent_git2mcp              361L  3C   13m  CC=15     ←1
   │ Dockerfile                  10L  0C    0m  CC=0.0    ←0
   │ requirements.txt             5L  0C    0m  CC=0.0    ←0
   │
@@ -958,7 +1044,6 @@ LAYERS:
   │ planfile.yaml              123L  0C    0m  CC=0.0    ←0
   │ 04_dry_run_vs_execute      115L  0C    2m  CC=3      ←0
   │ client                     104L  1C   20m  CC=4      ←0
-  │ prefact.yaml                91L  0C    0m  CC=0.0    ←0
   │ 02_fragment_sync_to_skills    68L  0C    1m  CC=1      ←0
   │ 01_sync_and_commit          62L  0C    1m  CC=1      ←0
   │ pyproject.toml              57L  0C    0m  CC=0.0    ←0
@@ -988,19 +1073,19 @@ LAYERS:
   │ deploy.sh                  135L  0C    7m  CC=0.0    ←0
   │
   ./                              CC̄=0.0    ←in:0  →out:0
-  │ !! planfile.yaml              942L  0C    0m  CC=0.0    ←0
-  │ !! goal.yaml                  510L  0C    0m  CC=0.0    ←0
-  │ docker-compose.yml         319L  0C    0m  CC=0.0    ←0
+  │ !! planfile.yaml             1215L  0C    0m  CC=0.0    ←0
+  │ !! goal.yaml                  528L  0C    0m  CC=0.0    ←0
+  │ docker-compose.yml         325L  0C    0m  CC=0.0    ←0
   │ Makefile                   197L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                91L  0C    0m  CC=0.0    ←0
+  │ pyproject.toml              64L  0C    0m  CC=0.0    ←0
   │ project.sh                  47L  0C    0m  CC=0.0    ←0
   │ docker-compose.prod.yml     34L  0C    0m  CC=0.0    ←0
-  │ pyproject.toml              31L  0C    0m  CC=0.0    ←0
+  │ .semcod-mcp.yaml            15L  0C    0m  CC=0.0    ←0
   │ tree.sh                      1L  0C    0m  CC=0.0    ←0
   │
   examples/                       CC̄=0.0    ←in:0  →out:0
   │ continue-config.snippet.json    25L  0C    0m  CC=0.0    ←0
-  │ cursor-mcp.json             22L  0C    0m  CC=0.0    ←0
   │ claude-desktop-mcp.json     22L  0C    0m  CC=0.0    ←0
   │
   ansible/                        CC̄=0.0    ←in:0  →out:0
@@ -1013,24 +1098,26 @@ LAYERS:
   │
 
 COUPLING:
-                             scripts   env2mcp.env2mcp         llm-agent         dashboard  git2mcp.examples       mcp-gateway     gh2mcp.gh2mcp        mcp-skills        semcod_mcp
-           scripts                ──               ←34               ←10                ←8                ←8                                  ←4                                      hub
-   env2mcp.env2mcp                34                ──                                                                      ←8                ←1                ←2                ←1  hub
-         llm-agent                10                                  ──                                                                                                              !! fan-out
-         dashboard                 8                                                    ──                                                                                            !! fan-out
-  git2mcp.examples                 8                                                                      ──                                                                          !! fan-out
-       mcp-gateway                                   8                                                                      ──                                                        !! fan-out
-     gh2mcp.gh2mcp                 4                 1                                                                                        ──                                    
-        mcp-skills                                   2                                                                                                          ──                  
-        semcod_mcp                                   1                                                                                                                            ──
+                             scripts   env2mcp.env2mcp         llm-agent        mcp-skills       mcp-gateway        semcod_mcp         dashboard  git2mcp.examples     gh2mcp.gh2mcp
+           scripts                ──               ←34               ←10                                                                      ←8                ←8                ←4  hub
+   env2mcp.env2mcp                34                ──                                  ←4                ←8                ←3                                                    ←1  hub
+         llm-agent                10                                  ──                                  ←1                                                                          !! fan-out
+        mcp-skills                                   4                                  ──                                   6                                                        !! fan-out
+       mcp-gateway                                   8                 1                                  ──                                                                          !! fan-out
+        semcod_mcp                                   3                                  ←6                                  ──                                                        hub
+         dashboard                 8                                                                                                          ──                                      !! fan-out
+  git2mcp.examples                 8                                                                                                                            ──                    !! fan-out
+     gh2mcp.gh2mcp                 4                 1                                                                                                                            ──
   CYCLES: none
-  HUB: env2mcp.env2mcp/ (fan-in=12)
   HUB: scripts/ (fan-in=64)
+  HUB: env2mcp.env2mcp/ (fan-in=16)
+  HUB: semcod_mcp/ (fan-in=6)
+  SMELL: mcp-skills/ fan-out=10 → split needed
+  SMELL: git2mcp.examples/ fan-out=8 → split needed
   SMELL: env2mcp.env2mcp/ fan-out=34 → split needed
   SMELL: dashboard/ fan-out=8 → split needed
   SMELL: llm-agent/ fan-out=10 → split needed
-  SMELL: git2mcp.examples/ fan-out=8 → split needed
-  SMELL: mcp-gateway/ fan-out=8 → split needed
+  SMELL: mcp-gateway/ fan-out=9 → split needed
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon
@@ -1040,48 +1127,53 @@ EXTERNAL:
 ### Duplication (`project/duplication.toon.yaml`)
 
 ```toon markpact:analysis path=project/duplication.toon.yaml
-# redup/duplication | 6 groups | 41f 9780L | 2026-06-18
+# redup/duplication | 7 groups | 50f 10402L | 2026-06-18
 
 SUMMARY:
-  files_scanned: 41
-  total_lines:   9780
-  dup_groups:    6
-  dup_fragments: 16
-  saved_lines:   98
-  scan_ms:       5406
+  files_scanned: 50
+  total_lines:   10402
+  dup_groups:    7
+  dup_fragments: 18
+  saved_lines:   107
+  scan_ms:       4109
 
-HOTSPOTS[5] (files with most duplication):
+HOTSPOTS[7] (files with most duplication):
   llm-agent/agent.py  dup=41L  groups=2  frags=2  (0.4%)
   llm-agent/agent_standalone.py  dup=41L  groups=2  frags=2  (0.4%)
   mcp-skills/server.py  dup=32L  groups=1  frags=4  (0.3%)
   mcp-git-proxy/server.py  dup=30L  groups=2  frags=6  (0.3%)
-  mcp-gateway/server.py  dup=26L  groups=1  frags=2  (0.3%)
+  mcp-gateway/server.py  dup=26L  groups=1  frags=2  (0.2%)
+  semcod_mcp/deinit_cmd.py  dup=9L  groups=1  frags=1  (0.1%)
+  semcod_mcp/init_cmd.py  dup=9L  groups=1  frags=1  (0.1%)
 
-DUPLICATES[6] (ranked by impact):
+DUPLICATES[7] (ranked by impact):
   [aea4a7a9526a2ad3]   EXAC  _mock_llm_response  L=30 N=2 saved=30 sim=1.00
       llm-agent/agent.py:232-261  (_mock_llm_response)
       llm-agent/agent_standalone.py:405-434  (_mock_llm_response)
   [467fd96667a253a0]   STRU  analyze_code_structure  L=8 N=4 saved=24 sim=1.00
-      mcp-skills/server.py:1308-1315  (analyze_code_structure)
-      mcp-skills/server.py:1319-1326  (compute_metrics)
-      mcp-skills/server.py:1330-1337  (detect_patterns)
-      mcp-skills/server.py:1341-1348  (recommend_refactoring)
+      mcp-skills/server.py:504-511  (analyze_code_structure)
+      mcp-skills/server.py:515-522  (compute_metrics)
+      mcp-skills/server.py:526-533  (detect_patterns)
+      mcp-skills/server.py:537-544  (recommend_refactoring)
   [d7672c451ace4405]   STRU  worktree_diff  L=5 N=4 saved=15 sim=1.00
       mcp-git-proxy/server.py:230-234  (worktree_diff)
       mcp-git-proxy/server.py:246-250  (stage)
       mcp-git-proxy/server.py:254-258  (stash_save)
       mcp-git-proxy/server.py:278-282  (checkpoint_create)
   [bf41aa98652b1a64]   STRU  _get_state_redis_client  L=13 N=2 saved=13 sim=1.00
-      mcp-gateway/server.py:2013-2025  (_get_state_redis_client)
-      mcp-gateway/server.py:2028-2040  (_get_rq_redis_client)
+      mcp-gateway/server.py:1560-1572  (_get_state_redis_client)
+      mcp-gateway/server.py:1575-1587  (_get_rq_redis_client)
   [5865906155183adc]   EXAC  _mock_llm_response_from_prompt  L=11 N=2 saved=11 sim=1.00
       llm-agent/agent.py:263-273  (_mock_llm_response_from_prompt)
       llm-agent/agent_standalone.py:436-446  (_mock_llm_response_from_prompt)
+  [29f85044e563198e]   STRU  print_deinit_result  L=9 N=2 saved=9 sim=1.00
+      semcod_mcp/deinit_cmd.py:129-137  (print_deinit_result)
+      semcod_mcp/init_cmd.py:168-176  (print_init_result)
   [796eb26d67b6a889]   STRU  push  L=5 N=2 saved=5 sim=1.00
       mcp-git-proxy/server.py:196-200  (push)
       mcp-git-proxy/server.py:270-274  (branch_draft)
 
-REFACTOR[6] (ranked by priority):
+REFACTOR[7] (ranked by priority):
   [1] ○ extract_class      → llm-agent/utils/_mock_llm_response.py
       WHY: 2 occurrences of 30-line block across 2 files — saves 30 lines
       FILES: llm-agent/agent.py, llm-agent/agent_standalone.py
@@ -1097,11 +1189,14 @@ REFACTOR[6] (ranked by priority):
   [5] ○ extract_class      → llm-agent/utils/_mock_llm_response_from_prompt.py
       WHY: 2 occurrences of 11-line block across 2 files — saves 11 lines
       FILES: llm-agent/agent.py, llm-agent/agent_standalone.py
-  [6] ○ extract_function   → mcp-git-proxy/utils/push.py
+  [6] ○ extract_function   → semcod_mcp/utils/print_deinit_result.py
+      WHY: 2 occurrences of 9-line block across 2 files — saves 9 lines
+      FILES: semcod_mcp/deinit_cmd.py, semcod_mcp/init_cmd.py
+  [7] ○ extract_function   → mcp-git-proxy/utils/push.py
       WHY: 2 occurrences of 5-line block across 1 files — saves 5 lines
       FILES: mcp-git-proxy/server.py
 
-QUICK_WINS[5] (low risk, high savings — do first):
+QUICK_WINS[6] (low risk, high savings — do first):
   [1] extract_class      saved=30L  → llm-agent/utils/_mock_llm_response.py
       FILES: agent.py, agent_standalone.py
   [2] extract_function   saved=24L  → mcp-skills/utils/analyze_code_structure.py
@@ -1112,40 +1207,43 @@ QUICK_WINS[5] (low risk, high savings — do first):
       FILES: server.py
   [5] extract_class      saved=11L  → llm-agent/utils/_mock_llm_response_from_prompt.py
       FILES: agent.py, agent_standalone.py
+  [6] extract_function   saved=9L  → semcod_mcp/utils/print_deinit_result.py
+      FILES: deinit_cmd.py, init_cmd.py
 
-EFFORT_ESTIMATE (total ≈ 3.3h):
+EFFORT_ESTIMATE (total ≈ 3.6h):
   medium _mock_llm_response                  saved=30L  ~60min
   medium analyze_code_structure              saved=24L  ~48min
   medium worktree_diff                       saved=15L  ~30min
   easy   _get_state_redis_client             saved=13L  ~26min
   easy   _mock_llm_response_from_prompt      saved=11L  ~22min
+  easy   print_deinit_result                 saved=9L  ~18min
   easy   push                                saved=5L  ~10min
 
 METRICS-TARGET:
-  dup_groups:  6 → 0
-  saved_lines: 98 lines recoverable
+  dup_groups:  7 → 0
+  saved_lines: 107 lines recoverable
 ```
 
 ### Evolution / Churn (`project/evolution.toon.yaml`)
 
 ```toon markpact:analysis path=project/evolution.toon.yaml
-# code2llm/evolution | 344 func | 26f | 2026-06-18
+# code2llm/evolution | 364 func | 32f | 2026-06-18
 # generated in 0.00s
 
 NEXT[10] (ranked by impact):
   [1] !! SPLIT           mcp-gateway/server.py
-      WHY: 2908L, 2 classes, max CC=40
-      EFFORT: ~4h  IMPACT: 116320
+      WHY: 2468L, 2 classes, max CC=31
+      EFFORT: ~4h  IMPACT: 76508
 
   [2] !! SPLIT           mcp-skills/server.py
-      WHY: 1482L, 8 classes, max CC=37
-      EFFORT: ~4h  IMPACT: 54834
+      WHY: 691L, 1 classes, max CC=15
+      EFFORT: ~4h  IMPACT: 10365
 
   [3] !! SPLIT-FUNC      chat_completions  CC=31  fan=56
       WHY: CC=31 exceeds 15
       EFFORT: ~1h  IMPACT: 1736
 
-  [4] !! SPLIT-FUNC      _run_tool_against_repo  CC=37  fan=41
+  [4] !! SPLIT-FUNC      run_tool_against_repo  CC=37  fan=41
       WHY: CC=37 exceeds 15
       EFFORT: ~1h  IMPACT: 1517
 
@@ -1153,7 +1251,7 @@ NEXT[10] (ranked by impact):
       WHY: CC=32 exceeds 15
       EFFORT: ~1h  IMPACT: 768
 
-  [6] !! SPLIT-FUNC      _render_tool_text  CC=40  fan=15
+  [6] !! SPLIT-FUNC      render_tool_text  CC=40  fan=15
       WHY: CC=40 exceeds 15
       EFFORT: ~1h  IMPACT: 600
 
@@ -1175,14 +1273,14 @@ NEXT[10] (ranked by impact):
 
 
 RISKS[3]:
-  ⚠ Splitting mcp-gateway/server.py may break 86 import paths
-  ⚠ Splitting mcp-skills/server.py may break 30 import paths
+  ⚠ Splitting mcp-gateway/server.py may break 74 import paths
   ⚠ Splitting planfile.yaml may break 0 import paths
+  ⚠ Splitting mcp-skills/server.py may break 22 import paths
 
 METRICS-TARGET:
   CC̄:          5.0 → ≤3.5
   max-CC:      40 → ≤20
-  god-modules: 7 → 0
+  god-modules: 8 → 0
   high-CC(≥15): 23 → ≤11
   hub-types:   0 → ≤0
 
@@ -1211,7 +1309,7 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=4.2 → now CC̄=5.0
+  prev CC̄=5.0 → now CC̄=5.0
 ```
 
 ## Intent

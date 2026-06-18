@@ -5,11 +5,11 @@
 
 ## AI Cost Tracking
 
-![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.1-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
-![AI Cost](https://img.shields.io/badge/AI%20Cost-$2.07-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-10.5h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
+![PyPI](https://img.shields.io/badge/pypi-costs-blue) ![Version](https://img.shields.io/badge/version-0.1.2-blue) ![Python](https://img.shields.io/badge/python-3.9+-blue) ![License](https://img.shields.io/badge/license-Apache--2.0-green)
+![AI Cost](https://img.shields.io/badge/AI%20Cost-$3.16-orange) ![Human Time](https://img.shields.io/badge/Human%20Time-10.6h-blue) ![Model](https://img.shields.io/badge/Model-openrouter%2Fqwen%2Fqwen3--coder--next-lightgrey)
 
-- 🤖 **LLM usage:** $2.0719 (33 commits)
-- 👤 **Human dev:** ~$1053 (10.5h @ $100/h, 30min dedup)
+- 🤖 **LLM usage:** $3.1569 (34 commits)
+- 👤 **Human dev:** ~$1061 (10.6h @ $100/h, 30min dedup)
 
 Generated on 2026-06-18 using [openrouter/qwen/qwen3-coder-next](https://openrouter.ai/qwen/qwen3-coder-next)
 
@@ -93,7 +93,11 @@ Skrypt zapisuje odpowiedzi API i wynik JSON do katalogu:
 Pełne scenariusze użycia: [`docs/USAGE.md`](docs/USAGE.md).
 Dialogi chat-playbook (copy/paste): [`docs/CHAT_PLAYBOOKS.md`](docs/CHAT_PLAYBOOKS.md).
 Architektura produktowa: [`docs/PRODUCT.md`](docs/PRODUCT.md).
+**Spis dokumentacji:** [`docs/README.md`](docs/README.md).
+**Cursor Agent + MCP:** [`docs/CURSOR_MCP_WORKFLOW.md`](docs/CURSOR_MCP_WORKFLOW.md).
 **Integracja IDE / Cursor / VS Code / Devin / A2A:** [`docs/IDE_AND_AGENT_INTEGRATION.md`](docs/IDE_AND_AGENT_INTEGRATION.md).
+**CLI `semcod-mcp`:** [`docs/SEMCOD_MCP_CLI.md`](docs/SEMCOD_MCP_CLI.md).
+**Plan splitu gateway:** [`docs/GATEWAY_MODULE_SPLIT.md`](docs/GATEWAY_MODULE_SPLIT.md).
 Plan refaktoryzacji: [`REFACTORING_PLAN.md`](REFACTORING_PLAN.md).
 
 ## Czy to jest gotowe do użycia?
@@ -101,9 +105,9 @@ Plan refaktoryzacji: [`REFACTORING_PLAN.md`](REFACTORING_PLAN.md).
 | Obszar | Status |
 |--------|--------|
 | Stack Docker + testy E2E | ✅ `make start`, `make smoke`, `scripts/test.sh` |
-| Analiza i plan refaktoryzacji | ✅ MCP skills + gateway OpenAI-compat |
+| Analiza i plan refaktoryzacji | ✅ MCP skills + gateway; `largest_files` + konkretne targety — [`code_analysis.py`](mcp-skills/code_analysis.py) |
 | Automatyczna zmiana kodu modułów | ⚠️ na razie głównie artefakty `.mcp/*` (plan), nie pełne patche |
-| Podpięcie IDE (Cursor, VS Code) | ⚠️ ręczna konfiguracja (~5 min) — patrz [`docs/IDE_AND_AGENT_INTEGRATION.md`](docs/IDE_AND_AGENT_INTEGRATION.md) |
+| Podpięcie IDE (Cursor, VS Code) | ⚠️ ręczna konfiguracja (~5 min) — [`semcod-mcp init`](docs/SEMCOD_MCP_CLI.md) lub [`IDE_AND_AGENT_INTEGRATION.md`](docs/IDE_AND_AGENT_INTEGRATION.md) |
 
 Szybkie podpięcie **Cursor MCP**: skopiuj [`examples/integrations/cursor-mcp.json`](examples/integrations/cursor-mcp.json) → `.cursor/mcp.json` (wymaga działającego `make start`).
 
@@ -569,7 +573,11 @@ PYTHONPATH=.. python agent_git2mcp.py --repo test/sample-project --source-path .
 
 ## Dokumentacja Projektu
 
+- **[docs/README.md](docs/README.md)** - Spis dokumentacji i linki krzyżowe
 - **[docs/USAGE.md](docs/USAGE.md)** - Pełne scenariusze użycia (9 przepływów end-to-end)
+- **[docs/SEMCOD_MCP_CLI.md](docs/SEMCOD_MCP_CLI.md)** - CLI `semcod-mcp` (init, doctor, validate, analyze)
+- **[docs/IDE_AND_AGENT_INTEGRATION.md](docs/IDE_AND_AGENT_INTEGRATION.md)** - Cursor, VS Code, Devin, A2A, rejestry paczek
+- **[docs/GATEWAY_MODULE_SPLIT.md](docs/GATEWAY_MODULE_SPLIT.md)** - Plan podziału `mcp-gateway/server.py`
 - **[docs/USE_CASES.md](docs/USE_CASES.md)** - Gotowe use-case i prompty dla refactor/migration/integration
 - **[docs/CHAT_PLAYBOOKS.md](docs/CHAT_PLAYBOOKS.md)** - Szczegółowe dialogi chat jako playbook operacyjny
 - **[docs/PRODUCT.md](docs/PRODUCT.md)** - Architektura produktowa, multi-tenant, bezpieczeństwo

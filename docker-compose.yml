@@ -86,6 +86,12 @@ services:
     volumes:
       - skills-cache:/skills-cache
       - ./mcp-skills/server.py:/app/server.py:ro
+      - ./mcp-skills/code_analysis.py:/app/code_analysis.py:ro
+      - ./mcp-skills/tools_registry.py:/app/tools_registry.py:ro
+      - ./mcp-skills/http_models.py:/app/http_models.py:ro
+      - ./mcp-skills/tool_run.py:/app/tool_run.py:ro
+      - ./mcp-skills/redsl_runner.py:/app/redsl_runner.py:ro
+      - ./mcp-skills/mcp_parse.py:/app/mcp_parse.py:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
       interval: 30s

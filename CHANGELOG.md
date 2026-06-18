@@ -8,6 +8,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.10] - 2026-06-18
 
 ### Fixed
+- Fix unused-imports issues (ticket-d4b1ca36)
+- Fix magic-numbers issues (ticket-b8f91c35)
+- Fix string-concat issues (ticket-da3705cc)
+- Fix unused-imports issues (ticket-cf1891cc)
+- Fix magic-numbers issues (ticket-64b1437b)
+- Fix smart-return-type issues (ticket-b824928c)
+- Fix string-concat issues (ticket-a8af84e6)
+- Fix unused-imports issues (ticket-2d0dea29)
+- Fix magic-numbers issues (ticket-4ee2ec52)
+
+## [0.1.10] - 2026-06-18
+
+### Fixed
+- Fix string-concat issues (ticket-83a4eb40)
+- Fix unused-imports issues (ticket-f6029415)
+- Fix magic-numbers issues (ticket-cd362bb4)
+- Fix smart-return-type issues (ticket-4efce036)
+- Fix unused-imports issues (ticket-d33e19b4)
+
+## [0.1.12] - 2026-06-18
+
+### Added
+- **`docs/CURSOR_MCP_WORKFLOW.md`** — workflow Cursor Agent + MCP (reload, test, 3 fazy)
+- **mcp-skills modules:** `tools_registry.py`, `tool_run.py`, `http_models.py`, `redsl_runner.py`, `mcp_parse.py`
+- **mcp-gateway modules:** `gateway_config.py`, `gateway_render.py`
+
+### Changed
+- **mcp-skills/server.py** — ~1311→~690 linii (god module split)
+- **mcp-gateway/server.py** — wydzielono config + render (~480 L)
+- **`.cursor/rules/semcod-mcp.mdc`** — obowiązkowa analiza przed refactorem, validate po edycji
+- Dokumentacja podlinkowana w [docs/README.md](docs/README.md)
+
+## [0.1.11] - 2026-06-18
+
+### Added
+- **`mcp-skills/code_analysis.py`** — wspólne metryki repo (`largest_files`, rekomendacje z konkretnymi targetami)
+- **`docs/README.md`** — spis dokumentacji z linkami krzyżowymi
+- **`docs/GATEWAY_MODULE_SPLIT.md`** — plan podziału `mcp-gateway/server.py`
+
+### Fixed
+- **Analyze** — `largest_files` i konkretne ścieżki w rekomendacjach (redsl + enrich w gateway)
+- **Docker** — mount `code_analysis.py` dla `mcp-skills`
+
+### Changed
+- Dokumentacja: [SEMCOD_MCP_CLI.md](docs/SEMCOD_MCP_CLI.md), [IDE_AND_AGENT_INTEGRATION.md](docs/IDE_AND_AGENT_INTEGRATION.md), [USAGE.md](docs/USAGE.md) — rejestry, hurtowe `init`, format wyniku analyze
+
+## [0.1.10] - 2026-06-18
+
+### Fixed
 - Fix string-concat issues (ticket-6326f0c7)
 - Fix unused-imports issues (ticket-b9c07cf9)
 - Fix magic-numbers issues (ticket-37aea4c3)
@@ -109,6 +158,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix magic-numbers issues (ticket-4ee2ec52)
 
 ## [Unreleased]
+
+## [0.1.2] - 2026-06-18
+
+### Docs
+- Update CHANGELOG.md
+- Update README.md
+- Update REFACTORING_PLAN.md
+- Update SUMD.md
+- Update SUMR.md
+- Update TODO.md
+- Update docs/CURSOR_MCP_WORKFLOW.md
+- Update docs/GATEWAY_MODULE_SPLIT.md
+- Update docs/IDE_AND_AGENT_INTEGRATION.md
+- Update docs/PRODUCT.md
+- ... and 6 more files
+
+### Test
+- Update tests/test_deinit.py
+- Update tests/test_merge.py
+
+### Other
+- Update .gitignore
+- Update .semcod-mcp.yaml
+- Update app.doql.less
+- Update env2mcp/env2mcp/__init__.py
+- Update gh2mcp/gh2mcp/__init__.py
+- Update mcp-gateway/Dockerfile
+- Update mcp-gateway/gateway_config.py
+- Update mcp-gateway/gateway_render.py
+- Update mcp-gateway/server.py
+- Update mcp-skills/Dockerfile
+- ... and 31 more files
 
 ## [0.1.1] - 2026-06-18
 

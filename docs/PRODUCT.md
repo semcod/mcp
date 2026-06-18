@@ -6,6 +6,10 @@ Praktyczne use-case i gotowe prompty (refactor/migration/integration): `docs/USE
 
 Integracja z IDE (Cursor, VS Code, Devin) i agentami A2A: `docs/IDE_AND_AGENT_INTEGRATION.md`.
 
+Plan podziału monolitu gateway: `docs/GATEWAY_MODULE_SPLIT.md`.
+
+Spis dokumentacji: `docs/README.md`.
+
 ## Architektura runtime
 
 ```

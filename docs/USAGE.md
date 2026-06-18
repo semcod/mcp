@@ -3,8 +3,11 @@
 Ten dokument pokazuje 10 konkretnych przepływów end-to-end. Wszystkie używają OpenRouter (`LLM_MODEL=openrouter/x-ai/grok-code-fast-1`), bez Ollama.
 
 Powiązane dokumenty:
+- **[docs/README.md](docs/README.md)** — spis całej dokumentacji z linkami
 - `docs/PRODUCT.md` — architektura i deployment
 - `docs/IDE_AND_AGENT_INTEGRATION.md` — **Cursor, VS Code, Devin, A2A, jakość kodu**
+- `docs/SEMCOD_MCP_CLI.md` — pakiet CLI `semcod-mcp` (`init`, `doctor`, `validate`, `analyze`)
+- `docs/GATEWAY_MODULE_SPLIT.md` — plan podziału `mcp-gateway/server.py`
 - `docs/USE_CASES.md` — gotowe use-case (refactor/migration/integration)
 - `docs/CHAT_PLAYBOOKS.md` — szczegółowe dialogi chat-playbook (multi-project/migration/integration/modularization)
 - `git2mcp/examples/README.md` — przykłady CLI
@@ -506,7 +509,7 @@ W praktyce Docker:
 
 Gateway zwraca **czytelny Markdown** zamiast surowego JSON w treści wiadomości czatu:
 
-- `analyze` → nagłówek `# Analiza repo`, sekcje `## Metryki`, `## Proponowane etapy`.
+- `analyze` → nagłówek `# Analiza repo`, sekcje `## Największe pliki`, `## Proponowane etapy` (konkretne ścieżki w `` `target` ``).
 - `refactor` → nagłówek `# Plan refaktoryzacji`, sekcje `## Status wykonania`, `## Push/PR`.
 - komendy systemowe (token, org) → krótki status inline.
 
@@ -514,6 +517,30 @@ Gateway zwraca **czytelny Markdown** zamiast surowego JSON w treści wiadomości
 ```bash
 curl http://localhost:9000/jobs/{job_id}
 ```
+
+Przykładowe pola w `result.analysis`:
+
+```json
+{
+  "metrics": {
+    "largest_files": [
+      {"path": "mcp-gateway/server.py", "lines": 2908, "functions": 80}
+    ]
+  },
+  "recommendations": {
+    "recommendations": [
+      {
+        "type": "split_module",
+        "priority": "high",
+        "target": "mcp-gateway/server.py",
+        "suggested_action": "split_module"
+      }
+    ]
+  }
+}
+```
+
+Logika metryk: [`mcp-skills/code_analysis.py`](../mcp-skills/code_analysis.py). Silnik może być `redsl` lub `mcp-skills` — gateway uzupełnia puste `largest_files` automatycznie.
 
 ### Tryb asynchroniczny (Redis/RQ)
 

@@ -11,7 +11,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+.code2llm_cache
 # Distribution / packaging
 .Python
 build/
