@@ -1,528 +1,17 @@
 project: /home/tom/github/semcod/mcp
 generated_from: code2llm call graph analysis
 stats:
-  total_nodes: 146
-  total_edges: 162
-  modules_count: 25
+  total_nodes: 171
+  total_edges: 189
+  modules_count: 30
 nodes:
-  mcp-gateway.server._last_pushed_repo_via_gh2mcp:
-    name: _last_pushed_repo_via_gh2mcp
-    module: mcp-gateway.server
-    line: 787
-    cyclomatic_complexity: 2
-    calls_out: 12
-    calls_in: 3
-  mcp-gateway.server._repo_owner:
-    name: _repo_owner
-    module: mcp-gateway.server
-    line: 1774
-    cyclomatic_complexity: 4
-    calls_out: 2
-    calls_in: 1
-  semcod_mcp.templates.manifest_data:
-    name: manifest_data
-    module: semcod_mcp.templates
-    line: 87
-    cyclomatic_complexity: 1
-    calls_out: 8
-    calls_in: 1
-  mcp-gateway.server._run_github_qa:
-    name: _run_github_qa
-    module: mcp-gateway.server
-    line: 1780
-    cyclomatic_complexity: 9
-    calls_out: 16
-    calls_in: 1
-  mcp-gateway.server._expect_json:
-    name: _expect_json
-    module: mcp-gateway.server
-    line: 1605
-    cyclomatic_complexity: 3
-    calls_out: 4
-    calls_in: 18
-  semcod_mcp.doctor.run_doctor:
-    name: run_doctor
-    module: semcod_mcp.doctor
-    line: 47
-    cyclomatic_complexity: 11
-    calls_out: 38
-    calls_in: 1
-  mcp-webui.server.github_fetch_token_from_cli:
-    name: github_fetch_token_from_cli
-    module: mcp-webui.server
-    line: 299
-    cyclomatic_complexity: 16
-    calls_out: 32
-    calls_in: 0
-  semcod_mcp.paths.infer_repo_id:
-    name: infer_repo_id
-    module: semcod_mcp.paths
-    line: 43
-    cyclomatic_complexity: 5
-    calls_out: 6
-    calls_in: 2
-  mcp-gateway.server._save_github_token:
-    name: _save_github_token
-    module: mcp-gateway.server
-    line: 967
-    cyclomatic_complexity: 6
-    calls_out: 10
-    calls_in: 2
-  mcp-gateway.server._is_org_list_command:
-    name: _is_org_list_command
-    module: mcp-gateway.server
-    line: 414
-    cyclomatic_complexity: 13
-    calls_out: 7
-    calls_in: 1
-  mcp-skills.server._parse_tool_result:
-    name: _parse_tool_result
-    module: mcp-skills.server
-    line: 1213
-    cyclomatic_complexity: 3
-    calls_out: 1
-    calls_in: 4
-  mcp-skills.server.recommend_refactoring:
-    name: recommend_refactoring
-    module: mcp-skills.server
-    line: 1341
-    cyclomatic_complexity: 2
-    calls_out: 6
-    calls_in: 0
-  gh2mcp.gh2mcp.cli.main:
-    name: main
-    module: gh2mcp.gh2mcp.cli
-    line: 56
-    cyclomatic_complexity: 2
-    calls_out: 5
-    calls_in: 0
-  mcp-gateway.server._extract_repo_template_expression:
-    name: _extract_repo_template_expression
-    module: mcp-gateway.server
-    line: 296
-    cyclomatic_complexity: 3
-    calls_out: 3
-    calls_in: 1
-  mcp-gateway.server.get_job:
-    name: get_job
-    module: mcp-gateway.server
-    line: 2860
-    cyclomatic_complexity: 2
-    calls_out: 4
-    calls_in: 0
-  semcod_mcp.validate._validate_mcp_json:
-    name: _validate_mcp_json
-    module: semcod_mcp.validate
-    line: 36
-    cyclomatic_complexity: 13
-    calls_out: 23
-    calls_in: 1
-  semcod_mcp.merge.save_json:
-    name: save_json
-    module: semcod_mcp.merge
-    line: 23
-    cyclomatic_complexity: 2
-    calls_out: 3
-    calls_in: 3
-  semcod_mcp.validate.run_validate:
-    name: run_validate
-    module: semcod_mcp.validate
-    line: 65
-    cyclomatic_complexity: 13
-    calls_out: 24
-    calls_in: 1
-  semcod_mcp.templates.mcp_server_block:
-    name: mcp_server_block
-    module: semcod_mcp.templates
-    line: 17
-    cyclomatic_complexity: 1
-    calls_out: 1
-    calls_in: 1
-  mcp-gateway.server._is_github_auth_error:
-    name: _is_github_auth_error
-    module: mcp-gateway.server
-    line: 820
-    cyclomatic_complexity: 3
-    calls_out: 2
-    calls_in: 1
-  gh2mcp.gh2mcp.server.on_startup:
-    name: on_startup
-    module: gh2mcp.gh2mcp.server
-    line: 54
-    cyclomatic_complexity: 3
-    calls_out: 4
-    calls_in: 0
-  mcp-skills.server._collect_output_files:
-    name: _collect_output_files
-    module: mcp-skills.server
-    line: 991
-    cyclomatic_complexity: 9
-    calls_out: 17
-    calls_in: 2
-  semcod_mcp.merge.merge_mcp_servers:
-    name: merge_mcp_servers
-    module: semcod_mcp.merge
-    line: 31
-    cyclomatic_complexity: 5
-    calls_out: 8
-    calls_in: 1
-  scripts.test.print:
-    name: print
-    module: scripts.test
-    line: 173
-    cyclomatic_complexity: 0
-    calls_out: 0
-    calls_in: 64
-  env2mcp.env2mcp.cli.cmd_github_status:
-    name: cmd_github_status
-    module: env2mcp.env2mcp.cli
-    line: 30
-    cyclomatic_complexity: 11
-    calls_out: 22
-    calls_in: 0
-  mcp-gateway.server._summary_text:
-    name: _summary_text
-    module: mcp-gateway.server
-    line: 1144
-    cyclomatic_complexity: 9
-    calls_out: 24
-    calls_in: 1
-  gh2mcp.gh2mcp.cli._cmd_sync:
-    name: _cmd_sync
-    module: gh2mcp.gh2mcp.cli
-    line: 17
-    cyclomatic_complexity: 2
-    calls_out: 4
-    calls_in: 0
-  semcod_mcp.paths.default_api_key:
-    name: default_api_key
-    module: semcod_mcp.paths
-    line: 69
-    cyclomatic_complexity: 1
-    calls_out: 2
-    calls_in: 5
-  mcp-gateway.server.parse_prompt_context:
-    name: parse_prompt_context
-    module: mcp-gateway.server
-    line: 244
-    cyclomatic_complexity: 8
-    calls_out: 10
-    calls_in: 1
-  mcp-gateway.server._github_repo_from_url:
-    name: _github_repo_from_url
-    module: mcp-gateway.server
-    line: 1048
-    cyclomatic_complexity: 9
-    calls_out: 10
-    calls_in: 2
-  mcp-gateway.server._render_system_text:
-    name: _render_system_text
-    module: mcp-gateway.server
-    line: 1200
-    cyclomatic_complexity: 27
-    calls_out: 45
-    calls_in: 1
-  semcod_mcp.cli.doctor_cmd:
-    name: doctor_cmd
-    module: semcod_mcp.cli
-    line: 62
-    cyclomatic_complexity: 6
-    calls_out: 12
-    calls_in: 0
-  gh2mcp.gh2mcp.server._periodic_sync:
-    name: _periodic_sync
-    module: gh2mcp.gh2mcp.server
-    line: 47
-    cyclomatic_complexity: 2
-    calls_out: 2
-    calls_in: 1
-  mcp-gateway.server._list_orgs_via_gh2mcp:
-    name: _list_orgs_via_gh2mcp
-    module: mcp-gateway.server
-    line: 747
-    cyclomatic_complexity: 2
-    calls_out: 10
-    calls_in: 2
-  mcp-webui.server.github_create_repo:
-    name: github_create_repo
-    module: mcp-webui.server
-    line: 512
-    cyclomatic_complexity: 4
-    calls_out: 18
-    calls_in: 0
-  mcp-gateway.server.chat_completions:
-    name: chat_completions
-    module: mcp-gateway.server
-    line: 2177
-    cyclomatic_complexity: 31
-    calls_out: 114
-    calls_in: 0
-  mcp-gateway.server._resolve_repo_id_template:
-    name: _resolve_repo_id_template
-    module: mcp-gateway.server
-    line: 844
-    cyclomatic_complexity: 14
-    calls_out: 28
-    calls_in: 1
-  mcp-gateway.server._get_most_used_repo:
-    name: _get_most_used_repo
-    module: mcp-gateway.server
-    line: 146
-    cyclomatic_complexity: 8
-    calls_out: 5
-    calls_in: 1
-  mcp-gateway.server._load_job:
-    name: _load_job
-    module: mcp-gateway.server
-    line: 2073
-    cyclomatic_complexity: 5
-    calls_out: 6
-    calls_in: 5
-  mcp-webui.server.github_sync:
-    name: github_sync
-    module: mcp-webui.server
-    line: 574
-    cyclomatic_complexity: 4
-    calls_out: 13
-    calls_in: 0
-  mcp-webui.server.github_clone:
-    name: github_clone
-    module: mcp-webui.server
-    line: 448
-    cyclomatic_complexity: 6
-    calls_out: 17
-    calls_in: 0
-  mcp-gateway.server._get_redis_client:
-    name: _get_redis_client
-    module: mcp-gateway.server
-    line: 87
-    cyclomatic_complexity: 4
-    calls_out: 1
-    calls_in: 3
-  mcp-gateway.server._run_skills_analysis:
-    name: _run_skills_analysis
-    module: mcp-gateway.server
-    line: 1860
-    cyclomatic_complexity: 4
-    calls_out: 15
-    calls_in: 2
-  env2mcp.env2mcp.cli.cmd_github_login:
-    name: cmd_github_login
-    module: env2mcp.env2mcp.cli
-    line: 13
-    cyclomatic_complexity: 4
-    calls_out: 9
-    calls_in: 0
-  mcp-gateway.server._queue_workflow_job:
-    name: _queue_workflow_job
-    module: mcp-gateway.server
-    line: 2096
-    cyclomatic_complexity: 2
-    calls_out: 3
-    calls_in: 1
-  gh2mcp.gh2mcp.cli._cmd_agent:
-    name: _cmd_agent
-    module: gh2mcp.gh2mcp.cli
-    line: 24
-    cyclomatic_complexity: 3
-    calls_out: 6
-    calls_in: 0
-  mcp-gateway.server._inject_github_token:
-    name: _inject_github_token
-    module: mcp-gateway.server
-    line: 1006
-    cyclomatic_complexity: 9
-    calls_out: 6
-    calls_in: 1
-  mcp-gateway.server._render_queued_text:
-    name: _render_queued_text
-    module: mcp-gateway.server
-    line: 1291
-    cyclomatic_complexity: 6
-    calls_out: 7
-    calls_in: 1
-  mcp-skills.server._run_tool_against_repo:
-    name: _run_tool_against_repo
-    module: mcp-skills.server
-    line: 1028
-    cyclomatic_complexity: 37
-    calls_out: 80
-    calls_in: 1
-  semcod_mcp.cli.analyze_cmd:
-    name: analyze_cmd
-    module: semcod_mcp.cli
-    line: 96
-    cyclomatic_complexity: 4
-    calls_out: 10
-    calls_in: 0
-  mcp-gateway.server._render_analyze_text:
-    name: _render_analyze_text
-    module: mcp-gateway.server
-    line: 1256
-    cyclomatic_complexity: 10
-    calls_out: 23
-    calls_in: 1
-  mcp-gateway.server.execute_dispatch_job:
-    name: execute_dispatch_job
-    module: mcp-gateway.server
-    line: 2109
-    cyclomatic_complexity: 3
-    calls_out: 15
-    calls_in: 0
-  semcod_mcp.templates.read_manifest:
-    name: read_manifest
-    module: semcod_mcp.templates
-    line: 115
-    cyclomatic_complexity: 3
-    calls_out: 3
-    calls_in: 3
-  git2mcp.examples.02_fragment_sync_to_skills.main:
-    name: main
-    module: git2mcp.examples.02_fragment_sync_to_skills
-    line: 12
-    cyclomatic_complexity: 1
-    calls_out: 15
-    calls_in: 0
-  mcp-webui.server.index:
-    name: index
-    module: mcp-webui.server
-    line: 49
-    cyclomatic_complexity: 3
-    calls_out: 10
-    calls_in: 0
-  mcp-gateway.server._set_default_org_via_gh2mcp:
-    name: _set_default_org_via_gh2mcp
-    module: mcp-gateway.server
-    line: 700
-    cyclomatic_complexity: 3
-    calls_out: 9
-    calls_in: 1
-  mcp-gateway.server._is_repo_list_command:
-    name: _is_repo_list_command
-    module: mcp-gateway.server
-    line: 442
-    cyclomatic_complexity: 23
-    calls_out: 4
-    calls_in: 1
   mcp-gateway.server._update_job:
     name: _update_job
     module: mcp-gateway.server
-    line: 2088
+    line: 1635
     cyclomatic_complexity: 2
     calls_out: 4
     calls_in: 10
-  mcp-webui.server._read_gh2mcp_status:
-    name: _read_gh2mcp_status
-    module: mcp-webui.server
-    line: 161
-    cyclomatic_complexity: 4
-    calls_out: 3
-    calls_in: 1
-  mcp-gateway.server._save_job:
-    name: _save_job
-    module: mcp-gateway.server
-    line: 2058
-    cyclomatic_complexity: 3
-    calls_out: 4
-    calls_in: 2
-  mcp-gateway.server._extract_owner_from_repo_template:
-    name: _extract_owner_from_repo_template
-    module: mcp-gateway.server
-    line: 320
-    cyclomatic_complexity: 4
-    calls_out: 3
-    calls_in: 1
-  mcp-skills.server.analyze_code_structure:
-    name: analyze_code_structure
-    module: mcp-skills.server
-    line: 1308
-    cyclomatic_complexity: 2
-    calls_out: 6
-    calls_in: 0
-  env2mcp.env2mcp.github_cli.configure_github:
-    name: configure_github
-    module: env2mcp.env2mcp.github_cli
-    line: 227
-    cyclomatic_complexity: 14
-    calls_out: 29
-    calls_in: 1
-  mcp-gateway.server._get_rq_redis_client:
-    name: _get_rq_redis_client
-    module: mcp-gateway.server
-    line: 2028
-    cyclomatic_complexity: 4
-    calls_out: 2
-    calls_in: 1
-  mcp-skills.server._git_clone_or_update:
-    name: _git_clone_or_update
-    module: mcp-skills.server
-    line: 920
-    cyclomatic_complexity: 10
-    calls_out: 19
-    calls_in: 1
-  mcp-docs.server._page:
-    name: _page
-    module: mcp-docs.server
-    line: 26
-    cyclomatic_complexity: 1
-    calls_out: 1
-    calls_in: 2
-  gh2mcp.gh2mcp.cli._cmd_status:
-    name: _cmd_status
-    module: gh2mcp.gh2mcp.cli
-    line: 10
-    cyclomatic_complexity: 1
-    calls_out: 3
-    calls_in: 0
-  mcp-gateway.server.parse_tool_intent:
-    name: parse_tool_intent
-    module: mcp-gateway.server
-    line: 544
-    cyclomatic_complexity: 23
-    calls_out: 17
-    calls_in: 1
-  mcp-gateway.server.dispatch_skill:
-    name: dispatch_skill
-    module: mcp-gateway.server
-    line: 2635
-    cyclomatic_complexity: 19
-    calls_out: 41
-    calls_in: 2
-  mcp-gateway.server._track_repo_usage:
-    name: _track_repo_usage
-    module: mcp-gateway.server
-    line: 97
-    cyclomatic_complexity: 3
-    calls_out: 8
-    calls_in: 2
-  semcod_mcp.init_cmd.run_init:
-    name: run_init
-    module: semcod_mcp.init_cmd
-    line: 66
-    cyclomatic_complexity: 15
-    calls_out: 37
-    calls_in: 1
-  mcp-gateway.server.authenticate:
-    name: authenticate
-    module: mcp-gateway.server
-    line: 1933
-    cyclomatic_complexity: 4
-    calls_out: 8
-    calls_in: 0
-  env2mcp.env2mcp.cli.cmd_env_show:
-    name: cmd_env_show
-    module: env2mcp.env2mcp.cli
-    line: 124
-    cyclomatic_complexity: 6
-    calls_out: 12
-    calls_in: 0
-  mcp-gateway.server._is_github_configured:
-    name: _is_github_configured
-    module: mcp-gateway.server
-    line: 180
-    cyclomatic_complexity: 1
-    calls_out: 2
-    calls_in: 1
   git2mcp.examples.03_agent_git2mcp.main:
     name: main
     module: git2mcp.examples.03_agent_git2mcp
@@ -530,250 +19,26 @@ nodes:
     cyclomatic_complexity: 4
     calls_out: 19
     calls_in: 0
-  git2mcp.examples.01_sync_and_commit.main:
-    name: main
-    module: git2mcp.examples.01_sync_and_commit
-    line: 11
-    cyclomatic_complexity: 1
-    calls_out: 18
-    calls_in: 0
-  semcod_mcp.cli.validate_cmd:
-    name: validate_cmd
-    module: semcod_mcp.cli
-    line: 81
-    cyclomatic_complexity: 4
-    calls_out: 8
-    calls_in: 0
-  mcp-gateway.server.audit:
-    name: audit
+  mcp-gateway.server._resolve_repo_id_template:
+    name: _resolve_repo_id_template
     module: mcp-gateway.server
-    line: 1943
-    cyclomatic_complexity: 1
-    calls_out: 5
+    line: 851
+    cyclomatic_complexity: 14
+    calls_out: 28
     calls_in: 1
-  semcod_mcp.cli.init_cmd:
-    name: init_cmd
-    module: semcod_mcp.cli
-    line: 34
-    cyclomatic_complexity: 4
-    calls_out: 14
-    calls_in: 0
-  mcp-skills.server._truncate_text:
-    name: _truncate_text
-    module: mcp-skills.server
-    line: 848
-    cyclomatic_complexity: 3
-    calls_out: 4
-    calls_in: 7
-  mcp-gateway.server._render_tool_text:
-    name: _render_tool_text
-    module: mcp-gateway.server
-    line: 1437
-    cyclomatic_complexity: 40
-    calls_out: 80
-    calls_in: 1
-  env2mcp.env2mcp.cli.cmd_env_get:
-    name: cmd_env_get
-    module: env2mcp.env2mcp.cli
-    line: 155
-    cyclomatic_complexity: 7
-    calls_out: 10
-    calls_in: 0
-  mcp-webui.server._resolve_github_token:
-    name: _resolve_github_token
-    module: mcp-webui.server
-    line: 144
-    cyclomatic_complexity: 7
-    calls_out: 6
-    calls_in: 3
-  semcod_mcp.doctor._http_ok:
-    name: _http_ok
-    module: semcod_mcp.doctor
-    line: 37
-    cyclomatic_complexity: 4
-    calls_out: 2
-    calls_in: 3
-  env2mcp.env2mcp.cli.cmd_env_set:
-    name: cmd_env_set
-    module: env2mcp.env2mcp.cli
-    line: 143
-    cyclomatic_complexity: 2
-    calls_out: 5
-    calls_in: 0
-  mcp-gateway.server._normalize_repo_url:
-    name: _normalize_repo_url
-    module: mcp-gateway.server
-    line: 997
-    cyclomatic_complexity: 3
-    calls_out: 2
-    calls_in: 3
-  mcp-docs.server.index:
-    name: index
-    module: mcp-docs.server
-    line: 226
-    cyclomatic_complexity: 4
-    calls_out: 11
-    calls_in: 0
-  mcp-gateway.server.find_tenant_by_key:
-    name: find_tenant_by_key
-    module: mcp-gateway.server
-    line: 1926
-    cyclomatic_complexity: 3
-    calls_out: 2
-    calls_in: 1
-  mcp-gateway.server._create_github_pr:
-    name: _create_github_pr
-    module: mcp-gateway.server
-    line: 1097
-    cyclomatic_complexity: 3
-    calls_out: 14
-    calls_in: 1
-  mcp-webui.server.github_page:
-    name: github_page
-    module: mcp-webui.server
-    line: 226
-    cyclomatic_complexity: 2
-    calls_out: 6
-    calls_in: 0
-  env2mcp.env2mcp.cli.cmd_github_repos:
-    name: cmd_github_repos
-    module: env2mcp.env2mcp.cli
-    line: 96
-    cyclomatic_complexity: 5
-    calls_out: 12
-    calls_in: 0
-  mcp-skills.server._inject_github_token:
-    name: _inject_github_token
-    module: mcp-skills.server
-    line: 909
-    cyclomatic_complexity: 5
-    calls_out: 3
-    calls_in: 1
-  mcp-gateway.server._extract_org_from_text:
-    name: _extract_org_from_text
-    module: mcp-gateway.server
-    line: 359
+  mcp-skills.code_analysis.merge_recommendations:
+    name: merge_recommendations
+    module: mcp-skills.code_analysis
+    line: 224
     cyclomatic_complexity: 9
-    calls_out: 9
+    calls_out: 13
     calls_in: 1
-  llm-agent.agent.main:
-    name: main
-    module: llm-agent.agent
-    line: 333
-    cyclomatic_complexity: 2
-    calls_out: 16
-    calls_in: 0
-  semcod_mcp.templates.write_manifest:
-    name: write_manifest
-    module: semcod_mcp.templates
-    line: 106
-    cyclomatic_complexity: 2
-    calls_out: 2
-    calls_in: 1
-  mcp-gateway.server._ask_openrouter_github_qa:
-    name: _ask_openrouter_github_qa
+  mcp-gateway.server._is_github_token_save_command:
+    name: _is_github_token_save_command
     module: mcp-gateway.server
-    line: 1699
-    cyclomatic_complexity: 12
-    calls_out: 15
-    calls_in: 1
-  env2mcp.env2mcp.cli.cmd_github_logout:
-    name: cmd_github_logout
-    module: env2mcp.env2mcp.cli
-    line: 66
-    cyclomatic_complexity: 7
-    calls_out: 14
-    calls_in: 0
-  mcp-webui.server._get_github_config:
-    name: _get_github_config
-    module: mcp-webui.server
-    line: 173
-    cyclomatic_complexity: 16
-    calls_out: 15
-    calls_in: 7
-  mcp-docs.server.render_doc:
-    name: render_doc
-    module: mcp-docs.server
-    line: 260
-    cyclomatic_complexity: 1
-    calls_out: 6
-    calls_in: 0
-  semcod_mcp.init_cmd._init_mcp_json:
-    name: _init_mcp_json
-    module: semcod_mcp.init_cmd
-    line: 52
-    cyclomatic_complexity: 5
-    calls_out: 8
-    calls_in: 2
-  mcp-skills.server.run_tool_endpoint:
-    name: run_tool_endpoint
-    module: mcp-skills.server
-    line: 1465
-    cyclomatic_complexity: 1
-    calls_out: 2
-    calls_in: 0
-  mcp-gateway.server._runtime_github_token:
-    name: _runtime_github_token
-    module: mcp-gateway.server
-    line: 957
-    cyclomatic_complexity: 4
-    calls_out: 5
-    calls_in: 3
-  mcp-skills.server.compute_metrics:
-    name: compute_metrics
-    module: mcp-skills.server
-    line: 1319
-    cyclomatic_complexity: 2
-    calls_out: 6
-    calls_in: 0
-  mcp-gateway.server._get_last_used_repo:
-    name: _get_last_used_repo
-    module: mcp-gateway.server
-    line: 117
-    cyclomatic_complexity: 8
-    calls_out: 6
-    calls_in: 1
-  mcp-gateway.server._render_chat_content:
-    name: _render_chat_content
-    module: mcp-gateway.server
-    line: 1564
-    cyclomatic_complexity: 13
-    calls_out: 16
-    calls_in: 4
-  mcp-gateway.server._extract_github_token_from_text:
-    name: _extract_github_token_from_text
-    module: mcp-gateway.server
-    line: 289
-    cyclomatic_complexity: 2
-    calls_out: 2
-    calls_in: 2
-  mcp-gateway.server._normalize_command_text:
-    name: _normalize_command_text
-    module: mcp-gateway.server
-    line: 282
-    cyclomatic_complexity: 1
-    calls_out: 5
-    calls_in: 8
-  mcp-webui.server._normalize_github_url:
-    name: _normalize_github_url
-    module: mcp-webui.server
-    line: 429
-    cyclomatic_complexity: 6
-    calls_out: 5
-    calls_in: 1
-  mcp-webui.server._github_page_ctx:
-    name: _github_page_ctx
-    module: mcp-webui.server
-    line: 406
-    cyclomatic_complexity: 2
-    calls_out: 4
-    calls_in: 1
-  mcp-gateway.server._gh2mcp_status_via_gh2mcp:
-    name: _gh2mcp_status_via_gh2mcp
-    module: mcp-gateway.server
-    line: 769
-    cyclomatic_complexity: 2
-    calls_out: 11
+    line: 341
+    cyclomatic_complexity: 15
+    calls_out: 7
     calls_in: 1
   semcod_mcp.merge.load_json:
     name: load_json
@@ -781,69 +46,55 @@ nodes:
     line: 11
     cyclomatic_complexity: 4
     calls_out: 6
-    calls_in: 6
-  llm-agent.agent_standalone.main:
+    calls_in: 9
+  gh2mcp.gh2mcp.cli.main:
     name: main
-    module: llm-agent.agent_standalone
-    line: 494
+    module: gh2mcp.gh2mcp.cli
+    line: 56
     cyclomatic_complexity: 2
-    calls_out: 21
+    calls_out: 5
     calls_in: 0
-  mcp-gateway.server._redact_repo_url:
-    name: _redact_repo_url
-    module: mcp-gateway.server
-    line: 1028
-    cyclomatic_complexity: 6
-    calls_out: 4
+  semcod_mcp.merge._mcp_json_is_empty:
+    name: _mcp_json_is_empty
+    module: semcod_mcp.merge
+    line: 112
+    cyclomatic_complexity: 3
+    calls_out: 3
     calls_in: 1
-  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy:
-    name: _sync_from_git_proxy
-    module: mcp-skills.server
-    line: 51
-    cyclomatic_complexity: 15
-    calls_out: 39
-    calls_in: 0
-  semcod_mcp.init_cmd.print_init_result:
-    name: print_init_result
-    module: semcod_mcp.init_cmd
-    line: 155
-    cyclomatic_complexity: 4
-    calls_out: 4
-    calls_in: 1
-  mcp-gateway.server._get_default_github_repo:
-    name: _get_default_github_repo
-    module: mcp-gateway.server
-    line: 185
-    cyclomatic_complexity: 7
-    calls_out: 7
-    calls_in: 2
-  semcod_mcp.templates.vscode_settings_snippet:
-    name: vscode_settings_snippet
-    module: semcod_mcp.templates
-    line: 52
-    cyclomatic_complexity: 1
+  gh2mcp.gh2mcp.server._periodic_sync:
+    name: _periodic_sync
+    module: gh2mcp.gh2mcp.server
+    line: 47
+    cyclomatic_complexity: 2
     calls_out: 2
     calls_in: 1
-  semcod_mcp.analyze.run_analyze:
-    name: run_analyze
-    module: semcod_mcp.analyze
-    line: 24
-    cyclomatic_complexity: 12
-    calls_out: 22
+  semcod_mcp.templates.write_manifest:
+    name: write_manifest
+    module: semcod_mcp.templates
+    line: 127
+    cyclomatic_complexity: 8
+    calls_out: 10
     calls_in: 1
-  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos:
-    name: get_recent_repos
-    module: gh2mcp.gh2mcp.sync
-    line: 229
-    cyclomatic_complexity: 32
-    calls_out: 38
+  env2mcp.env2mcp.cli.cmd_github_status:
+    name: cmd_github_status
+    module: env2mcp.env2mcp.cli
+    line: 30
+    cyclomatic_complexity: 11
+    calls_out: 22
     calls_in: 0
-  mcp-skills.server.detect_patterns:
-    name: detect_patterns
-    module: mcp-skills.server
-    line: 1330
-    cyclomatic_complexity: 2
-    calls_out: 6
+  mcp-skills.tool_run.collect_output_files:
+    name: collect_output_files
+    module: mcp-skills.tool_run
+    line: 168
+    cyclomatic_complexity: 9
+    calls_out: 17
+    calls_in: 2
+  git2mcp.examples.01_sync_and_commit.main:
+    name: main
+    module: git2mcp.examples.01_sync_and_commit
+    line: 11
+    cyclomatic_complexity: 1
+    calls_out: 18
     calls_in: 0
   env2mcp.env2mcp.config.EnvConfig.set:
     name: set
@@ -851,60 +102,81 @@ nodes:
     line: 43
     cyclomatic_complexity: 1
     calls_out: 0
-    calls_in: 12
-  mcp-gateway.server._get_preferred_repo:
-    name: _get_preferred_repo
+    calls_in: 16
+  mcp-gateway.server._extract_org_from_text:
+    name: _extract_org_from_text
     module: mcp-gateway.server
-    line: 174
-    cyclomatic_complexity: 2
+    line: 366
+    cyclomatic_complexity: 9
+    calls_out: 9
+    calls_in: 1
+  mcp-webui.server.github_sync:
+    name: github_sync
+    module: mcp-webui.server
+    line: 574
+    cyclomatic_complexity: 4
+    calls_out: 13
+    calls_in: 0
+  semcod_mcp.deinit_cmd.print_deinit_result:
+    name: print_deinit_result
+    module: semcod_mcp.deinit_cmd
+    line: 129
+    cyclomatic_complexity: 5
+    calls_out: 4
+    calls_in: 1
+  semcod_mcp.paths.gateway_url:
+    name: gateway_url
+    module: semcod_mcp.paths
+    line: 64
+    cyclomatic_complexity: 1
     calls_out: 2
-    calls_in: 1
-  mcp-gateway.server._render_refactor_text:
-    name: _render_refactor_text
-    module: mcp-gateway.server
-    line: 1309
-    cyclomatic_complexity: 17
-    calls_out: 51
-    calls_in: 1
-  mcp-gateway.server._is_github_token_save_command:
-    name: _is_github_token_save_command
-    module: mcp-gateway.server
-    line: 334
-    cyclomatic_complexity: 15
-    calls_out: 7
-    calls_in: 1
-  mcp-docs.server._markdown_to_html:
-    name: _markdown_to_html
-    module: mcp-docs.server
-    line: 18
+    calls_in: 5
+  mcp-skills.server._run_tool_against_repo:
+    name: _run_tool_against_repo
+    module: mcp-skills.server
+    line: 690
     cyclomatic_complexity: 1
     calls_out: 1
-    calls_in: 1
-  mcp-gateway.server._list_recent_repos_via_gh2mcp:
-    name: _list_recent_repos_via_gh2mcp
+    calls_in: 0
+  mcp-gateway.server._extract_repo_template_expression:
+    name: _extract_repo_template_expression
     module: mcp-gateway.server
-    line: 720
+    line: 303
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 1
+  mcp-skills.server.analyze_code_structure:
+    name: analyze_code_structure
+    module: mcp-skills.server
+    line: 504
     cyclomatic_complexity: 2
-    calls_out: 11
+    calls_out: 6
+    calls_in: 0
+  mcp-webui.server._normalize_github_url:
+    name: _normalize_github_url
+    module: mcp-webui.server
+    line: 429
+    cyclomatic_complexity: 6
+    calls_out: 5
+    calls_in: 1
+  semcod_mcp.merge.remove_continue_models:
+    name: remove_continue_models
+    module: semcod_mcp.merge
+    line: 148
+    cyclomatic_complexity: 8
+    calls_out: 9
+    calls_in: 1
+  semcod_mcp.deinit_cmd._deinit_mcp_json:
+    name: _deinit_mcp_json
+    module: semcod_mcp.deinit_cmd
+    line: 46
+    cyclomatic_complexity: 8
+    calls_out: 7
     calls_in: 2
-  semcod_mcp.paths.detect_stack_path:
-    name: detect_stack_path
-    module: semcod_mcp.paths
-    line: 20
-    cyclomatic_complexity: 10
-    calls_out: 10
-    calls_in: 4
   mcp-gateway.server._job_storage_key:
     name: _job_storage_key
     module: mcp-gateway.server
-    line: 2009
-    cyclomatic_complexity: 1
-    calls_out: 0
-    calls_in: 2
-  mcp-webui.server.gateway_headers:
-    name: gateway_headers
-    module: mcp-webui.server
-    line: 44
+    line: 1556
     cyclomatic_complexity: 1
     calls_out: 0
     calls_in: 2
@@ -915,40 +187,425 @@ nodes:
     cyclomatic_complexity: 1
     calls_out: 3
     calls_in: 3
-  mcp-gateway.server._is_org_set_command:
-    name: _is_org_set_command
-    module: mcp-gateway.server
-    line: 398
-    cyclomatic_complexity: 9
-    calls_out: 6
+  mcp-gateway.gateway_render.render_tool_text:
+    name: render_tool_text
+    module: mcp-gateway.gateway_render
+    line: 314
+    cyclomatic_complexity: 40
+    calls_out: 80
     calls_in: 1
+  mcp-gateway.server.dispatch_skill:
+    name: dispatch_skill
+    module: mcp-gateway.server
+    line: 2182
+    cyclomatic_complexity: 19
+    calls_out: 41
+    calls_in: 2
+  env2mcp.env2mcp.cli.cmd_env_set:
+    name: cmd_env_set
+    module: env2mcp.env2mcp.cli
+    line: 143
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
+  semcod_mcp.templates.mcp_server_block:
+    name: mcp_server_block
+    module: semcod_mcp.templates
+    line: 23
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 1
+  mcp-docs.server.render_doc:
+    name: render_doc
+    module: mcp-docs.server
+    line: 260
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  semcod_mcp.merge.save_json:
+    name: save_json
+    module: semcod_mcp.merge
+    line: 23
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 4
+  mcp-gateway.server.find_tenant_by_key:
+    name: find_tenant_by_key
+    module: mcp-gateway.server
+    line: 1497
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  mcp-gateway.server._strip_url_suffix:
+    name: _strip_url_suffix
+    module: mcp-gateway.server
+    line: 546
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 1
+  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy:
+    name: _sync_from_git_proxy
+    module: mcp-skills.server
+    line: 74
+    cyclomatic_complexity: 15
+    calls_out: 39
+    calls_in: 0
+  semcod_mcp.cli.analyze_cmd:
+    name: analyze_cmd
+    module: semcod_mcp.cli
+    line: 120
+    cyclomatic_complexity: 4
+    calls_out: 10
+    calls_in: 0
+  mcp-gateway.server._github_repo_from_url:
+    name: _github_repo_from_url
+    module: mcp-gateway.server
+    line: 1055
+    cyclomatic_complexity: 9
+    calls_out: 10
+    calls_in: 2
+  mcp-skills.code_analysis.build_maintainability_recommendations:
+    name: build_maintainability_recommendations
+    module: mcp-skills.code_analysis
+    line: 125
+    cyclomatic_complexity: 24
+    calls_out: 34
+    calls_in: 2
+  mcp-gateway.server._create_github_pr:
+    name: _create_github_pr
+    module: mcp-gateway.server
+    line: 1104
+    cyclomatic_complexity: 3
+    calls_out: 14
+    calls_in: 1
+  mcp-gateway.server._get_default_github_repo:
+    name: _get_default_github_repo
+    module: mcp-gateway.server
+    line: 192
+    cyclomatic_complexity: 7
+    calls_out: 7
+    calls_in: 2
+  mcp-webui.server.index:
+    name: index
+    module: mcp-webui.server
+    line: 49
+    cyclomatic_complexity: 3
+    calls_out: 10
+    calls_in: 0
+  semcod_mcp.cli.init_cmd:
+    name: init_cmd
+    module: semcod_mcp.cli
+    line: 35
+    cyclomatic_complexity: 4
+    calls_out: 14
+    calls_in: 0
+  mcp-gateway.gateway_render.render_system_text:
+    name: render_system_text
+    module: mcp-gateway.gateway_render
+    line: 64
+    cyclomatic_complexity: 27
+    calls_out: 45
+    calls_in: 1
+  env2mcp.env2mcp.github_cli.configure_github:
+    name: configure_github
+    module: env2mcp.env2mcp.github_cli
+    line: 227
+    cyclomatic_complexity: 14
+    calls_out: 29
+    calls_in: 1
+  mcp-gateway.server._is_last_pushed_repo_template:
+    name: _is_last_pushed_repo_template
+    module: mcp-gateway.server
+    line: 312
+    cyclomatic_complexity: 15
+    calls_out: 3
+    calls_in: 1
+  mcp-skills.server.redsl_refactor:
+    name: redsl_refactor
+    module: mcp-skills.server
+    line: 548
+    cyclomatic_complexity: 9
+    calls_out: 44
+    calls_in: 0
+  mcp-gateway.server._list_recent_repos_via_gh2mcp:
+    name: _list_recent_repos_via_gh2mcp
+    module: mcp-gateway.server
+    line: 727
+    cyclomatic_complexity: 2
+    calls_out: 11
+    calls_in: 2
+  mcp-docs.server._page:
+    name: _page
+    module: mcp-docs.server
+    line: 26
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 2
   mcp-gateway.server._save_github_token_via_env2mcp:
     name: _save_github_token_via_env2mcp
     module: mcp-gateway.server
-    line: 893
+    line: 900
     cyclomatic_complexity: 4
     calls_out: 6
     calls_in: 1
-  dashboard.server.main:
-    name: main
-    module: dashboard.server
-    line: 172
+  mcp-gateway.server.get_job:
+    name: get_job
+    module: mcp-gateway.server
+    line: 2407
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  semcod_mcp.init_cmd.print_init_result:
+    name: print_init_result
+    module: semcod_mcp.init_cmd
+    line: 168
+    cyclomatic_complexity: 5
+    calls_out: 4
+    calls_in: 1
+  gh2mcp.gh2mcp.cli._cmd_sync:
+    name: _cmd_sync
+    module: gh2mcp.gh2mcp.cli
+    line: 17
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  semcod_mcp.templates._manifest_compare_keys:
+    name: _manifest_compare_keys
+    module: semcod_mcp.templates
+    line: 116
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 2
+  mcp-skills.tool_run.run_tool_against_repo:
+    name: run_tool_against_repo
+    module: mcp-skills.tool_run
+    line: 205
+    cyclomatic_complexity: 37
+    calls_out: 80
+    calls_in: 2
+  semcod_mcp.templates.read_manifest:
+    name: read_manifest
+    module: semcod_mcp.templates
+    line: 158
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 3
+  mcp-gateway.server._queue_workflow_job:
+    name: _queue_workflow_job
+    module: mcp-gateway.server
+    line: 1643
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 1
+  mcp-skills.server.MCPSkillsServer._detect_code_patterns:
+    name: _detect_code_patterns
+    module: mcp-skills.server
+    line: 401
     cyclomatic_complexity: 2
     calls_out: 10
     calls_in: 0
-  mcp-skills.server._ensure_tool_installed:
-    name: _ensure_tool_installed
-    module: mcp-skills.server
-    line: 858
-    cyclomatic_complexity: 10
-    calls_out: 11
+  mcp-gateway.server._inject_github_token:
+    name: _inject_github_token
+    module: mcp-gateway.server
+    line: 1013
+    cyclomatic_complexity: 9
+    calls_out: 6
     calls_in: 1
+  mcp-gateway.server._get_preferred_repo:
+    name: _get_preferred_repo
+    module: mcp-gateway.server
+    line: 181
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 1
+  mcp-webui.server.github_fetch_token_from_cli:
+    name: github_fetch_token_from_cli
+    module: mcp-webui.server
+    line: 299
+    cyclomatic_complexity: 16
+    calls_out: 32
+    calls_in: 0
+  env2mcp.env2mcp.cli.cmd_github_logout:
+    name: cmd_github_logout
+    module: env2mcp.env2mcp.cli
+    line: 66
+    cyclomatic_complexity: 7
+    calls_out: 14
+    calls_in: 0
+  mcp-gateway.server.authenticate:
+    name: authenticate
+    module: mcp-gateway.server
+    line: 1504
+    cyclomatic_complexity: 4
+    calls_out: 8
+    calls_in: 0
+  mcp-gateway.server.parse_prompt_context:
+    name: parse_prompt_context
+    module: mcp-gateway.server
+    line: 251
+    cyclomatic_complexity: 8
+    calls_out: 10
+    calls_in: 1
+  mcp-gateway.server._is_github_auth_error:
+    name: _is_github_auth_error
+    module: mcp-gateway.server
+    line: 827
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  env2mcp.env2mcp.cli.cmd_env_show:
+    name: cmd_env_show
+    module: env2mcp.env2mcp.cli
+    line: 124
+    cyclomatic_complexity: 6
+    calls_out: 12
+    calls_in: 0
+  mcp-skills.code_analysis._should_skip_path:
+    name: _should_skip_path
+    module: mcp-skills.code_analysis
+    line: 12
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 2
+  mcp-skills.code_analysis.compute_repo_file_metrics:
+    name: compute_repo_file_metrics
+    module: mcp-skills.code_analysis
+    line: 16
+    cyclomatic_complexity: 15
+    calls_out: 23
+    calls_in: 2
+  semcod_mcp.doctor.run_doctor:
+    name: run_doctor
+    module: semcod_mcp.doctor
+    line: 47
+    cyclomatic_complexity: 11
+    calls_out: 38
+    calls_in: 1
+  mcp-gateway.server._enrich_analysis_with_file_metrics:
+    name: _enrich_analysis_with_file_metrics
+    module: mcp-gateway.server
+    line: 1383
+    cyclomatic_complexity: 13
+    calls_out: 12
+    calls_in: 1
+  mcp-gateway.gateway_render.summary_text:
+    name: summary_text
+    module: mcp-gateway.gateway_render
+    line: 8
+    cyclomatic_complexity: 9
+    calls_out: 24
+    calls_in: 1
+  mcp-gateway.server._load_job:
+    name: _load_job
+    module: mcp-gateway.server
+    line: 1620
+    cyclomatic_complexity: 5
+    calls_out: 6
+    calls_in: 5
+  mcp-gateway.server._is_github_token_sync_command:
+    name: _is_github_token_sync_command
+    module: mcp-gateway.server
+    line: 625
+    cyclomatic_complexity: 11
+    calls_out: 9
+    calls_in: 1
+  semcod_mcp.merge.delete_file:
+    name: delete_file
+    module: semcod_mcp.merge
+    line: 210
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 2
+  mcp-gateway.server._run_skills_analysis:
+    name: _run_skills_analysis
+    module: mcp-gateway.server
+    line: 1430
+    cyclomatic_complexity: 4
+    calls_out: 16
+    calls_in: 2
   mcp-docs.server._safe_doc_path:
     name: _safe_doc_path
     module: mcp-docs.server
     line: 201
     cyclomatic_complexity: 4
     calls_out: 9
+    calls_in: 1
+  mcp-skills.tool_run._truncate_text:
+    name: _truncate_text
+    module: mcp-skills.tool_run
+    line: 25
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 7
+  env2mcp.env2mcp.cli.cmd_github_login:
+    name: cmd_github_login
+    module: env2mcp.env2mcp.cli
+    line: 13
+    cyclomatic_complexity: 4
+    calls_out: 9
+    calls_in: 0
+  mcp-skills.mcp_parse.parse_tool_result:
+    name: parse_tool_result
+    module: mcp-skills.mcp_parse
+    line: 10
+    cyclomatic_complexity: 3
+    calls_out: 1
+    calls_in: 4
+  semcod_mcp.merge.remove_mcp_server:
+    name: remove_mcp_server
+    module: semcod_mcp.merge
+    line: 126
+    cyclomatic_complexity: 4
+    calls_out: 6
+    calls_in: 1
+  mcp-docs.server._markdown_to_html:
+    name: _markdown_to_html
+    module: mcp-docs.server
+    line: 18
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 1
+  mcp-webui.server.gateway_headers:
+    name: gateway_headers
+    module: mcp-webui.server
+    line: 44
+    cyclomatic_complexity: 1
+    calls_out: 0
+    calls_in: 2
+  mcp-gateway.server._expect_json:
+    name: _expect_json
+    module: mcp-gateway.server
+    line: 1151
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 20
+  mcp-gateway.server._is_org_set_command:
+    name: _is_org_set_command
+    module: mcp-gateway.server
+    line: 405
+    cyclomatic_complexity: 9
+    calls_out: 6
+    calls_in: 1
+  mcp-gateway.server._get_state_redis_client:
+    name: _get_state_redis_client
+    module: mcp-gateway.server
+    line: 1560
+    cyclomatic_complexity: 4
+    calls_out: 2
+    calls_in: 2
+  llm-agent.agent_standalone.main:
+    name: main
+    module: llm-agent.agent_standalone
+    line: 494
+    cyclomatic_complexity: 2
+    calls_out: 21
+    calls_in: 0
+  semcod_mcp.merge.remove_vscode_settings:
+    name: remove_vscode_settings
+    module: semcod_mcp.merge
+    line: 175
+    cyclomatic_complexity: 4
+    calls_out: 3
     calls_in: 1
   gh2mcp.gh2mcp.cli.build_parser:
     name: build_parser
@@ -957,19 +614,19 @@ nodes:
     cyclomatic_complexity: 1
     calls_out: 13
     calls_in: 1
-  mcp-gateway.server._get_queue:
-    name: _get_queue
+  mcp-gateway.server._get_last_used_repo:
+    name: _get_last_used_repo
     module: mcp-gateway.server
-    line: 2043
-    cyclomatic_complexity: 5
-    calls_out: 2
+    line: 124
+    cyclomatic_complexity: 8
+    calls_out: 6
     calls_in: 1
-  mcp-gateway.server._is_last_pushed_repo_template:
-    name: _is_last_pushed_repo_template
+  mcp-gateway.server._repo_owner:
+    name: _repo_owner
     module: mcp-gateway.server
-    line: 305
-    cyclomatic_complexity: 15
-    calls_out: 3
+    line: 1297
+    cyclomatic_complexity: 4
+    calls_out: 2
     calls_in: 1
   semcod_mcp.merge.merge_vscode_settings:
     name: merge_vscode_settings
@@ -978,187 +635,576 @@ nodes:
     cyclomatic_complexity: 4
     calls_out: 5
     calls_in: 1
-  mcp-gateway.server._strip_url_suffix:
-    name: _strip_url_suffix
+  semcod_mcp.paths.detect_stack_path:
+    name: detect_stack_path
+    module: semcod_mcp.paths
+    line: 20
+    cyclomatic_complexity: 10
+    calls_out: 10
+    calls_in: 4
+  mcp-gateway.server._extract_github_token_from_text:
+    name: _extract_github_token_from_text
     module: mcp-gateway.server
-    line: 539
-    cyclomatic_complexity: 1
-    calls_out: 1
-    calls_in: 1
-  mcp-gateway.server._get_state_redis_client:
-    name: _get_state_redis_client
-    module: mcp-gateway.server
-    line: 2013
-    cyclomatic_complexity: 4
+    line: 296
+    cyclomatic_complexity: 2
     calls_out: 2
     calls_in: 2
-  mcp-gateway.server.stream_job:
-    name: stream_job
+  mcp-gateway.server._is_org_list_command:
+    name: _is_org_list_command
     module: mcp-gateway.server
-    line: 2868
+    line: 421
+    cyclomatic_complexity: 13
+    calls_out: 7
+    calls_in: 1
+  llm-agent.agent.main:
+    name: main
+    module: llm-agent.agent
+    line: 333
     cyclomatic_complexity: 2
-    calls_out: 15
+    calls_out: 16
     calls_in: 0
-  semcod_mcp.paths.gateway_url:
-    name: gateway_url
-    module: semcod_mcp.paths
-    line: 64
-    cyclomatic_complexity: 1
-    calls_out: 2
-    calls_in: 5
-  mcp-gateway.server._load_env_file_values:
-    name: _load_env_file_values
-    module: mcp-gateway.server
-    line: 937
-    cyclomatic_complexity: 11
+  env2mcp.env2mcp.cli.cmd_github_repos:
+    name: cmd_github_repos
+    module: env2mcp.env2mcp.cli
+    line: 96
+    cyclomatic_complexity: 5
     calls_out: 12
-    calls_in: 1
-  mcp-gateway.server._is_github_token_sync_command:
-    name: _is_github_token_sync_command
+    calls_in: 0
+  mcp-gateway.server.chat_completions:
+    name: chat_completions
     module: mcp-gateway.server
-    line: 618
-    cyclomatic_complexity: 11
-    calls_out: 9
+    line: 1724
+    cyclomatic_complexity: 31
+    calls_out: 114
+    calls_in: 0
+  mcp-gateway.server._ask_openrouter_github_qa:
+    name: _ask_openrouter_github_qa
+    module: mcp-gateway.server
+    line: 1222
+    cyclomatic_complexity: 12
+    calls_out: 15
     calls_in: 1
+  mcp-skills.tool_run._ensure_tool_installed:
+    name: _ensure_tool_installed
+    module: mcp-skills.tool_run
+    line: 35
+    cyclomatic_complexity: 10
+    calls_out: 11
+    calls_in: 1
+  mcp-gateway.server._redact_repo_url:
+    name: _redact_repo_url
+    module: mcp-gateway.server
+    line: 1035
+    cyclomatic_complexity: 6
+    calls_out: 4
+    calls_in: 1
+  scripts.test.print:
+    name: print
+    module: scripts.test
+    line: 173
+    cyclomatic_complexity: 0
+    calls_out: 0
+    calls_in: 64
   mcp-gateway.server._sync_github_token_via_gh2mcp:
     name: _sync_github_token_via_gh2mcp
     module: mcp-gateway.server
-    line: 662
+    line: 669
     cyclomatic_complexity: 3
     calls_out: 14
     calls_in: 2
+  mcp-gateway.gateway_render.render_refactor_text:
+    name: render_refactor_text
+    module: mcp-gateway.gateway_render
+    line: 186
+    cyclomatic_complexity: 17
+    calls_out: 51
+    calls_in: 1
+  semcod_mcp.validate.run_validate:
+    name: run_validate
+    module: semcod_mcp.validate
+    line: 65
+    cyclomatic_complexity: 13
+    calls_out: 24
+    calls_in: 1
+  mcp-gateway.server._normalize_repo_url:
+    name: _normalize_repo_url
+    module: mcp-gateway.server
+    line: 1004
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 3
+  mcp-gateway.server._runtime_github_token:
+    name: _runtime_github_token
+    module: mcp-gateway.server
+    line: 964
+    cyclomatic_complexity: 4
+    calls_out: 5
+    calls_in: 3
+  mcp-gateway.server._is_repo_list_command:
+    name: _is_repo_list_command
+    module: mcp-gateway.server
+    line: 449
+    cyclomatic_complexity: 23
+    calls_out: 4
+    calls_in: 1
+  mcp-skills.server.run_tool_endpoint:
+    name: run_tool_endpoint
+    module: mcp-skills.server
+    line: 662
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  mcp-gateway.server._get_most_used_repo:
+    name: _get_most_used_repo
+    module: mcp-gateway.server
+    line: 153
+    cyclomatic_complexity: 8
+    calls_out: 5
+    calls_in: 1
+  mcp-gateway.server._get_rq_redis_client:
+    name: _get_rq_redis_client
+    module: mcp-gateway.server
+    line: 1575
+    cyclomatic_complexity: 4
+    calls_out: 2
+    calls_in: 1
+  mcp-docs.server.index:
+    name: index
+    module: mcp-docs.server
+    line: 226
+    cyclomatic_complexity: 4
+    calls_out: 11
+    calls_in: 0
+  mcp-webui.server.github_page:
+    name: github_page
+    module: mcp-webui.server
+    line: 226
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 0
+  mcp-gateway.server._is_github_configured:
+    name: _is_github_configured
+    module: mcp-gateway.server
+    line: 187
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 1
+  mcp-webui.server._resolve_github_token:
+    name: _resolve_github_token
+    module: mcp-webui.server
+    line: 144
+    cyclomatic_complexity: 7
+    calls_out: 6
+    calls_in: 3
+  git2mcp.examples.02_fragment_sync_to_skills.main:
+    name: main
+    module: git2mcp.examples.02_fragment_sync_to_skills
+    line: 12
+    cyclomatic_complexity: 1
+    calls_out: 15
+    calls_in: 0
+  gh2mcp.gh2mcp.cli._cmd_status:
+    name: _cmd_status
+    module: gh2mcp.gh2mcp.cli
+    line: 10
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  mcp-webui.server.github_clone:
+    name: github_clone
+    module: mcp-webui.server
+    line: 448
+    cyclomatic_complexity: 6
+    calls_out: 17
+    calls_in: 0
+  mcp-gateway.server._set_default_org_via_gh2mcp:
+    name: _set_default_org_via_gh2mcp
+    module: mcp-gateway.server
+    line: 707
+    cyclomatic_complexity: 3
+    calls_out: 9
+    calls_in: 1
+  mcp-gateway.server._gh2mcp_status_via_gh2mcp:
+    name: _gh2mcp_status_via_gh2mcp
+    module: mcp-gateway.server
+    line: 776
+    cyclomatic_complexity: 2
+    calls_out: 11
+    calls_in: 1
+  mcp-gateway.server._normalize_command_text:
+    name: _normalize_command_text
+    module: mcp-gateway.server
+    line: 289
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 8
+  semcod_mcp.cli.doctor_cmd:
+    name: doctor_cmd
+    module: semcod_mcp.cli
+    line: 86
+    cyclomatic_complexity: 6
+    calls_out: 12
+    calls_in: 0
+  mcp-gateway.server._save_job:
+    name: _save_job
+    module: mcp-gateway.server
+    line: 1605
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 2
+  mcp-gateway.gateway_render.render_chat_content:
+    name: render_chat_content
+    module: mcp-gateway.gateway_render
+    line: 441
+    cyclomatic_complexity: 13
+    calls_out: 16
+    calls_in: 4
+  gh2mcp.gh2mcp.cli._cmd_agent:
+    name: _cmd_agent
+    module: gh2mcp.gh2mcp.cli
+    line: 24
+    cyclomatic_complexity: 3
+    calls_out: 6
+    calls_in: 0
+  mcp-gateway.server._get_redis_client:
+    name: _get_redis_client
+    module: mcp-gateway.server
+    line: 94
+    cyclomatic_complexity: 4
+    calls_out: 1
+    calls_in: 3
+  semcod_mcp.doctor.DoctorReport.add:
+    name: add
+    module: semcod_mcp.doctor
+    line: 33
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 6
+  mcp-skills.server.recommend_refactoring:
+    name: recommend_refactoring
+    module: mcp-skills.server
+    line: 537
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 0
+  semcod_mcp.analyze.run_analyze:
+    name: run_analyze
+    module: semcod_mcp.analyze
+    line: 24
+    cyclomatic_complexity: 12
+    calls_out: 22
+    calls_in: 1
+  mcp-gateway.server._run_github_qa:
+    name: _run_github_qa
+    module: mcp-gateway.server
+    line: 1303
+    cyclomatic_complexity: 9
+    calls_out: 16
+    calls_in: 1
+  mcp-webui.server._get_github_config:
+    name: _get_github_config
+    module: mcp-webui.server
+    line: 173
+    cyclomatic_complexity: 16
+    calls_out: 15
+    calls_in: 7
+  mcp-gateway.server._get_queue:
+    name: _get_queue
+    module: mcp-gateway.server
+    line: 1590
+    cyclomatic_complexity: 5
+    calls_out: 2
+    calls_in: 1
+  semcod_mcp.paths.infer_repo_id:
+    name: infer_repo_id
+    module: semcod_mcp.paths
+    line: 43
+    cyclomatic_complexity: 5
+    calls_out: 6
+    calls_in: 2
+  semcod_mcp.templates.vscode_settings_snippet:
+    name: vscode_settings_snippet
+    module: semcod_mcp.templates
+    line: 58
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 1
+  semcod_mcp.deinit_cmd.run_deinit:
+    name: run_deinit
+    module: semcod_mcp.deinit_cmd
+    line: 60
+    cyclomatic_complexity: 15
+    calls_out: 33
+    calls_in: 1
+  mcp-skills.server.MCPSkillsServer._recommend_refactoring:
+    name: _recommend_refactoring
+    module: mcp-skills.server
+    line: 428
+    cyclomatic_complexity: 2
+    calls_out: 15
+    calls_in: 0
+  semcod_mcp.init_cmd._init_mcp_json:
+    name: _init_mcp_json
+    module: semcod_mcp.init_cmd
+    line: 64
+    cyclomatic_complexity: 5
+    calls_out: 8
+    calls_in: 2
+  semcod_mcp.paths.default_api_key:
+    name: default_api_key
+    module: semcod_mcp.paths
+    line: 69
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 5
+  dashboard.server.main:
+    name: main
+    module: dashboard.server
+    line: 172
+    cyclomatic_complexity: 2
+    calls_out: 10
+    calls_in: 0
+  mcp-gateway.server._track_repo_usage:
+    name: _track_repo_usage
+    module: mcp-gateway.server
+    line: 104
+    cyclomatic_complexity: 3
+    calls_out: 8
+    calls_in: 2
+  mcp-skills.code_analysis.recommendations_payload:
+    name: recommendations_payload
+    module: mcp-skills.code_analysis
+    line: 260
+    cyclomatic_complexity: 5
+    calls_out: 9
+    calls_in: 2
+  semcod_mcp.validate._validate_mcp_json:
+    name: _validate_mcp_json
+    module: semcod_mcp.validate
+    line: 36
+    cyclomatic_complexity: 13
+    calls_out: 23
+    calls_in: 1
+  mcp-gateway.gateway_render.render_queued_text:
+    name: render_queued_text
+    module: mcp-gateway.gateway_render
+    line: 168
+    cyclomatic_complexity: 6
+    calls_out: 7
+    calls_in: 1
+  semcod_mcp.init_cmd.run_init:
+    name: run_init
+    module: semcod_mcp.init_cmd
+    line: 78
+    cyclomatic_complexity: 14
+    calls_out: 37
+    calls_in: 1
+  mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo:
+    name: _compute_metrics_for_repo
+    module: mcp-skills.server
+    line: 381
+    cyclomatic_complexity: 3
+    calls_out: 12
+    calls_in: 0
+  mcp-gateway.server._list_orgs_via_gh2mcp:
+    name: _list_orgs_via_gh2mcp
+    module: mcp-gateway.server
+    line: 754
+    cyclomatic_complexity: 2
+    calls_out: 10
+    calls_in: 2
+  mcp-gateway.server._extract_owner_from_repo_template:
+    name: _extract_owner_from_repo_template
+    module: mcp-gateway.server
+    line: 327
+    cyclomatic_complexity: 4
+    calls_out: 3
+    calls_in: 1
+  semcod_mcp.cli.deinit_cmd:
+    name: deinit_cmd
+    module: semcod_mcp.cli
+    line: 66
+    cyclomatic_complexity: 2
+    calls_out: 9
+    calls_in: 0
+  mcp-gateway.gateway_render.render_analyze_text:
+    name: render_analyze_text
+    module: mcp-gateway.gateway_render
+    line: 120
+    cyclomatic_complexity: 14
+    calls_out: 30
+    calls_in: 1
+  gh2mcp.gh2mcp.server.on_startup:
+    name: on_startup
+    module: gh2mcp.gh2mcp.server
+    line: 54
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 0
+  semcod_mcp.merge.write_json_or_delete:
+    name: write_json_or_delete
+    module: semcod_mcp.merge
+    line: 193
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 3
+  semcod_mcp.templates.manifest_data:
+    name: manifest_data
+    module: semcod_mcp.templates
+    line: 93
+    cyclomatic_complexity: 2
+    calls_out: 10
+    calls_in: 1
+  mcp-gateway.server.stream_job:
+    name: stream_job
+    module: mcp-gateway.server
+    line: 2415
+    cyclomatic_complexity: 2
+    calls_out: 15
+    calls_in: 0
+  mcp-webui.server.github_create_repo:
+    name: github_create_repo
+    module: mcp-webui.server
+    line: 512
+    cyclomatic_complexity: 4
+    calls_out: 18
+    calls_in: 0
+  mcp-gateway.server._load_env_file_values:
+    name: _load_env_file_values
+    module: mcp-gateway.server
+    line: 944
+    cyclomatic_complexity: 11
+    calls_out: 12
+    calls_in: 1
+  mcp-skills.server.detect_patterns:
+    name: detect_patterns
+    module: mcp-skills.server
+    line: 526
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 0
+  mcp-skills.server.compute_metrics:
+    name: compute_metrics
+    module: mcp-skills.server
+    line: 515
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 0
+  env2mcp.env2mcp.cli.cmd_env_get:
+    name: cmd_env_get
+    module: env2mcp.env2mcp.cli
+    line: 155
+    cyclomatic_complexity: 7
+    calls_out: 10
+    calls_in: 0
+  mcp-webui.server._read_gh2mcp_status:
+    name: _read_gh2mcp_status
+    module: mcp-webui.server
+    line: 161
+    cyclomatic_complexity: 4
+    calls_out: 3
+    calls_in: 1
+  mcp-webui.server._github_page_ctx:
+    name: _github_page_ctx
+    module: mcp-webui.server
+    line: 406
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 1
+  semcod_mcp.merge._continue_json_is_empty:
+    name: _continue_json_is_empty
+    module: semcod_mcp.merge
+    line: 119
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 1
+  semcod_mcp.merge.merge_mcp_servers:
+    name: merge_mcp_servers
+    module: semcod_mcp.merge
+    line: 31
+    cyclomatic_complexity: 5
+    calls_out: 8
+    calls_in: 1
+  mcp-skills.tool_run._inject_github_token:
+    name: _inject_github_token
+    module: mcp-skills.tool_run
+    line: 86
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 1
+  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos:
+    name: get_recent_repos
+    module: gh2mcp.gh2mcp.sync
+    line: 229
+    cyclomatic_complexity: 32
+    calls_out: 38
+    calls_in: 0
+  mcp-skills.tool_run._git_clone_or_update:
+    name: _git_clone_or_update
+    module: mcp-skills.tool_run
+    line: 97
+    cyclomatic_complexity: 10
+    calls_out: 19
+    calls_in: 1
+  mcp-gateway.server.parse_tool_intent:
+    name: parse_tool_intent
+    module: mcp-gateway.server
+    line: 551
+    cyclomatic_complexity: 23
+    calls_out: 17
+    calls_in: 1
+  mcp-gateway.server._last_pushed_repo_via_gh2mcp:
+    name: _last_pushed_repo_via_gh2mcp
+    module: mcp-gateway.server
+    line: 794
+    cyclomatic_complexity: 2
+    calls_out: 12
+    calls_in: 3
+  mcp-gateway.server._save_github_token:
+    name: _save_github_token
+    module: mcp-gateway.server
+    line: 974
+    cyclomatic_complexity: 6
+    calls_out: 10
+    calls_in: 2
+  mcp-skills.code_analysis.detect_repo_patterns:
+    name: detect_repo_patterns
+    module: mcp-skills.code_analysis
+    line: 80
+    cyclomatic_complexity: 10
+    calls_out: 18
+    calls_in: 1
+  mcp-gateway.server.audit:
+    name: audit
+    module: mcp-gateway.server
+    line: 1514
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 1
+  semcod_mcp.cli.validate_cmd:
+    name: validate_cmd
+    module: semcod_mcp.cli
+    line: 105
+    cyclomatic_complexity: 4
+    calls_out: 8
+    calls_in: 0
+  semcod_mcp.doctor._http_ok:
+    name: _http_ok
+    module: semcod_mcp.doctor
+    line: 37
+    cyclomatic_complexity: 4
+    calls_out: 2
+    calls_in: 3
+  mcp-gateway.server.execute_dispatch_job:
+    name: execute_dispatch_job
+    module: mcp-gateway.server
+    line: 1656
+    cyclomatic_complexity: 3
+    calls_out: 15
+    calls_in: 0
 edges:
-- caller: env2mcp.env2mcp.github_cli.configure_github
+- caller: dashboard.server.main
   callee: scripts.test.print
-  call_type: resolved
-- caller: git2mcp.examples.03_agent_git2mcp.main
-  callee: scripts.test.print
-  call_type: resolved
-- caller: git2mcp.examples.02_fragment_sync_to_skills.main
-  callee: scripts.test.print
-  call_type: resolved
-- caller: git2mcp.examples.01_sync_and_commit.main
-  callee: scripts.test.print
-  call_type: resolved
-- caller: mcp-webui.server.index
-  callee: mcp-webui.server.gateway_headers
-  call_type: resolved
-- caller: mcp-webui.server._get_github_config
-  callee: mcp-webui.server._resolve_github_token
-  call_type: resolved
-- caller: mcp-webui.server._get_github_config
-  callee: mcp-webui.server._read_gh2mcp_status
-  call_type: resolved
-- caller: mcp-webui.server.github_page
-  callee: mcp-webui.server._get_github_config
-  call_type: resolved
-- caller: mcp-webui.server.github_fetch_token_from_cli
-  callee: mcp-webui.server._get_github_config
-  call_type: resolved
-- caller: mcp-webui.server._github_page_ctx
-  callee: mcp-webui.server._get_github_config
-  call_type: resolved
-- caller: mcp-webui.server.github_clone
-  callee: mcp-webui.server._normalize_github_url
-  call_type: resolved
-- caller: mcp-webui.server.github_clone
-  callee: mcp-webui.server._resolve_github_token
-  call_type: resolved
-- caller: mcp-webui.server.github_clone
-  callee: mcp-webui.server._get_github_config
-  call_type: resolved
-- caller: mcp-webui.server.github_create_repo
-  callee: mcp-webui.server._resolve_github_token
-  call_type: resolved
-- caller: mcp-webui.server.github_create_repo
-  callee: mcp-webui.server._get_github_config
-  call_type: resolved
-- caller: mcp-webui.server.github_sync
-  callee: mcp-webui.server._get_github_config
-  call_type: resolved
-- caller: gh2mcp.gh2mcp.cli._cmd_status
-  callee: scripts.test.print
-  call_type: resolved
-- caller: gh2mcp.gh2mcp.cli._cmd_sync
-  callee: scripts.test.print
-  call_type: resolved
-- caller: gh2mcp.gh2mcp.cli._cmd_agent
-  callee: scripts.test.print
-  call_type: resolved
-- caller: gh2mcp.gh2mcp.cli.main
-  callee: gh2mcp.gh2mcp.cli.build_parser
-  call_type: resolved
-- caller: semcod_mcp.cli.init_cmd
-  callee: semcod_mcp.init_cmd.run_init
-  call_type: resolved
-- caller: semcod_mcp.cli.init_cmd
-  callee: semcod_mcp.init_cmd.print_init_result
-  call_type: resolved
-- caller: semcod_mcp.cli.init_cmd
-  callee: semcod_mcp.paths.detect_stack_path
-  call_type: resolved
-- caller: semcod_mcp.cli.doctor_cmd
-  callee: semcod_mcp.doctor.run_doctor
-  call_type: resolved
-- caller: semcod_mcp.cli.validate_cmd
-  callee: semcod_mcp.validate.run_validate
-  call_type: resolved
-- caller: semcod_mcp.cli.analyze_cmd
-  callee: semcod_mcp.analyze.run_analyze
-  call_type: resolved
-- caller: env2mcp.env2mcp.cli.cmd_github_login
-  callee: env2mcp.env2mcp.github_cli.configure_github
-  call_type: resolved
-- caller: env2mcp.env2mcp.cli.cmd_github_login
-  callee: scripts.test.print
-  call_type: resolved
-- caller: env2mcp.env2mcp.cli.cmd_github_status
-  callee: scripts.test.print
-  call_type: resolved
-- caller: env2mcp.env2mcp.cli.cmd_github_logout
-  callee: scripts.test.print
-  call_type: resolved
-- caller: env2mcp.env2mcp.cli.cmd_github_repos
-  callee: scripts.test.print
-  call_type: resolved
-- caller: env2mcp.env2mcp.cli.cmd_env_show
-  callee: scripts.test.print
-  call_type: resolved
-- caller: env2mcp.env2mcp.cli.cmd_env_set
-  callee: scripts.test.print
-  call_type: resolved
-- caller: env2mcp.env2mcp.cli.cmd_env_get
-  callee: scripts.test.print
-  call_type: resolved
-- caller: semcod_mcp.analyze.run_analyze
-  callee: semcod_mcp.templates.read_manifest
-  call_type: resolved
-- caller: semcod_mcp.analyze.run_analyze
-  callee: semcod_mcp.paths.default_api_key
-  call_type: resolved
-- caller: semcod_mcp.analyze.run_analyze
-  callee: semcod_mcp.paths.infer_repo_id
-  call_type: resolved
-- caller: semcod_mcp.analyze.run_analyze
-  callee: semcod_mcp.paths.gateway_url
-  call_type: resolved
-- caller: semcod_mcp.doctor.run_doctor
-  callee: semcod_mcp.paths.detect_stack_path
-  call_type: resolved
-- caller: semcod_mcp.doctor.run_doctor
-  callee: semcod_mcp.templates.read_manifest
-  call_type: resolved
-- caller: semcod_mcp.doctor.run_doctor
-  callee: semcod_mcp.paths.gateway_url
-  call_type: resolved
-- caller: semcod_mcp.doctor.run_doctor
-  callee: semcod_mcp.paths.default_api_key
-  call_type: resolved
-- caller: semcod_mcp.doctor.run_doctor
-  callee: semcod_mcp.doctor._http_ok
-  call_type: resolved
-- caller: gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
-  callee: env2mcp.env2mcp.config.EnvConfig.set
   call_type: resolved
 - caller: mcp-docs.server.index
   callee: mcp-docs.server._page
@@ -1172,104 +1218,23 @@ edges:
 - caller: mcp-docs.server.render_doc
   callee: mcp-docs.server._page
   call_type: resolved
-- caller: semcod_mcp.paths.detect_stack_path
-  callee: semcod_mcp.paths.expand
-  call_type: resolved
-- caller: semcod_mcp.validate._validate_mcp_json
-  callee: semcod_mcp.merge.load_json
-  call_type: resolved
-- caller: semcod_mcp.validate.run_validate
-  callee: semcod_mcp.paths.detect_stack_path
-  call_type: resolved
-- caller: semcod_mcp.validate.run_validate
-  callee: semcod_mcp.templates.read_manifest
-  call_type: resolved
-- caller: semcod_mcp.validate.run_validate
-  callee: semcod_mcp.validate._validate_mcp_json
-  call_type: resolved
-- caller: semcod_mcp.templates.vscode_settings_snippet
-  callee: semcod_mcp.paths.gateway_url
-  call_type: resolved
-- caller: semcod_mcp.templates.vscode_settings_snippet
-  callee: semcod_mcp.paths.default_api_key
-  call_type: resolved
-- caller: semcod_mcp.templates.manifest_data
-  callee: semcod_mcp.paths.gateway_url
-  call_type: resolved
-- caller: semcod_mcp.templates.manifest_data
-  callee: semcod_mcp.paths.default_api_key
-  call_type: resolved
-- caller: semcod_mcp.templates.manifest_data
-  callee: env2mcp.env2mcp.config.EnvConfig.set
-  call_type: resolved
-- caller: semcod_mcp.init_cmd._init_mcp_json
-  callee: semcod_mcp.merge.load_json
-  call_type: resolved
-- caller: semcod_mcp.init_cmd._init_mcp_json
-  callee: semcod_mcp.merge.merge_mcp_servers
-  call_type: resolved
-- caller: semcod_mcp.init_cmd._init_mcp_json
-  callee: semcod_mcp.templates.mcp_server_block
-  call_type: resolved
-- caller: semcod_mcp.init_cmd._init_mcp_json
-  callee: semcod_mcp.merge.save_json
-  call_type: resolved
-- caller: semcod_mcp.init_cmd.run_init
-  callee: semcod_mcp.paths.infer_repo_id
-  call_type: resolved
-- caller: semcod_mcp.init_cmd.run_init
-  callee: semcod_mcp.merge.merge_vscode_settings
-  call_type: resolved
-- caller: semcod_mcp.init_cmd.run_init
-  callee: semcod_mcp.templates.write_manifest
-  call_type: resolved
-- caller: dashboard.server.main
+- caller: gh2mcp.gh2mcp.cli._cmd_status
   callee: scripts.test.print
   call_type: resolved
-- caller: llm-agent.agent.main
+- caller: gh2mcp.gh2mcp.cli._cmd_sync
   callee: scripts.test.print
   call_type: resolved
-- caller: llm-agent.agent_standalone.main
+- caller: gh2mcp.gh2mcp.cli._cmd_agent
   callee: scripts.test.print
+  call_type: resolved
+- caller: gh2mcp.gh2mcp.cli.main
+  callee: gh2mcp.gh2mcp.cli.build_parser
   call_type: resolved
 - caller: gh2mcp.gh2mcp.server.on_startup
   callee: gh2mcp.gh2mcp.server._periodic_sync
   call_type: resolved
-- caller: mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
+- caller: gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
   callee: env2mcp.env2mcp.config.EnvConfig.set
-  call_type: resolved
-- caller: mcp-skills.server._ensure_tool_installed
-  callee: mcp-skills.server._truncate_text
-  call_type: resolved
-- caller: mcp-skills.server._git_clone_or_update
-  callee: mcp-skills.server._inject_github_token
-  call_type: resolved
-- caller: mcp-skills.server._git_clone_or_update
-  callee: mcp-skills.server._truncate_text
-  call_type: resolved
-- caller: mcp-skills.server._collect_output_files
-  callee: env2mcp.env2mcp.config.EnvConfig.set
-  call_type: resolved
-- caller: mcp-skills.server._run_tool_against_repo
-  callee: mcp-skills.server._ensure_tool_installed
-  call_type: resolved
-- caller: mcp-skills.server._run_tool_against_repo
-  callee: mcp-skills.server._collect_output_files
-  call_type: resolved
-- caller: mcp-skills.server.analyze_code_structure
-  callee: mcp-skills.server._parse_tool_result
-  call_type: resolved
-- caller: mcp-skills.server.compute_metrics
-  callee: mcp-skills.server._parse_tool_result
-  call_type: resolved
-- caller: mcp-skills.server.detect_patterns
-  callee: mcp-skills.server._parse_tool_result
-  call_type: resolved
-- caller: mcp-skills.server.recommend_refactoring
-  callee: mcp-skills.server._parse_tool_result
-  call_type: resolved
-- caller: mcp-skills.server.run_tool_endpoint
-  callee: mcp-skills.server._run_tool_against_repo
   call_type: resolved
 - caller: mcp-gateway.server._track_repo_usage
   callee: mcp-gateway.server._get_redis_client
@@ -1394,24 +1359,6 @@ edges:
 - caller: mcp-gateway.server._create_github_pr
   callee: mcp-gateway.server._runtime_github_token
   call_type: resolved
-- caller: mcp-gateway.server._render_tool_text
-  callee: env2mcp.env2mcp.config.EnvConfig.set
-  call_type: resolved
-- caller: mcp-gateway.server._render_chat_content
-  callee: mcp-gateway.server._render_system_text
-  call_type: resolved
-- caller: mcp-gateway.server._render_chat_content
-  callee: mcp-gateway.server._render_queued_text
-  call_type: resolved
-- caller: mcp-gateway.server._render_chat_content
-  callee: mcp-gateway.server._render_analyze_text
-  call_type: resolved
-- caller: mcp-gateway.server._render_chat_content
-  callee: mcp-gateway.server._render_refactor_text
-  call_type: resolved
-- caller: mcp-gateway.server._render_chat_content
-  callee: mcp-gateway.server._render_tool_text
-  call_type: resolved
 - caller: mcp-gateway.server._run_github_qa
   callee: mcp-gateway.server._repo_owner
   call_type: resolved
@@ -1426,6 +1373,9 @@ edges:
   call_type: resolved
 - caller: mcp-gateway.server._run_github_qa
   callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: mcp-gateway.server._enrich_analysis_with_file_metrics
+  callee: mcp-gateway.server._expect_json
   call_type: resolved
 - caller: mcp-gateway.server._run_skills_analysis
   callee: mcp-gateway.server._expect_json
@@ -1503,7 +1453,7 @@ edges:
   callee: mcp-gateway.server._expect_json
   call_type: resolved
 - caller: mcp-gateway.server.dispatch_skill
-  callee: mcp-gateway.server._summary_text
+  callee: mcp-gateway.gateway_render.summary_text
   call_type: resolved
 - caller: mcp-gateway.server.dispatch_skill
   callee: mcp-gateway.server._run_skills_analysis
@@ -1513,6 +1463,312 @@ edges:
   call_type: resolved
 - caller: mcp-gateway.server.stream_job
   callee: mcp-gateway.server._load_job
+  call_type: resolved
+- caller: mcp-gateway.gateway_render.render_tool_text
+  callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: mcp-gateway.gateway_render.render_chat_content
+  callee: mcp-gateway.gateway_render.render_system_text
+  call_type: resolved
+- caller: mcp-gateway.gateway_render.render_chat_content
+  callee: mcp-gateway.gateway_render.render_queued_text
+  call_type: resolved
+- caller: mcp-gateway.gateway_render.render_chat_content
+  callee: mcp-gateway.gateway_render.render_analyze_text
+  call_type: resolved
+- caller: mcp-gateway.gateway_render.render_chat_content
+  callee: mcp-gateway.gateway_render.render_refactor_text
+  call_type: resolved
+- caller: mcp-gateway.gateway_render.render_chat_content
+  callee: mcp-gateway.gateway_render.render_tool_text
+  call_type: resolved
+- caller: llm-agent.agent_standalone.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: llm-agent.agent.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: mcp-skills.tool_run._ensure_tool_installed
+  callee: mcp-skills.tool_run._truncate_text
+  call_type: resolved
+- caller: mcp-skills.tool_run._git_clone_or_update
+  callee: mcp-skills.tool_run._inject_github_token
+  call_type: resolved
+- caller: mcp-skills.tool_run._git_clone_or_update
+  callee: mcp-skills.tool_run._truncate_text
+  call_type: resolved
+- caller: mcp-skills.tool_run.collect_output_files
+  callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: mcp-skills.tool_run.run_tool_against_repo
+  callee: mcp-skills.tool_run._ensure_tool_installed
+  call_type: resolved
+- caller: mcp-skills.tool_run.run_tool_against_repo
+  callee: mcp-skills.tool_run.collect_output_files
+  call_type: resolved
+- caller: mcp-skills.code_analysis.compute_repo_file_metrics
+  callee: mcp-skills.code_analysis._should_skip_path
+  call_type: resolved
+- caller: mcp-skills.code_analysis.detect_repo_patterns
+  callee: mcp-skills.code_analysis._should_skip_path
+  call_type: resolved
+- caller: mcp-skills.code_analysis.build_maintainability_recommendations
+  callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: mcp-skills.code_analysis.build_maintainability_recommendations
+  callee: semcod_mcp.doctor.DoctorReport.add
+  call_type: resolved
+- caller: mcp-skills.code_analysis.merge_recommendations
+  callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
+  callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo
+  callee: mcp-skills.code_analysis.compute_repo_file_metrics
+  call_type: resolved
+- caller: mcp-skills.server.MCPSkillsServer._detect_code_patterns
+  callee: mcp-skills.code_analysis.detect_repo_patterns
+  call_type: resolved
+- caller: mcp-skills.server.MCPSkillsServer._recommend_refactoring
+  callee: mcp-skills.code_analysis.build_maintainability_recommendations
+  call_type: resolved
+- caller: mcp-skills.server.MCPSkillsServer._recommend_refactoring
+  callee: mcp-skills.code_analysis.recommendations_payload
+  call_type: resolved
+- caller: mcp-skills.server.analyze_code_structure
+  callee: mcp-skills.mcp_parse.parse_tool_result
+  call_type: resolved
+- caller: mcp-skills.server.compute_metrics
+  callee: mcp-skills.mcp_parse.parse_tool_result
+  call_type: resolved
+- caller: mcp-skills.server.detect_patterns
+  callee: mcp-skills.mcp_parse.parse_tool_result
+  call_type: resolved
+- caller: mcp-skills.server.recommend_refactoring
+  callee: mcp-skills.mcp_parse.parse_tool_result
+  call_type: resolved
+- caller: mcp-skills.server.redsl_refactor
+  callee: mcp-skills.code_analysis.compute_repo_file_metrics
+  call_type: resolved
+- caller: mcp-skills.server.redsl_refactor
+  callee: mcp-skills.code_analysis.build_maintainability_recommendations
+  call_type: resolved
+- caller: mcp-skills.server.redsl_refactor
+  callee: mcp-skills.code_analysis.merge_recommendations
+  call_type: resolved
+- caller: mcp-skills.server.run_tool_endpoint
+  callee: mcp-skills.tool_run.run_tool_against_repo
+  call_type: resolved
+- caller: mcp-skills.server._run_tool_against_repo
+  callee: mcp-skills.tool_run.run_tool_against_repo
+  call_type: resolved
+- caller: env2mcp.env2mcp.cli.cmd_github_login
+  callee: env2mcp.env2mcp.github_cli.configure_github
+  call_type: resolved
+- caller: env2mcp.env2mcp.cli.cmd_github_login
+  callee: scripts.test.print
+  call_type: resolved
+- caller: env2mcp.env2mcp.cli.cmd_github_status
+  callee: scripts.test.print
+  call_type: resolved
+- caller: env2mcp.env2mcp.cli.cmd_github_logout
+  callee: scripts.test.print
+  call_type: resolved
+- caller: env2mcp.env2mcp.cli.cmd_github_repos
+  callee: scripts.test.print
+  call_type: resolved
+- caller: env2mcp.env2mcp.cli.cmd_env_show
+  callee: scripts.test.print
+  call_type: resolved
+- caller: env2mcp.env2mcp.cli.cmd_env_set
+  callee: scripts.test.print
+  call_type: resolved
+- caller: env2mcp.env2mcp.cli.cmd_env_get
+  callee: scripts.test.print
+  call_type: resolved
+- caller: env2mcp.env2mcp.github_cli.configure_github
+  callee: scripts.test.print
+  call_type: resolved
+- caller: mcp-webui.server.index
+  callee: mcp-webui.server.gateway_headers
+  call_type: resolved
+- caller: mcp-webui.server._get_github_config
+  callee: mcp-webui.server._resolve_github_token
+  call_type: resolved
+- caller: mcp-webui.server._get_github_config
+  callee: mcp-webui.server._read_gh2mcp_status
+  call_type: resolved
+- caller: mcp-webui.server.github_page
+  callee: mcp-webui.server._get_github_config
+  call_type: resolved
+- caller: mcp-webui.server.github_fetch_token_from_cli
+  callee: mcp-webui.server._get_github_config
+  call_type: resolved
+- caller: mcp-webui.server._github_page_ctx
+  callee: mcp-webui.server._get_github_config
+  call_type: resolved
+- caller: mcp-webui.server.github_clone
+  callee: mcp-webui.server._normalize_github_url
+  call_type: resolved
+- caller: mcp-webui.server.github_clone
+  callee: mcp-webui.server._resolve_github_token
+  call_type: resolved
+- caller: mcp-webui.server.github_clone
+  callee: mcp-webui.server._get_github_config
+  call_type: resolved
+- caller: mcp-webui.server.github_create_repo
+  callee: mcp-webui.server._resolve_github_token
+  call_type: resolved
+- caller: mcp-webui.server.github_create_repo
+  callee: mcp-webui.server._get_github_config
+  call_type: resolved
+- caller: mcp-webui.server.github_sync
+  callee: mcp-webui.server._get_github_config
+  call_type: resolved
+- caller: git2mcp.examples.03_agent_git2mcp.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: git2mcp.examples.02_fragment_sync_to_skills.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: git2mcp.examples.01_sync_and_commit.main
+  callee: scripts.test.print
+  call_type: resolved
+- caller: semcod_mcp.init_cmd._init_mcp_json
+  callee: semcod_mcp.merge.load_json
+  call_type: resolved
+- caller: semcod_mcp.init_cmd._init_mcp_json
+  callee: semcod_mcp.merge.merge_mcp_servers
+  call_type: resolved
+- caller: semcod_mcp.init_cmd._init_mcp_json
+  callee: semcod_mcp.templates.mcp_server_block
+  call_type: resolved
+- caller: semcod_mcp.init_cmd._init_mcp_json
+  callee: semcod_mcp.merge.save_json
+  call_type: resolved
+- caller: semcod_mcp.init_cmd.run_init
+  callee: semcod_mcp.paths.infer_repo_id
+  call_type: resolved
+- caller: semcod_mcp.init_cmd.run_init
+  callee: semcod_mcp.merge.merge_vscode_settings
+  call_type: resolved
+- caller: semcod_mcp.init_cmd.run_init
+  callee: semcod_mcp.templates.write_manifest
+  call_type: resolved
+- caller: semcod_mcp.cli.init_cmd
+  callee: semcod_mcp.init_cmd.run_init
+  call_type: resolved
+- caller: semcod_mcp.cli.init_cmd
+  callee: semcod_mcp.init_cmd.print_init_result
+  call_type: resolved
+- caller: semcod_mcp.cli.init_cmd
+  callee: semcod_mcp.paths.detect_stack_path
+  call_type: resolved
+- caller: semcod_mcp.cli.deinit_cmd
+  callee: semcod_mcp.deinit_cmd.run_deinit
+  call_type: resolved
+- caller: semcod_mcp.cli.deinit_cmd
+  callee: semcod_mcp.deinit_cmd.print_deinit_result
+  call_type: resolved
+- caller: semcod_mcp.cli.doctor_cmd
+  callee: semcod_mcp.doctor.run_doctor
+  call_type: resolved
+- caller: semcod_mcp.cli.validate_cmd
+  callee: semcod_mcp.validate.run_validate
+  call_type: resolved
+- caller: semcod_mcp.cli.analyze_cmd
+  callee: semcod_mcp.analyze.run_analyze
+  call_type: resolved
+- caller: semcod_mcp.analyze.run_analyze
+  callee: semcod_mcp.templates.read_manifest
+  call_type: resolved
+- caller: semcod_mcp.analyze.run_analyze
+  callee: semcod_mcp.paths.default_api_key
+  call_type: resolved
+- caller: semcod_mcp.analyze.run_analyze
+  callee: semcod_mcp.paths.infer_repo_id
+  call_type: resolved
+- caller: semcod_mcp.analyze.run_analyze
+  callee: semcod_mcp.paths.gateway_url
+  call_type: resolved
+- caller: semcod_mcp.validate._validate_mcp_json
+  callee: semcod_mcp.merge.load_json
+  call_type: resolved
+- caller: semcod_mcp.validate.run_validate
+  callee: semcod_mcp.paths.detect_stack_path
+  call_type: resolved
+- caller: semcod_mcp.validate.run_validate
+  callee: semcod_mcp.templates.read_manifest
+  call_type: resolved
+- caller: semcod_mcp.validate.run_validate
+  callee: semcod_mcp.validate._validate_mcp_json
+  call_type: resolved
+- caller: semcod_mcp.doctor.run_doctor
+  callee: semcod_mcp.paths.detect_stack_path
+  call_type: resolved
+- caller: semcod_mcp.doctor.run_doctor
+  callee: semcod_mcp.templates.read_manifest
+  call_type: resolved
+- caller: semcod_mcp.doctor.run_doctor
+  callee: semcod_mcp.paths.gateway_url
+  call_type: resolved
+- caller: semcod_mcp.doctor.run_doctor
+  callee: semcod_mcp.paths.default_api_key
+  call_type: resolved
+- caller: semcod_mcp.doctor.run_doctor
+  callee: semcod_mcp.doctor._http_ok
+  call_type: resolved
+- caller: semcod_mcp.merge._mcp_json_is_empty
+  callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: semcod_mcp.merge._continue_json_is_empty
+  callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: semcod_mcp.merge.remove_mcp_server
+  callee: semcod_mcp.merge._mcp_json_is_empty
+  call_type: resolved
+- caller: semcod_mcp.merge.remove_continue_models
+  callee: semcod_mcp.merge._continue_json_is_empty
+  call_type: resolved
+- caller: semcod_mcp.merge.write_json_or_delete
+  callee: semcod_mcp.merge.save_json
+  call_type: resolved
+- caller: semcod_mcp.paths.detect_stack_path
+  callee: semcod_mcp.paths.expand
+  call_type: resolved
+- caller: semcod_mcp.templates.vscode_settings_snippet
+  callee: semcod_mcp.paths.gateway_url
+  call_type: resolved
+- caller: semcod_mcp.templates.vscode_settings_snippet
+  callee: semcod_mcp.paths.default_api_key
+  call_type: resolved
+- caller: semcod_mcp.templates.manifest_data
+  callee: semcod_mcp.paths.gateway_url
+  call_type: resolved
+- caller: semcod_mcp.templates.manifest_data
+  callee: semcod_mcp.paths.default_api_key
+  call_type: resolved
+- caller: semcod_mcp.templates.manifest_data
+  callee: env2mcp.env2mcp.config.EnvConfig.set
+  call_type: resolved
+- caller: semcod_mcp.templates.write_manifest
+  callee: semcod_mcp.templates._manifest_compare_keys
+  call_type: resolved
+- caller: semcod_mcp.deinit_cmd._deinit_mcp_json
+  callee: semcod_mcp.merge.remove_mcp_server
+  call_type: resolved
+- caller: semcod_mcp.deinit_cmd._deinit_mcp_json
+  callee: semcod_mcp.merge.load_json
+  call_type: resolved
+- caller: semcod_mcp.deinit_cmd._deinit_mcp_json
+  callee: semcod_mcp.merge.write_json_or_delete
+  call_type: resolved
+- caller: semcod_mcp.deinit_cmd.run_deinit
+  callee: semcod_mcp.merge.delete_file
+  call_type: resolved
+- caller: semcod_mcp.deinit_cmd.run_deinit
+  callee: semcod_mcp.merge.remove_vscode_settings
   call_type: resolved
 modules:
   dashboard.server:
@@ -1556,9 +1812,18 @@ modules:
   - mcp-docs.server._safe_doc_path
   - mcp-docs.server.index
   - mcp-docs.server.render_doc
+  mcp-gateway.gateway_render:
+  - mcp-gateway.gateway_render.render_analyze_text
+  - mcp-gateway.gateway_render.render_chat_content
+  - mcp-gateway.gateway_render.render_queued_text
+  - mcp-gateway.gateway_render.render_refactor_text
+  - mcp-gateway.gateway_render.render_system_text
+  - mcp-gateway.gateway_render.render_tool_text
+  - mcp-gateway.gateway_render.summary_text
   mcp-gateway.server:
   - mcp-gateway.server._ask_openrouter_github_qa
   - mcp-gateway.server._create_github_pr
+  - mcp-gateway.server._enrich_analysis_with_file_metrics
   - mcp-gateway.server._expect_json
   - mcp-gateway.server._extract_github_token_from_text
   - mcp-gateway.server._extract_org_from_text
@@ -1593,12 +1858,6 @@ modules:
   - mcp-gateway.server._normalize_repo_url
   - mcp-gateway.server._queue_workflow_job
   - mcp-gateway.server._redact_repo_url
-  - mcp-gateway.server._render_analyze_text
-  - mcp-gateway.server._render_chat_content
-  - mcp-gateway.server._render_queued_text
-  - mcp-gateway.server._render_refactor_text
-  - mcp-gateway.server._render_system_text
-  - mcp-gateway.server._render_tool_text
   - mcp-gateway.server._repo_owner
   - mcp-gateway.server._resolve_repo_id_template
   - mcp-gateway.server._run_github_qa
@@ -1609,7 +1868,6 @@ modules:
   - mcp-gateway.server._save_job
   - mcp-gateway.server._set_default_org_via_gh2mcp
   - mcp-gateway.server._strip_url_suffix
-  - mcp-gateway.server._summary_text
   - mcp-gateway.server._sync_github_token_via_gh2mcp
   - mcp-gateway.server._track_repo_usage
   - mcp-gateway.server._update_job
@@ -1623,20 +1881,34 @@ modules:
   - mcp-gateway.server.parse_prompt_context
   - mcp-gateway.server.parse_tool_intent
   - mcp-gateway.server.stream_job
+  mcp-skills.code_analysis:
+  - mcp-skills.code_analysis._should_skip_path
+  - mcp-skills.code_analysis.build_maintainability_recommendations
+  - mcp-skills.code_analysis.compute_repo_file_metrics
+  - mcp-skills.code_analysis.detect_repo_patterns
+  - mcp-skills.code_analysis.merge_recommendations
+  - mcp-skills.code_analysis.recommendations_payload
+  mcp-skills.mcp_parse:
+  - mcp-skills.mcp_parse.parse_tool_result
   mcp-skills.server:
+  - mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo
+  - mcp-skills.server.MCPSkillsServer._detect_code_patterns
+  - mcp-skills.server.MCPSkillsServer._recommend_refactoring
   - mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
-  - mcp-skills.server._collect_output_files
-  - mcp-skills.server._ensure_tool_installed
-  - mcp-skills.server._git_clone_or_update
-  - mcp-skills.server._inject_github_token
-  - mcp-skills.server._parse_tool_result
   - mcp-skills.server._run_tool_against_repo
-  - mcp-skills.server._truncate_text
   - mcp-skills.server.analyze_code_structure
   - mcp-skills.server.compute_metrics
   - mcp-skills.server.detect_patterns
   - mcp-skills.server.recommend_refactoring
+  - mcp-skills.server.redsl_refactor
   - mcp-skills.server.run_tool_endpoint
+  mcp-skills.tool_run:
+  - mcp-skills.tool_run._ensure_tool_installed
+  - mcp-skills.tool_run._git_clone_or_update
+  - mcp-skills.tool_run._inject_github_token
+  - mcp-skills.tool_run._truncate_text
+  - mcp-skills.tool_run.collect_output_files
+  - mcp-skills.tool_run.run_tool_against_repo
   mcp-webui.server:
   - mcp-webui.server._get_github_config
   - mcp-webui.server._github_page_ctx
@@ -1656,10 +1928,16 @@ modules:
   - semcod_mcp.analyze.run_analyze
   semcod_mcp.cli:
   - semcod_mcp.cli.analyze_cmd
+  - semcod_mcp.cli.deinit_cmd
   - semcod_mcp.cli.doctor_cmd
   - semcod_mcp.cli.init_cmd
   - semcod_mcp.cli.validate_cmd
+  semcod_mcp.deinit_cmd:
+  - semcod_mcp.deinit_cmd._deinit_mcp_json
+  - semcod_mcp.deinit_cmd.print_deinit_result
+  - semcod_mcp.deinit_cmd.run_deinit
   semcod_mcp.doctor:
+  - semcod_mcp.doctor.DoctorReport.add
   - semcod_mcp.doctor._http_ok
   - semcod_mcp.doctor.run_doctor
   semcod_mcp.init_cmd:
@@ -1667,10 +1945,17 @@ modules:
   - semcod_mcp.init_cmd.print_init_result
   - semcod_mcp.init_cmd.run_init
   semcod_mcp.merge:
+  - semcod_mcp.merge._continue_json_is_empty
+  - semcod_mcp.merge._mcp_json_is_empty
+  - semcod_mcp.merge.delete_file
   - semcod_mcp.merge.load_json
   - semcod_mcp.merge.merge_mcp_servers
   - semcod_mcp.merge.merge_vscode_settings
+  - semcod_mcp.merge.remove_continue_models
+  - semcod_mcp.merge.remove_mcp_server
+  - semcod_mcp.merge.remove_vscode_settings
   - semcod_mcp.merge.save_json
+  - semcod_mcp.merge.write_json_or_delete
   semcod_mcp.paths:
   - semcod_mcp.paths.default_api_key
   - semcod_mcp.paths.detect_stack_path
@@ -1678,6 +1963,7 @@ modules:
   - semcod_mcp.paths.gateway_url
   - semcod_mcp.paths.infer_repo_id
   semcod_mcp.templates:
+  - semcod_mcp.templates._manifest_compare_keys
   - semcod_mcp.templates.manifest_data
   - semcod_mcp.templates.mcp_server_block
   - semcod_mcp.templates.read_manifest
@@ -1880,6 +2166,7 @@ entry_points:
 - mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
 - mcp-skills.server.MCPSkillsServer._sync_repo_tool
 - mcp-skills.server.MCPSkillsServer.run
+- mcp-skills.server._run_tool_against_repo
 - mcp-skills.server.analyze_code_structure
 - mcp-skills.server.compute_metrics
 - mcp-skills.server.detect_patterns
@@ -1954,10 +2241,10 @@ entry_points:
 - scripts.test.test_semcod_fragment_transfer
 - scripts.test.test_structure
 - semcod_mcp.cli.analyze_cmd
+- semcod_mcp.cli.deinit_cmd
 - semcod_mcp.cli.doctor_cmd
 - semcod_mcp.cli.init_cmd
 - semcod_mcp.cli.main
 - semcod_mcp.cli.validate_cmd
-- semcod_mcp.doctor.DoctorReport.add
 - semcod_mcp.validate.ValidationReport.error
 - semcod_mcp.validate.ValidationReport.warn

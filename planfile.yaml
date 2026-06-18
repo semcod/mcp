@@ -927,19 +927,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-21e868b1
-    name: Fix string-concat issues
-    description: Resolve 9 string-concat issues in mcp-skills/server.py
-    task_type: prefactor
-    priority: high
-    estimate: 2d
-    files:
-    - mcp-skills/server.py
-    rule_id: string-concat
-    count: 9
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-6326f0c7
     name: Fix string-concat issues
     description: Resolve 2 string-concat issues in semcod_mcp/analyze.py
@@ -1145,6 +1132,188 @@ sprints:
     - tests/test_merge.py
     rule_id: smart-return-type
     count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-83a4eb40
+    name: Fix string-concat issues
+    description: Resolve 3 string-concat issues in mcp-skills/code_analysis.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-skills/code_analysis.py
+    rule_id: string-concat
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f6029415
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-skills/code_analysis.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-skills/code_analysis.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-cd362bb4
+    name: Fix magic-numbers issues
+    description: Resolve 17 magic-numbers issues in mcp-skills/code_analysis.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - mcp-skills/code_analysis.py
+    rule_id: magic-numbers
+    count: 17
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4efce036
+    name: Fix smart-return-type issues
+    description: Resolve 3 smart-return-type issues in mcp-skills/test_code_analysis.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-skills/test_code_analysis.py
+    rule_id: smart-return-type
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d33e19b4
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-skills/test_code_analysis.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-skills/test_code_analysis.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d4b1ca36
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-gateway/gateway_config.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/gateway_config.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b8f91c35
+    name: Fix magic-numbers issues
+    description: Resolve 2 magic-numbers issues in mcp-gateway/gateway_config.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/gateway_config.py
+    rule_id: magic-numbers
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-da3705cc
+    name: Fix string-concat issues
+    description: Resolve 4 string-concat issues in mcp-gateway/gateway_render.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - mcp-gateway/gateway_render.py
+    rule_id: string-concat
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-cf1891cc
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in mcp-gateway/gateway_render.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/gateway_render.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-64b1437b
+    name: Fix magic-numbers issues
+    description: Resolve 4 magic-numbers issues in mcp-gateway/gateway_render.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - mcp-gateway/gateway_render.py
+    rule_id: magic-numbers
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b824928c
+    name: Fix smart-return-type issues
+    description: Resolve 4 smart-return-type issues in mcp-gateway/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - mcp-gateway/server.py
+    rule_id: smart-return-type
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a8af84e6
+    name: Fix string-concat issues
+    description: Resolve 6 string-concat issues in mcp-gateway/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - mcp-gateway/server.py
+    rule_id: string-concat
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-2d0dea29
+    name: Fix unused-imports issues
+    description: Resolve 14 unused-imports issues in mcp-gateway/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - mcp-gateway/server.py
+    rule_id: unused-imports
+    count: 14
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4ee2ec52
+    name: Fix magic-numbers issues
+    description: Resolve 26 magic-numbers issues in mcp-gateway/server.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - mcp-gateway/server.py
+    rule_id: magic-numbers
+    count: 26
     model_hints:
       planning: balanced
       implementation: balanced

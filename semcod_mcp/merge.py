@@ -107,3 +107,110 @@ def merge_vscode_settings(
         else:
             messages.append(f"skipped: settings {key} (existing value kept)")
     return out, messages
+
+
+def _mcp_json_is_empty(data: dict[str, Any]) -> bool:
+    if not data:
+        return True
+    servers = data.get("mcpServers")
+    return servers == {} and set(data.keys()) <= {"mcpServers"}
+
+
+def _continue_json_is_empty(data: dict[str, Any]) -> bool:
+    if not data:
+        return True
+    models = data.get("models")
+    return models == [] and set(data.keys()) <= {"models"}
+
+
+def remove_mcp_server(
+    existing: dict[str, Any],
+    server_name: str,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    """Remove one MCP server entry. Returns None if the file can be deleted."""
+    out = copy.deepcopy(existing)
+    servers = out.get("mcpServers")
+    if not isinstance(servers, dict):
+        return out, [f"unchanged: mcpServers.{server_name} (invalid mcpServers)"]
+
+    messages: list[str] = []
+    if server_name not in servers:
+        messages.append(f"unchanged: mcpServers.{server_name} not present")
+        return out, messages
+
+    del servers[server_name]
+    messages.append(f"removed: mcpServers.{server_name}")
+    if _mcp_json_is_empty(out):
+        return None, messages
+    return out, messages
+
+
+def remove_continue_models(
+    existing: dict[str, Any],
+    titles: set[str] | frozenset[str],
+) -> tuple[dict[str, Any] | None, list[str]]:
+    out = copy.deepcopy(existing)
+    current = out.get("models")
+    if not isinstance(current, list):
+        return out, ["unchanged: continue models (invalid models list)"]
+
+    messages: list[str] = []
+    kept: list[Any] = []
+    for model in current:
+        if isinstance(model, dict) and model.get("title") in titles:
+            messages.append(f"removed: continue model {model['title']}")
+        else:
+            kept.append(model)
+
+    if not messages:
+        for title in titles:
+            messages.append(f"unchanged: continue model {title} not present")
+
+    out["models"] = kept
+    if _continue_json_is_empty(out):
+        return None, messages
+    return out, messages
+
+
+def remove_vscode_settings(
+    existing: dict[str, Any],
+    keys: set[str] | frozenset[str],
+) -> tuple[dict[str, Any] | None, list[str]]:
+    out = copy.deepcopy(existing)
+    messages: list[str] = []
+    for key in keys:
+        if key in out:
+            del out[key]
+            messages.append(f"removed: settings {key}")
+        else:
+            messages.append(f"unchanged: settings {key} not present")
+
+    if not out:
+        return None, messages
+    return out, messages
+
+
+def write_json_or_delete(
+    path: Path,
+    data: dict[str, Any] | None,
+    *,
+    dry_run: bool = False,
+) -> str:
+    if data is None:
+        if not path.is_file():
+            return "unchanged"
+        if dry_run:
+            return "would delete"
+        path.unlink()
+        return "deleted"
+    save_json(path, data, dry_run=dry_run)
+    return "would update" if dry_run else "updated"
+
+
+def delete_file(path: Path, *, dry_run: bool = False) -> str:
+    if not path.is_file():
+        return "skipped"
+    if dry_run:
+        return "would delete"
+    path.unlink()
+    return "deleted"

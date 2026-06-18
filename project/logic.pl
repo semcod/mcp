@@ -1,5 +1,5 @@
 % ── Project Metadata ─────────────────────────────────────
-project_metadata('mcp', '0.1.0', 'python').
+project_metadata('mcp', '0.1.1', 'python').
 
 % ── Project Files ────────────────────────────────────────
 project_file('app.doql.less', 262, 'less').
@@ -31,18 +31,33 @@ project_file('git2mcp/tests/test_git2mcp.py', 327, 'python').
 project_file('llm-agent/agent.py', 376, 'python').
 project_file('llm-agent/agent_git2mcp.py', 362, 'python').
 project_file('llm-agent/agent_standalone.py', 541, 'python').
+project_file('llm-agent/tests/test_llm_agent.py', 12, 'python').
 project_file('mcp-docs/server.py', 274, 'python').
+project_file('mcp-docs/tests/test_mcp_docs.py', 12, 'python').
 project_file('mcp-gateway/conftest.py', 5, 'python').
-project_file('mcp-gateway/server.py', 2909, 'python').
+project_file('mcp-gateway/gateway_config.py', 57, 'python').
+project_file('mcp-gateway/gateway_render.py', 503, 'python').
+project_file('mcp-gateway/server.py', 2469, 'python').
 project_file('mcp-gateway/test_gateway_token_command.py', 690, 'python').
 project_file('mcp-gateway/test_github_qa.py', 96, 'python').
 project_file('mcp-gateway/test_tool_intent.py', 189, 'python').
+project_file('mcp-gateway/tests/test_mcp_gateway.py', 12, 'python').
 project_file('mcp-gateway/worker.py', 19, 'python').
 project_file('mcp-git-proxy/server.py', 444, 'python').
+project_file('mcp-git-proxy/tests/test_mcp_git_proxy.py', 12, 'python').
+project_file('mcp-skills/code_analysis.py', 283, 'python').
 project_file('mcp-skills/conftest.py', 5, 'python').
-project_file('mcp-skills/server.py', 1483, 'python').
+project_file('mcp-skills/http_models.py', 61, 'python').
+project_file('mcp-skills/mcp_parse.py', 19, 'python').
+project_file('mcp-skills/redsl_runner.py', 72, 'python').
+project_file('mcp-skills/server.py', 692, 'python').
+project_file('mcp-skills/test_code_analysis.py', 75, 'python').
 project_file('mcp-skills/test_tools_run.py', 156, 'python').
+project_file('mcp-skills/tests/test_mcp_skills.py', 12, 'python').
+project_file('mcp-skills/tool_run.py', 389, 'python').
+project_file('mcp-skills/tools_registry.py', 151, 'python').
 project_file('mcp-webui/server.py', 622, 'python').
+project_file('mcp-webui/tests/test_mcp_webui.py', 12, 'python').
 project_file('project.sh', 47, 'shell').
 project_file('scripts/deploy.sh', 136, 'shell').
 project_file('scripts/generate_demo_repos.sh', 397, 'shell').
@@ -50,16 +65,18 @@ project_file('scripts/refactor-last-repo.sh', 313, 'shell').
 project_file('scripts/test.sh', 405, 'shell').
 project_file('semcod_mcp/__init__.py', 4, 'python').
 project_file('semcod_mcp/analyze.py', 106, 'python').
-project_file('semcod_mcp/cli.py', 109, 'python').
+project_file('semcod_mcp/cli.py', 133, 'python').
+project_file('semcod_mcp/deinit_cmd.py', 138, 'python').
 project_file('semcod_mcp/doctor.py', 117, 'python').
 project_file('semcod_mcp/init_cmd.py', 177, 'python').
-project_file('semcod_mcp/merge.py', 110, 'python').
+project_file('semcod_mcp/merge.py', 217, 'python').
 project_file('semcod_mcp/paths.py', 71, 'python').
-project_file('semcod_mcp/templates.py', 157, 'python').
+project_file('semcod_mcp/templates.py', 163, 'python').
 project_file('semcod_mcp/validate.py', 102, 'python').
 project_file('tests/__init__.py', 2, 'python').
+project_file('tests/test_deinit.py', 74, 'python').
 project_file('tests/test_init.py', 71, 'python').
-project_file('tests/test_merge.py', 33, 'python').
+project_file('tests/test_merge.py', 77, 'python').
 project_file('tree.sh', 2, 'shell').
 
 % ── Python Functions ─────────────────────────────────────
@@ -123,6 +140,8 @@ python_function('git2mcp/tests/test_git2mcp.py', 'test_git_proxy_e2e_push_to_bar
 python_function('llm-agent/agent.py', 'main', 0, 2, 10).
 python_function('llm-agent/agent_git2mcp.py', 'main', 0, 1, 12).
 python_function('llm-agent/agent_standalone.py', 'main', 0, 2, 13).
+python_function('llm-agent/tests/test_llm_agent.py', 'test_placeholder', 0, 2, 0).
+python_function('llm-agent/tests/test_llm_agent.py', 'test_import', 0, 1, 0).
 python_function('mcp-docs/server.py', '_markdown_to_html', 1, 1, 1).
 python_function('mcp-docs/server.py', '_page', 2, 1, 1).
 python_function('mcp-docs/server.py', '_safe_doc_path', 1, 4, 6).
@@ -130,6 +149,21 @@ python_function('mcp-docs/server.py', 'health', 0, 1, 1).
 python_function('mcp-docs/server.py', 'list_docs', 0, 3, 9).
 python_function('mcp-docs/server.py', 'index', 0, 4, 10).
 python_function('mcp-docs/server.py', 'render_doc', 1, 1, 6).
+python_function('mcp-docs/tests/test_mcp_docs.py', 'test_placeholder', 0, 2, 0).
+python_function('mcp-docs/tests/test_mcp_docs.py', 'test_import', 0, 1, 0).
+python_function('mcp-gateway/gateway_render.py', 'summary_text', 2, 9, 3).
+python_function('mcp-gateway/gateway_render.py', 'render_repo_selection_text', 1, 4, 2).
+python_function('mcp-gateway/gateway_render.py', 'render_system_text', 1, 27, 6).
+python_function('mcp-gateway/gateway_render.py', 'render_analyze_text', 1, 14, 6).
+python_function('mcp-gateway/gateway_render.py', 'render_queued_text', 1, 6, 3).
+python_function('mcp-gateway/gateway_render.py', 'render_refactor_text', 1, 17, 9).
+python_function('mcp-gateway/gateway_render.py', 'file_fence_lang', 1, 4, 4).
+python_function('mcp-gateway/gateway_render.py', 'is_markdown_path', 1, 1, 2).
+python_function('mcp-gateway/gateway_render.py', 'render_tool_text', 1, 40, 11).
+python_function('mcp-gateway/gateway_render.py', 'render_github_qa_text', 1, 8, 4).
+python_function('mcp-gateway/gateway_render.py', 'render_chat_content', 1, 13, 11).
+python_function('mcp-gateway/gateway_render.py', 'build_commit_changes', 2, 1, 1).
+python_function('mcp-gateway/gateway_render.py', 'render_tools_list_text', 1, 11, 4).
 python_function('mcp-gateway/server.py', 'load_tenants', 0, 5, 5).
 python_function('mcp-gateway/server.py', '_get_redis_client', 0, 4, 1).
 python_function('mcp-gateway/server.py', '_track_repo_usage', 3, 3, 7).
@@ -176,27 +210,15 @@ python_function('mcp-gateway/server.py', '_github_repo_from_url', 1, 9, 9).
 python_function('mcp-gateway/server.py', '_default_pr_title', 2, 4, 4).
 python_function('mcp-gateway/server.py', '_default_pr_body', 3, 1, 1).
 python_function('mcp-gateway/server.py', '_create_github_pr', 8, 3, 5).
-python_function('mcp-gateway/server.py', '_summary_text', 2, 9, 3).
-python_function('mcp-gateway/server.py', '_render_repo_selection_text', 1, 4, 2).
-python_function('mcp-gateway/server.py', '_render_system_text', 1, 27, 6).
-python_function('mcp-gateway/server.py', '_render_analyze_text', 1, 10, 6).
-python_function('mcp-gateway/server.py', '_render_queued_text', 1, 6, 3).
-python_function('mcp-gateway/server.py', '_render_refactor_text', 1, 17, 9).
-python_function('mcp-gateway/server.py', '_file_fence_lang', 1, 4, 4).
-python_function('mcp-gateway/server.py', '_is_markdown_path', 1, 1, 2).
-python_function('mcp-gateway/server.py', '_render_tool_text', 1, 40, 11).
-python_function('mcp-gateway/server.py', '_render_github_qa_text', 1, 8, 4).
-python_function('mcp-gateway/server.py', '_render_chat_content', 1, 13, 11).
-python_function('mcp-gateway/server.py', '_build_commit_changes', 2, 1, 1).
 python_function('mcp-gateway/server.py', '_expect_json', 2, 3, 3).
 python_function('mcp-gateway/server.py', '_is_tools_list_command', 1, 6, 3).
 python_function('mcp-gateway/server.py', '_fetch_tools_list', 0, 2, 3).
-python_function('mcp-gateway/server.py', '_render_tools_list_text', 1, 13, 4).
 python_function('mcp-gateway/server.py', '_run_skills_tool', 6, 7, 5).
 python_function('mcp-gateway/server.py', '_ask_openrouter_github_qa', 2, 12, 8).
 python_function('mcp-gateway/server.py', '_repo_owner', 1, 4, 2).
 python_function('mcp-gateway/server.py', '_run_github_qa', 3, 9, 11).
-python_function('mcp-gateway/server.py', '_run_skills_analysis', 5, 4, 4).
+python_function('mcp-gateway/server.py', '_enrich_analysis_with_file_metrics', 3, 13, 5).
+python_function('mcp-gateway/server.py', '_run_skills_analysis', 5, 4, 5).
 python_function('mcp-gateway/server.py', 'find_tenant_by_key', 1, 3, 2).
 python_function('mcp-gateway/server.py', 'authenticate', 1, 4, 7).
 python_function('mcp-gateway/server.py', 'audit', 1, 1, 5).
@@ -268,6 +290,8 @@ python_function('mcp-gateway/test_tool_intent.py', 'test_render_tool_text_includ
 python_function('mcp-gateway/test_tool_intent.py', 'test_render_tool_text_handles_failure', 0, 4, 1).
 python_function('mcp-gateway/test_tool_intent.py', 'test_render_chat_content_dispatches_tool_skill', 0, 3, 1).
 python_function('mcp-gateway/test_tool_intent.py', 'test_force_tool_skill_with_no_intent_returns_helpful_error', 0, 3, 2).
+python_function('mcp-gateway/tests/test_mcp_gateway.py', 'test_placeholder', 0, 2, 0).
+python_function('mcp-gateway/tests/test_mcp_gateway.py', 'test_import', 0, 1, 0).
 python_function('mcp-gateway/worker.py', 'main', 0, 2, 4).
 python_function('mcp-git-proxy/server.py', 'health', 0, 1, 1).
 python_function('mcp-git-proxy/server.py', 'list_repos', 0, 1, 2).
@@ -291,25 +315,30 @@ python_function('mcp-git-proxy/server.py', 'checkpoint_restore', 2, 3, 4).
 python_function('mcp-git-proxy/server.py', 'run_tests', 2, 2, 6).
 python_function('mcp-git-proxy/server.py', 'github_create_repo', 1, 9, 15).
 python_function('mcp-git-proxy/server.py', 'sync_pull', 2, 7, 8).
-python_function('mcp-skills/server.py', '_truncate_text', 2, 3, 3).
-python_function('mcp-skills/server.py', '_ensure_tool_installed', 4, 10, 6).
-python_function('mcp-skills/server.py', '_inject_github_token', 1, 5, 2).
-python_function('mcp-skills/server.py', '_git_clone_or_update', 3, 10, 12).
-python_function('mcp-skills/server.py', '_derive_repo_id_from_url', 1, 9, 5).
-python_function('mcp-skills/server.py', '_collect_output_files', 2, 9, 11).
-python_function('mcp-skills/server.py', '_run_tool_against_repo', 1, 37, 30).
-python_function('mcp-skills/server.py', '_parse_tool_result', 1, 3, 1).
-python_function('mcp-skills/server.py', '_run_redsl_refactor', 3, 14, 9).
+python_function('mcp-git-proxy/tests/test_mcp_git_proxy.py', 'test_placeholder', 0, 2, 0).
+python_function('mcp-git-proxy/tests/test_mcp_git_proxy.py', 'test_import', 0, 1, 0).
+python_function('mcp-skills/code_analysis.py', '_should_skip_path', 1, 2, 1).
+python_function('mcp-skills/code_analysis.py', 'compute_repo_file_metrics', 2, 15, 14).
+python_function('mcp-skills/code_analysis.py', 'detect_repo_patterns', 1, 10, 14).
+python_function('mcp-skills/code_analysis.py', 'build_maintainability_recommendations', 1, 24, 7).
+python_function('mcp-skills/code_analysis.py', 'merge_recommendations', 2, 9, 6).
+python_function('mcp-skills/code_analysis.py', 'recommendations_payload', 3, 5, 3).
+python_function('mcp-skills/mcp_parse.py', 'parse_tool_result', 1, 3, 1).
+python_function('mcp-skills/redsl_runner.py', 'run_redsl_refactor', 3, 14, 9).
 python_function('mcp-skills/server.py', 'health', 0, 1, 2).
 python_function('mcp-skills/server.py', 'sync_repo', 1, 2, 4).
 python_function('mcp-skills/server.py', 'analyze_code_structure', 1, 2, 6).
 python_function('mcp-skills/server.py', 'compute_metrics', 1, 2, 6).
 python_function('mcp-skills/server.py', 'detect_patterns', 1, 2, 6).
 python_function('mcp-skills/server.py', 'recommend_refactoring', 1, 2, 6).
-python_function('mcp-skills/server.py', 'redsl_refactor', 1, 13, 13).
+python_function('mcp-skills/server.py', 'redsl_refactor', 1, 9, 16).
 python_function('mcp-skills/server.py', 'list_tools_endpoint', 0, 2, 3).
 python_function('mcp-skills/server.py', 'run_tool_endpoint', 1, 1, 2).
 python_function('mcp-skills/server.py', 'main', 0, 2, 5).
+python_function('mcp-skills/server.py', '_run_tool_against_repo', 1, 1, 1).
+python_function('mcp-skills/test_code_analysis.py', 'test_compute_repo_file_metrics_returns_largest_files', 1, 5, 3).
+python_function('mcp-skills/test_code_analysis.py', 'test_build_maintainability_recommendations_targets_large_files', 1, 5, 2).
+python_function('mcp-skills/test_code_analysis.py', 'test_merge_recommendations_prefers_concrete_targets', 0, 3, 2).
 python_function('mcp-skills/test_tools_run.py', 'server_module', 1, 2, 9).
 python_function('mcp-skills/test_tools_run.py', 'test_derive_repo_id_from_url', 1, 5, 1).
 python_function('mcp-skills/test_tools_run.py', 'test_supported_tools_registry_has_expected_entries', 1, 2, 2).
@@ -317,6 +346,15 @@ python_function('mcp-skills/test_tools_run.py', 'test_collect_output_files_reads
 python_function('mcp-skills/test_tools_run.py', 'test_run_tool_against_repo_unsupported', 1, 3, 3).
 python_function('mcp-skills/test_tools_run.py', 'test_run_tool_against_repo_happy_path', 3, 9, 9).
 python_function('mcp-skills/test_tools_run.py', 'test_run_tool_against_repo_install_fails', 3, 4, 7).
+python_function('mcp-skills/tests/test_mcp_skills.py', 'test_placeholder', 0, 2, 0).
+python_function('mcp-skills/tests/test_mcp_skills.py', 'test_import', 0, 1, 0).
+python_function('mcp-skills/tool_run.py', '_truncate_text', 2, 3, 3).
+python_function('mcp-skills/tool_run.py', '_ensure_tool_installed', 4, 10, 6).
+python_function('mcp-skills/tool_run.py', '_inject_github_token', 1, 5, 2).
+python_function('mcp-skills/tool_run.py', '_git_clone_or_update', 3, 10, 12).
+python_function('mcp-skills/tool_run.py', 'derive_repo_id_from_url', 1, 9, 5).
+python_function('mcp-skills/tool_run.py', 'collect_output_files', 2, 9, 11).
+python_function('mcp-skills/tool_run.py', 'run_tool_against_repo', 2, 37, 30).
 python_function('mcp-webui/server.py', 'gateway_headers', 0, 1, 0).
 python_function('mcp-webui/server.py', 'index', 1, 3, 6).
 python_function('mcp-webui/server.py', 'repos_page', 1, 2, 4).
@@ -336,12 +374,18 @@ python_function('mcp-webui/server.py', '_normalize_github_url', 1, 6, 4).
 python_function('mcp-webui/server.py', 'github_clone', 4, 6, 12).
 python_function('mcp-webui/server.py', 'github_create_repo', 5, 4, 9).
 python_function('mcp-webui/server.py', 'github_sync', 3, 4, 8).
+python_function('mcp-webui/tests/test_mcp_webui.py', 'test_placeholder', 0, 2, 0).
+python_function('mcp-webui/tests/test_mcp_webui.py', 'test_import', 0, 1, 0).
 python_function('semcod_mcp/analyze.py', 'run_analyze', 1, 12, 13).
 python_function('semcod_mcp/cli.py', 'main', 0, 1, 2).
 python_function('semcod_mcp/cli.py', 'init_cmd', 6, 4, 9).
+python_function('semcod_mcp/cli.py', 'deinit_cmd', 4, 2, 7).
 python_function('semcod_mcp/cli.py', 'doctor_cmd', 1, 6, 10).
 python_function('semcod_mcp/cli.py', 'validate_cmd', 1, 4, 7).
 python_function('semcod_mcp/cli.py', 'analyze_cmd', 3, 4, 7).
+python_function('semcod_mcp/deinit_cmd.py', '_deinit_mcp_json', 1, 8, 7).
+python_function('semcod_mcp/deinit_cmd.py', 'run_deinit', 1, 15, 15).
+python_function('semcod_mcp/deinit_cmd.py', 'print_deinit_result', 1, 5, 1).
 python_function('semcod_mcp/doctor.py', '_http_ok', 3, 4, 2).
 python_function('semcod_mcp/doctor.py', 'run_doctor', 1, 11, 19).
 python_function('semcod_mcp/init_cmd.py', '_touch_text', 2, 5, 4).
@@ -353,6 +397,13 @@ python_function('semcod_mcp/merge.py', 'save_json', 2, 2, 3).
 python_function('semcod_mcp/merge.py', 'merge_mcp_servers', 3, 5, 5).
 python_function('semcod_mcp/merge.py', 'merge_continue_models', 2, 10, 7).
 python_function('semcod_mcp/merge.py', 'merge_vscode_settings', 2, 4, 3).
+python_function('semcod_mcp/merge.py', '_mcp_json_is_empty', 1, 3, 3).
+python_function('semcod_mcp/merge.py', '_continue_json_is_empty', 1, 3, 3).
+python_function('semcod_mcp/merge.py', 'remove_mcp_server', 2, 4, 5).
+python_function('semcod_mcp/merge.py', 'remove_continue_models', 2, 8, 5).
+python_function('semcod_mcp/merge.py', 'remove_vscode_settings', 2, 4, 2).
+python_function('semcod_mcp/merge.py', 'write_json_or_delete', 2, 5, 3).
+python_function('semcod_mcp/merge.py', 'delete_file', 1, 3, 2).
 python_function('semcod_mcp/paths.py', 'expand', 1, 1, 3).
 python_function('semcod_mcp/paths.py', 'detect_stack_path', 1, 10, 5).
 python_function('semcod_mcp/paths.py', 'infer_repo_id', 1, 5, 5).
@@ -368,6 +419,11 @@ python_function('semcod_mcp/templates.py', 'write_manifest', 2, 8, 8).
 python_function('semcod_mcp/templates.py', 'read_manifest', 1, 3, 3).
 python_function('semcod_mcp/validate.py', '_validate_mcp_json', 3, 13, 8).
 python_function('semcod_mcp/validate.py', 'run_validate', 1, 13, 13).
+python_function('tests/test_deinit.py', '_make_stack', 1, 1, 2).
+python_function('tests/test_deinit.py', 'test_deinit_dry_run_leaves_files', 1, 5, 7).
+python_function('tests/test_deinit.py', 'test_deinit_removes_init_artifacts', 1, 6, 5).
+python_function('tests/test_deinit.py', 'test_deinit_preserves_other_mcp_servers', 1, 2, 8).
+python_function('tests/test_deinit.py', 'test_deinit_idempotent_second_run', 1, 3, 4).
 python_function('tests/test_init.py', 'test_init_dry_run_writes_nothing', 1, 4, 8).
 python_function('tests/test_init.py', 'test_init_merges_cursor_mcp', 1, 4, 8).
 python_function('tests/test_init.py', 'test_init_idempotent_second_run_no_duplicates', 1, 8, 9).
@@ -375,6 +431,10 @@ python_function('tests/test_merge.py', 'test_merge_mcp_servers_adds_without_touc
 python_function('tests/test_merge.py', 'test_merge_mcp_servers_skips_when_different_without_force', 0, 3, 2).
 python_function('tests/test_merge.py', 'test_merge_continue_models_by_title', 0, 3, 3).
 python_function('tests/test_merge.py', 'test_merge_vscode_settings_non_destructive', 0, 3, 1).
+python_function('tests/test_merge.py', 'test_remove_mcp_server_preserves_other_servers', 0, 5, 2).
+python_function('tests/test_merge.py', 'test_remove_mcp_server_deletes_empty_doc', 0, 3, 2).
+python_function('tests/test_merge.py', 'test_remove_continue_models_by_title', 0, 5, 3).
+python_function('tests/test_merge.py', 'test_remove_vscode_settings_keeps_unrelated_keys', 0, 3, 2).
 
 % ── Python Classes ───────────────────────────────────────
 python_class('dashboard/server.py', 'DashboardHandler').
@@ -560,6 +620,13 @@ python_class('mcp-git-proxy/server.py', 'CheckpointCreateRequest').
 python_class('mcp-git-proxy/server.py', 'CheckpointRestoreRequest').
 python_class('mcp-git-proxy/server.py', 'SyncPullRequest').
 python_class('mcp-git-proxy/server.py', 'CreateGithubRepoRequest').
+python_class('mcp-skills/http_models.py', 'SyncRepoRequest').
+python_class('mcp-skills/http_models.py', 'AnalyzeStructureRequest').
+python_class('mcp-skills/http_models.py', 'RepoMetricsRequest').
+python_class('mcp-skills/http_models.py', 'PatternDetectionRequest').
+python_class('mcp-skills/http_models.py', 'RecommendRefactoringRequest').
+python_class('mcp-skills/http_models.py', 'RedslRefactorRequest').
+python_class('mcp-skills/http_models.py', 'ToolRunRequest').
 python_class('mcp-skills/server.py', 'MCPSkillsServer').
 python_method('MCPSkillsServer', '__init__', 1, 2, 5).
 python_method('MCPSkillsServer', '_sync_from_git_proxy', 2, 15, 23).
@@ -567,19 +634,14 @@ python_method('MCPSkillsServer', '_setup_handlers', 0, 1, 2).
 python_method('MCPSkillsServer', '_handle_list_tools', 0, 1, 3).
 python_method('MCPSkillsServer', '_handle_call_tool', 2, 7, 8).
 python_method('MCPSkillsServer', '_analyze_code_structure', 1, 13, 14).
-python_method('MCPSkillsServer', '_compute_metrics_for_repo', 1, 15, 18).
-python_method('MCPSkillsServer', '_detect_code_patterns', 1, 14, 17).
+python_method('MCPSkillsServer', '_compute_metrics_for_repo', 1, 3, 8).
+python_method('MCPSkillsServer', '_detect_code_patterns', 1, 2, 7).
 python_method('MCPSkillsServer', '_sync_repo_tool', 1, 2, 5).
-python_method('MCPSkillsServer', '_recommend_refactoring', 1, 15, 11).
+python_method('MCPSkillsServer', '_recommend_refactoring', 1, 2, 10).
 python_method('MCPSkillsServer', 'run', 0, 1, 5).
-python_class('mcp-skills/server.py', 'SyncRepoRequest').
-python_class('mcp-skills/server.py', 'AnalyzeStructureRequest').
-python_class('mcp-skills/server.py', 'RepoMetricsRequest').
-python_class('mcp-skills/server.py', 'PatternDetectionRequest').
-python_class('mcp-skills/server.py', 'RecommendRefactoringRequest').
-python_class('mcp-skills/server.py', 'RedslRefactorRequest').
-python_class('mcp-skills/server.py', 'ToolRunRequest').
 python_class('semcod_mcp/analyze.py', 'AnalyzeReport').
+python_class('semcod_mcp/deinit_cmd.py', 'DeinitResult').
+python_method('DeinitResult', 'changed', 0, 6, 2).
 python_class('semcod_mcp/doctor.py', 'Check').
 python_class('semcod_mcp/doctor.py', 'DoctorReport').
 python_method('DoctorReport', 'healthy', 0, 3, 2).

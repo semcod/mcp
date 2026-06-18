@@ -93,3 +93,9 @@
 - `mcp-skills` i `mcp-git-proxy` nieosiągalne publicznie.
 - Iteracje przed commit-em używają `patch/apply` + `worktree`, historia Git czysta.
 - `pytest` + `scripts/test.sh` pokrywają nowe endpointy i workflow.
+
+## Podział kodu (gateway / skills)
+
+Szczegółowy plan modułów dla `mcp-gateway/server.py` (~2900 linii): **[docs/GATEWAY_MODULE_SPLIT.md](docs/GATEWAY_MODULE_SPLIT.md)**.
+
+Wspólne metryki analizy: **`mcp-skills/code_analysis.py`** (używane przez `/analyze/*`, `/refactor/redsl`, enrich w gateway).

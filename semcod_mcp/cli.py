@@ -11,6 +11,7 @@ from rich.table import Table
 from semcod_mcp import __version__
 from semcod_mcp.analyze import run_analyze
 from semcod_mcp.doctor import run_doctor
+from semcod_mcp.deinit_cmd import print_deinit_result, run_deinit
 from semcod_mcp.init_cmd import print_init_result, run_init
 from semcod_mcp.paths import detect_stack_path
 from semcod_mcp.validate import run_validate
@@ -21,7 +22,7 @@ console = Console()
 @click.group()
 @click.version_option(__version__, prog_name="semcod-mcp")
 def main() -> None:
-    """semcod MCP — init IDE configs, doctor, validate, analyze."""
+    """semcod MCP — init/deinit IDE configs, doctor, validate, analyze."""
 
 
 @main.command("init")
@@ -53,6 +54,29 @@ def init_cmd(
         skip_continue=skip_continue,
     )
     print_init_result(result)
+    if dry_run:
+        console.print("[yellow]Dry run — no files written.[/yellow]")
+
+
+@main.command("deinit")
+@click.argument("path", type=click.Path(path_type=Path), default=".")
+@click.option("--global", "global_config", is_flag=True, help="Also remove from ~/.cursor and Claude Desktop")
+@click.option("--dry-run", is_flag=True, help="Show actions without writing files")
+@click.option("--skip-continue", is_flag=True, help="Skip .continue/config.json")
+def deinit_cmd(
+    path: Path,
+    global_config: bool,
+    dry_run: bool,
+    skip_continue: bool,
+) -> None:
+    """Remove semcod-mcp IDE integration from PATH (preserves other MCP servers)."""
+    result = run_deinit(
+        path,
+        global_config=global_config,
+        dry_run=dry_run,
+        skip_continue=skip_continue,
+    )
+    print_deinit_result(result)
     if dry_run:
         console.print("[yellow]Dry run — no files written.[/yellow]")
 

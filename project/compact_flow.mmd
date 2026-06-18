@@ -7,42 +7,60 @@ flowchart TD
     llm_agent__agent["llm-agent.agent<br/>13 funcs"]
     llm_agent__agent_git2mcp["llm-agent.agent_git2mcp<br/>13 funcs"]
     llm_agent__agent_standalone["llm-agent.agent_standalone<br/>14 funcs"]
-    mcp_gateway__server["mcp-gateway.server<br/>86 funcs"]
-    mcp_skills__server["mcp-skills.server<br/>30 funcs"]
+    mcp_gateway__gateway_render["mcp-gateway.gateway_render<br/>13 funcs"]
+    mcp_gateway__server["mcp-gateway.server<br/>74 funcs"]
+    mcp_skills__code_analysis["mcp-skills.code_analysis<br/>6 funcs"]
+    mcp_skills__mcp_parse["mcp-skills.mcp_parse<br/>1 funcs"]
+    mcp_skills__redsl_runner["mcp-skills.redsl_runner<br/>1 funcs"]
+    mcp_skills__server["mcp-skills.server<br/>22 funcs"]
+    mcp_skills__tool_run["mcp-skills.tool_run<br/>7 funcs"]
     scripts__test["scripts.test<br/>14 funcs"]
     semcod_mcp__analyze["semcod_mcp.analyze<br/>1 funcs"]
-    semcod_mcp__cli["semcod_mcp.cli<br/>5 funcs"]
+    semcod_mcp__cli["semcod_mcp.cli<br/>6 funcs"]
+    semcod_mcp__deinit_cmd["semcod_mcp.deinit_cmd<br/>3 funcs"]
     semcod_mcp__doctor["semcod_mcp.doctor<br/>3 funcs"]
     semcod_mcp__init_cmd["semcod_mcp.init_cmd<br/>4 funcs"]
-    semcod_mcp__merge["semcod_mcp.merge<br/>5 funcs"]
+    semcod_mcp__merge["semcod_mcp.merge<br/>12 funcs"]
     semcod_mcp__paths["semcod_mcp.paths<br/>5 funcs"]
-    semcod_mcp__templates["semcod_mcp.templates<br/>7 funcs"]
+    semcod_mcp__templates["semcod_mcp.templates<br/>8 funcs"]
     semcod_mcp__validate["semcod_mcp.validate<br/>4 funcs"]
     env2mcp__env2mcp ==>|34| scripts__test
+    semcod_mcp__deinit_cmd ==>|11| semcod_mcp__merge
     semcod_mcp__init_cmd ==>|9| semcod_mcp__merge
-    git2mcp__examples ==>|8| scripts__test
     dashboard__server ==>|8| scripts__test
-    mcp_gateway__server ==>|8| env2mcp__env2mcp
+    mcp_skills__server ==>|8| mcp_skills__code_analysis
+    git2mcp__examples ==>|8| scripts__test
+    mcp_gateway__server ==>|7| env2mcp__env2mcp
+    mcp_gateway__server ==>|6| mcp_gateway__gateway_render
+    mcp_skills__code_analysis ==>|6| semcod_mcp__doctor
     semcod_mcp__init_cmd ==>|6| semcod_mcp__templates
     llm_agent__agent_standalone ==>|5| scripts__test
     gh2mcp__gh2mcp ==>|4| scripts__test
-    semcod_mcp__templates ==>|4| semcod_mcp__paths
-    semcod_mcp__init_cmd ==>|4| semcod_mcp__paths
     llm_agent__agent ==>|4| scripts__test
+    mcp_skills__server ==>|4| mcp_skills__mcp_parse
+    semcod_mcp__init_cmd ==>|4| semcod_mcp__paths
+    semcod_mcp__templates ==>|4| semcod_mcp__paths
     semcod_mcp__analyze -->|3| semcod_mcp__paths
     semcod_mcp__doctor -->|3| semcod_mcp__paths
+    mcp_skills__code_analysis -->|2| env2mcp__env2mcp
+    mcp_skills__server -->|2| mcp_skills__tool_run
     semcod_mcp__cli -->|2| semcod_mcp__init_cmd
+    semcod_mcp__cli -->|2| semcod_mcp__deinit_cmd
     semcod_mcp__validate -->|2| semcod_mcp__merge
-    mcp_skills__server -->|2| env2mcp__env2mcp
+    semcod_mcp__merge -->|2| env2mcp__env2mcp
+    gh2mcp__gh2mcp -->|1| env2mcp__env2mcp
+    mcp_gateway__gateway_render -->|1| env2mcp__env2mcp
+    llm_agent__agent_git2mcp -->|1| scripts__test
+    mcp_skills__tool_run -->|1| env2mcp__env2mcp
+    mcp_skills__server -->|1| env2mcp__env2mcp
+    mcp_skills__server -->|1| mcp_skills__redsl_runner
     semcod_mcp__cli -->|1| semcod_mcp__paths
     semcod_mcp__cli -->|1| semcod_mcp__doctor
     semcod_mcp__cli -->|1| semcod_mcp__validate
     semcod_mcp__cli -->|1| semcod_mcp__analyze
     semcod_mcp__analyze -->|1| semcod_mcp__templates
-    semcod_mcp__doctor -->|1| semcod_mcp__templates
-    semcod_mcp__doctor -->|1| semcod_mcp__merge
-    gh2mcp__gh2mcp -->|1| env2mcp__env2mcp
     semcod_mcp__validate -->|1| semcod_mcp__paths
     semcod_mcp__validate -->|1| semcod_mcp__templates
+    semcod_mcp__doctor -->|1| semcod_mcp__templates
+    semcod_mcp__doctor -->|1| semcod_mcp__merge
     semcod_mcp__templates -->|1| env2mcp__env2mcp
-    llm_agent__agent_git2mcp -->|1| scripts__test

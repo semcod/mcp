@@ -6,7 +6,7 @@ Ten dokument odpowiada na trzy pytania:
 2. Czy można go wykorzystać przy rozwijaniu innych projektów?
 3. Jak podpiąć Cursor, VS Code, Devin i inne narzędzia (w tym A2A), żeby poprawiać jakość kodu?
 
-Powiązane: [`USAGE.md`](USAGE.md), [`PRODUCT.md`](PRODUCT.md), [`CHAT_PLAYBOOKS.md`](CHAT_PLAYBOOKS.md).
+Powiązane: [`USAGE.md`](USAGE.md), [`PRODUCT.md`](PRODUCT.md), [`CHAT_PLAYBOOKS.md`](CHAT_PLAYBOOKS.md), [`SEMCOD_MCP_CLI.md`](SEMCOD_MCP_CLI.md), [`GATEWAY_MODULE_SPLIT.md`](GATEWAY_MODULE_SPLIT.md), [spis dokumentacji](README.md).
 
 ---
 
@@ -16,13 +16,47 @@ Powiązane: [`USAGE.md`](USAGE.md), [`PRODUCT.md`](PRODUCT.md), [`CHAT_PLAYBOOKS
 |---------|--------|-------|
 | **Docker stack** (`make start`) | ✅ Gotowy | `mcp-git-proxy`, `mcp-skills`, `mcp-gateway`, `mcp-webui`, `mcp-docs`, `gh2mcp-agent` |
 | **Testy** (`scripts/test.sh`, `pytest`) | ✅ Przechodzą | E2E git-proxy, fragment-sync, push do bare remote |
-| **Analiza kodu** | ✅ Działa | MCP tools + CLI semcod (`code2llm`, `sumd`, `pyqual`, …) |
+| **Analiza kodu** | ✅ Działa | `largest_files`, konkretne targety w rekomendacjach — patrz [`code_analysis.py`](../mcp-skills/code_analysis.py), [`USAGE.md`](USAGE.md#jak-czytać-wynik-w-czacie) |
 | **Plan refaktoryzacji** | ✅ Działa | `.mcp/refactor-plan.json`, `.mcp/refactor-summary.md` |
 | **Automatyczny refactor kodu** | ⚠️ Częściowy | Gateway commituje **artefakty planu**, nie pełne patche modułów (patrz `USAGE.md`) |
 | **Plug-and-play bez Dockera** | ❌ Nie | Wymaga stacku lub ręcznej konfiguracji MCP stdio |
-| **Integracja IDE out-of-the-box** | ⚠️ Ręczna | Brak auto-instalera — konfiguracja poniżej (~5 min) |
+| **Integracja IDE out-of-the-box** | ⚠️ Ręczna | [`docs/CURSOR_MCP_WORKFLOW.md`](CURSOR_MCP_WORKFLOW.md) — init + Reload + workflow 3-fazowy |
 
 **Wniosek:** projekt jest **poprawnie zbudowany jako platforma dev/QA** do analizy, planowania i kontrolowanego commitowania przez Git API. Nadaje się do rozwoju innych repozytoriów **jako warstwa jakości**, nie jako „magiczny autopilot” zamieniający cały kod bez nadzoru.
+
+---
+
+## Rejestry paczek, skilli i integracji IDE
+
+Nie ma jednego pliku „rejestru wszystkiego” — są **warstwy**:
+
+| Warstwa | Źródło prawdy | Jak sprawdzić runtime |
+|---------|---------------|------------------------|
+| **Paczki CLI `semcod/*`** | [`mcp-skills/server.py`](../mcp-skills/server.py) → `SUPPORTED_TOOLS` | `GET http://mcp-skills:8080/tools/list` (w kontenerze) |
+| **Routing NLP w gateway** | [`mcp-gateway/server.py`](../mcp-gateway/server.py) → `SUPPORTED_TOOL_NAMES` | model `mcp-skills/tool` w chacie |
+| **Skilli OpenAI-compat** | `SKILL_MODELS` w gateway | `GET /v1/models` |
+| **Narzędzia MCP (stdio)** | `mcp-skills/server.py` — `analyze_code_structure`, `compute_metrics_for_repo`, … | `.cursor/mcp.json` → `semcod-mcp-skills` |
+| **Integracja per-projekt** | `.semcod-mcp.yaml` w repo | pole `ides`, `repo_id`, `stack_path` |
+| **A2A** | brak natywnego serwera | mapowanie w [§8 Integracja A2A](#8-integracja-a2a-agent-to-agent) |
+
+Pełny opis i komendy audytu: [spis dokumentacji](README.md#rejestry-runtime-gdy-stack-działa).
+
+### Który projekt ma które IDE?
+
+```bash
+# Manifesty w drzewie katalogów
+find ~/github/semcod -name '.semcod-mcp.yaml' -exec sh -c '
+  echo "=== $(dirname "$1") ==="
+  grep -E "^(repo_id|ides):" "$1"
+' _ {} \;
+
+# Walidacja pojedynczego repo
+cd /path/to/repo && semcod-mcp validate && semcod-mcp doctor
+```
+
+Pole `ides` w manifeście (po `semcod-mcp init`): `cursor`, `vscode`, `windsurf`, `continue`, `vscode-settings`.
+
+**Nie trzeba** uruchamiać `init` przy każdym otwarciu projektu — wystarczy **raz na repo** (idempotentny). Jeden `init` konfiguruje wszystkie IDE naraz. Po pierwszym `init` w Cursor: **Reload Window**.
 
 ---
 
@@ -379,6 +413,33 @@ semcod-mcp analyze
 
 `init` robi **merge** — nie usuwa istniejących `mcpServers` ani ustawień VS Code. Drugie uruchomienie bez `--force` **nie zmienia plików**.
 
+### Hurtowo (folder lub organizacja lokalna)
+
+Brak jeszcze `semcod-mcp init-all` — użyj pętli (plan: `make setup-ide` w roadmap):
+
+```bash
+STACK=~/github/semcod/mcp
+
+# Wszystkie git repos w folderze (np. tellmesh, semcod)
+for d in /home/tom/github/tellmesh/*/; do
+  [ -d "$d/.git" ] || continue
+  semcod-mcp init "$d" --stack-path "$STACK"
+done
+
+# Audyt bez zmian
+for d in /home/tom/github/tellmesh/*/; do
+  [ -f "$d/.semcod-mcp.yaml" ] && semcod-mcp validate "$d" || echo "SKIP: $d"
+done
+```
+
+Opcja globalna (jeden stack, wiele projektów bez plików w repo):
+
+```bash
+semcod-mcp init --global --stack-path ~/github/semcod/mcp
+```
+
+Patrz też: [SEMCOD_MCP_CLI.md](SEMCOD_MCP_CLI.md), [Rejestry § powyżej](#rejestry-paczek-skilli-i-integracji-ide).
+
 ### Per-repo (ręcznie)
 
 W każdym repozytorium semcod/wronai:
@@ -417,11 +478,12 @@ W prompcie zawsze podawaj `Source: /host-semcod/<repo>` — docker-compose montu
 | Push protection / sekrety w repo | Commit przez API (`gh api`) lub PR z czystą gałęzią |
 | Pages root `/` failuje dla dużych monorepo | Użyj `/docs` jak w `semcod/mcp` |
 
-Planowane (patrz `REFACTORING_PLAN.md`, `docs/PRODUCT.md`):
+Planowane (patrz [`REFACTORING_PLAN.md`](../REFACTORING_PLAN.md), [`PRODUCT.md`](PRODUCT.md), [`GATEWAY_MODULE_SPLIT.md`](GATEWAY_MODULE_SPLIT.md)):
 
 - automatyczna aplikacja patchy (nie tylko artefakty),
 - natywny adapter A2A,
-- generator `mcp.json` w `make setup-ide`.
+- generator `mcp.json` w `make setup-ide`,
+- fizyczny split `mcp-gateway/server.py` (etapy 2–3 w GATEWAY_MODULE_SPLIT).
 
 ---
 

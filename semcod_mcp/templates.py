@@ -12,6 +12,12 @@ from semcod_mcp.paths import MANIFEST_NAME, default_api_key, gateway_url
 
 SERVER_NAME = "semcod-mcp-skills"
 CURSOR_RULE_NAME = "semcod-mcp.mdc"
+CONTINUE_MODEL_TITLES = (
+    "semcod-mcp-analyze",
+    "semcod-mcp-refactor",
+    "semcod-mcp-tool",
+)
+VSCODE_SETTING_KEYS = ("semcod-mcp.gatewayUrl", "semcod-mcp.apiKey")
 
 
 def mcp_server_block(stack_path: Path) -> dict[str, Any]:

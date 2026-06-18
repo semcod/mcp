@@ -27,8 +27,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
         pip install "$pkg" || echo "WARN: failed to pre-install $pkg"; \
     done
 
-# server.py is bind-mounted at runtime; include here only as fallback
-COPY mcp/mcp-skills/server.py .
+# server modules bind-mounted at runtime; include here as fallback
+COPY mcp/mcp-skills/server.py mcp/mcp-skills/code_analysis.py mcp/mcp-skills/tools_registry.py \
+     mcp/mcp-skills/http_models.py mcp/mcp-skills/tool_run.py mcp/mcp-skills/redsl_runner.py \
+     mcp/mcp-skills/mcp_parse.py ./
 
 EXPOSE 8080
 
