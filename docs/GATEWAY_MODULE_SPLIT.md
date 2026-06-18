@@ -12,9 +12,12 @@ Cel: moduły po **200–500 linii**, zachowanie API (`import server as gateway` 
 mcp-gateway/
 ├── server.py              # FastAPI routes only (~250 L)
 ├── gateway_config.py      # env, stałe, SKILL_MODELS (~80 L)
+├── gateway_prompt.py      # parse_prompt_context, parse_tool_intent (~270 L) ✅
+├── gateway_github.py      # NLP GitHub commands, repo URL helpers (~240 L) ✅
+├── gateway_skills.py      # klient HTTP mcp-skills (~260 L) ✅
+├── gateway_jobs.py        # Redis/RQ job store (~175 L) ✅
+├── gateway_dispatch.py    # dispatch_skill workflow (~250 L) ✅
 ├── gateway_tenants.py     # load_tenants, auth, audit, repo usage (~220 L)
-├── gateway_prompt.py      # parse_prompt_context, parse_tool_intent (~400 L)
-├── gateway_github.py      # token/org/repo admin + gh2mcp + PR helpers (~750 L)
 ├── gateway_render.py      # _render_* formatters (~550 L)
 ├── gateway_skills.py      # _run_skills_analysis, enrich, tools, github_qa (~400 L)
 ├── gateway_jobs.py        # Redis/RQ job store, execute_dispatch_job (~180 L)
@@ -47,20 +50,23 @@ mcp-gateway/
 4. ✅ `gateway_render.py` — formatowanie Markdown chat (~500 L)
 5. ✅ **mcp-skills split:** `tools_registry.py`, `tool_run.py`, `http_models.py`, `redsl_runner.py`, `mcp_parse.py` — `server.py` ~1311→~690 L
 
-### Etap 2 — następny
+### Etap 2 — parsowanie i GitHub (zrobione)
 
-6. ⬜ `gateway_prompt.py` — `parse_tool_intent`, `parse_prompt_context`
-7. ⬜ `gateway_github.py` — token/org/PR
+6. ✅ `gateway_prompt.py` — `parse_tool_intent`, `parse_prompt_context`, `message_content_to_text`
+7. ✅ `gateway_github.py` — NLP detekcja komend GitHub + `normalize_repo_url`, `github_repo_from_url`
 
-### Etap 2 — parsowanie i GitHub
+### Etap 3 — orkiestracja (zrobione)
 
-5. `gateway_prompt.py` — testy: `test_tool_intent.py`
-6. `gateway_github.py` — testy: `test_gateway_token_command.py`
+8. ✅ `gateway_skills.py` — klient HTTP mcp-skills (`expect_json`, `run_skills_analysis`, `run_skills_tool`, …)
+9. ✅ `gateway_jobs.py` — Redis/RQ job store, `execute_dispatch_job`
+10. ✅ `gateway_dispatch.py` — `dispatch_skill` (sync → analyze → commit/push/PR)
+11. ✅ `gateway_github.py` — rozszerzony o token/PR/URL helpers (`inject_github_token`, `create_github_pr`, …)
 
-### Etap 3 — orkiestracja
+### Etap 3 — następny
 
-7. `gateway_jobs.py` + `gateway_dispatch.py`
-8. `server.py` → cienka warstwa routes
+12. ⬜ `gateway_chat.py` — logika `chat_completions` runner (opcjonalnie)
+13. ⬜ `gateway_gh2mcp.py` — gh2mcp HTTP helpers z `server.py`
+14. ⬜ `server.py` → routes only (**< 400 L**)
 
 ## Kontrakt kompatybilności
 
@@ -68,7 +74,8 @@ mcp-gateway/
 
 ```python
 from gateway_prompt import parse_tool_intent, parse_prompt_context  # noqa: F401
-from gateway_render import _render_chat_content, _render_analyze_text  # noqa: F401
+from gateway_github import normalize_repo_url, github_repo_from_url  # noqa: F401
+from gateway_render import render_chat_content, render_analyze_text  # noqa: F401
 # ... pozostałe re-eksporty dla testów
 ```
 
@@ -80,13 +87,18 @@ Na podstawie analyze `semcod/mcp`:
 
 | Plik | Linie | Akcja |
 |------|-------|-------|
-| `mcp-gateway/server.py` | ~2908 | split wg tabeli powyżej |
+| `mcp-gateway/server.py` | ~1205 | routes + gh2mcp + chat (było ~2908) |
+| `mcp-gateway/gateway_dispatch.py` | ~248 | ✅ etap 3 |
+| `mcp-gateway/gateway_jobs.py` | ~175 | ✅ etap 3 |
+| `mcp-gateway/gateway_skills.py` | ~263 | ✅ etap 3 |
+| `mcp-gateway/gateway_github.py` | ~432 | ✅ etap 2b+3 |
+| `mcp-gateway/gateway_prompt.py` | ~271 | ✅ etap 2a |
 | `mcp-skills/server.py` | ~1482 | osobny etap: `tools_registry.py`, `analysis_http.py`, `mcp_stdio.py` |
 | `llm-agent/agent_git2mcp.py` | ~360 | użyć `code_analysis` zamiast duplikatu `CachedCodeAnalyzer` |
 
 ## Definition of Done
 
 - [ ] `server.py` < 400 linii
-- [ ] `pytest mcp-gateway/` green bez zmian importów
+- [x] `pytest mcp-gateway/` green bez zmian importów (90/90; `test_import` mcp_gateway — pre-existing)
 - [x] `make smoke` + analyze job zwraca `largest_files[0].path` konkretny — [`code_analysis.py`](../mcp-skills/code_analysis.py), gateway `_enrich_analysis_with_file_metrics`
-- [ ] brak cyklicznych importów między modułami gateway
+- [x] brak cyklicznych importów między modułami gateway
