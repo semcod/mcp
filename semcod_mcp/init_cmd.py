@@ -35,16 +35,28 @@ class InitResult:
     messages: list[str] = field(default_factory=list)
     ides: list[str] = field(default_factory=list)
 
+    @property
+    def changed(self) -> bool:
+        return any(
+            "added:" in m
+            or "replaced:" in m
+            or "created:" in m
+            or "wrote:" in m
+            or "would write" in m
+            for m in self.messages
+        )
+
 
 def _touch_text(path: Path, content: str, *, dry_run: bool, force: bool) -> list[str]:
     msgs: list[str] = []
-    if path.is_file() and not force:
+    existed = path.is_file()
+    if existed and not force:
         msgs.append(f"skipped: {path} (exists)")
         return msgs
     if not dry_run:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
-    action = "updated" if path.is_file() else "created"
+    action = "updated" if existed else "created"
     msgs.append(f"{action}: {path}")
     return msgs
 
@@ -142,12 +154,13 @@ def run_init(
             result.ides.append(ide)
 
     manifest_path = project_dir / MANIFEST_NAME
-    write_manifest(
+    manifest_msg = write_manifest(
         manifest_path,
         manifest_data(project_dir, stack, repo_id, result.ides),
         dry_run=dry_run,
+        force=force,
     )
-    result.messages.append(f"{'would write' if dry_run else 'wrote'}: {manifest_path}")
+    result.messages.append(f"{manifest_path}: {manifest_msg}")
 
     return result
 
@@ -155,7 +168,9 @@ def run_init(
 def print_init_result(result: InitResult) -> None:
     console.print(f"[bold]Project:[/bold] {result.project_dir}")
     for line in result.messages:
-        if line.endswith("unchanged") or "skipped" in line:
+        if "unchanged" in line or "skipped" in line:
             console.print(f"  [dim]{line}[/dim]")
         else:
             console.print(f"  [green]{line}[/green]")
+    if not result.changed:
+        console.print("[dim]Already initialized — no changes (idempotent).[/dim]")

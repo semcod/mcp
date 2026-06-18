@@ -109,11 +109,14 @@ Szybkie podpięcie **Cursor MCP**: skopiuj [`examples/integrations/cursor-mcp.js
 
 ### Pakiet CLI `semcod-mcp` (zalecane)
 
+Szczegóły i **idempotentność `init`**: [`docs/SEMCOD_MCP_CLI.md`](docs/SEMCOD_MCP_CLI.md).
+
 ```bash
 pip install -e ~/github/semcod/mcp   # lub: pip install semcod-mcp
 
 cd ~/github/semcod/nlp2cmd         # dowolny projekt
 semcod-mcp init                    # merge configów IDE bez nadpisywania
+semcod-mcp init                    # bezpieczny ponownie — bez duplikatów MCP
 semcod-mcp doctor                  # health stack + gateway
 semcod-mcp validate                # walidacja plików IDE
 semcod-mcp analyze --task "Audyt modułów API"
