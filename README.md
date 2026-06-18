@@ -93,7 +93,19 @@ Skrypt zapisuje odpowiedzi API i wynik JSON do katalogu:
 Pełne scenariusze użycia: [`docs/USAGE.md`](docs/USAGE.md).
 Dialogi chat-playbook (copy/paste): [`docs/CHAT_PLAYBOOKS.md`](docs/CHAT_PLAYBOOKS.md).
 Architektura produktowa: [`docs/PRODUCT.md`](docs/PRODUCT.md).
+**Integracja IDE / Cursor / VS Code / Devin / A2A:** [`docs/IDE_AND_AGENT_INTEGRATION.md`](docs/IDE_AND_AGENT_INTEGRATION.md).
 Plan refaktoryzacji: [`REFACTORING_PLAN.md`](REFACTORING_PLAN.md).
+
+## Czy to jest gotowe do użycia?
+
+| Obszar | Status |
+|--------|--------|
+| Stack Docker + testy E2E | ✅ `make start`, `make smoke`, `scripts/test.sh` |
+| Analiza i plan refaktoryzacji | ✅ MCP skills + gateway OpenAI-compat |
+| Automatyczna zmiana kodu modułów | ⚠️ na razie głównie artefakty `.mcp/*` (plan), nie pełne patche |
+| Podpięcie IDE (Cursor, VS Code) | ⚠️ ręczna konfiguracja (~5 min) — patrz [`docs/IDE_AND_AGENT_INTEGRATION.md`](docs/IDE_AND_AGENT_INTEGRATION.md) |
+
+Szybkie podpięcie **Cursor MCP**: skopiuj [`examples/integrations/cursor-mcp.json`](examples/integrations/cursor-mcp.json) → `.cursor/mcp.json` (wymaga działającego `make start`).
 
 ## Architektura
 

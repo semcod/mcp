@@ -4,6 +4,8 @@ Pakiet usług dla klientów: `mcp-skills` jako serwis SaaS, sterowany przez wła
 
 Praktyczne use-case i gotowe prompty (refactor/migration/integration): `docs/USE_CASES.md`.
 
+Integracja z IDE (Cursor, VS Code, Devin) i agentami A2A: `docs/IDE_AND_AGENT_INTEGRATION.md`.
+
 ## Architektura runtime
 
 ```

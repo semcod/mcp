@@ -4,6 +4,7 @@ Ten dokument pokazuje 10 konkretnych przepływów end-to-end. Wszystkie używaj�
 
 Powiązane dokumenty:
 - `docs/PRODUCT.md` — architektura i deployment
+- `docs/IDE_AND_AGENT_INTEGRATION.md` — **Cursor, VS Code, Devin, A2A, jakość kodu**
 - `docs/USE_CASES.md` — gotowe use-case (refactor/migration/integration)
 - `docs/CHAT_PLAYBOOKS.md` — szczegółowe dialogi chat-playbook (multi-project/migration/integration/modularization)
 - `git2mcp/examples/README.md` — przykłady CLI

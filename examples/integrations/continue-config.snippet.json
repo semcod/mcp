@@ -1,0 +1,25 @@
+{
+  "models": [
+    {
+      "title": "semcod-mcp-analyze",
+      "provider": "openai",
+      "model": "mcp-skills/analyze",
+      "apiBase": "http://localhost:9000/v1",
+      "apiKey": "sk-mcp-default-dev-key"
+    },
+    {
+      "title": "semcod-mcp-refactor",
+      "provider": "openai",
+      "model": "mcp-skills/refactor",
+      "apiBase": "http://localhost:9000/v1",
+      "apiKey": "sk-mcp-default-dev-key"
+    },
+    {
+      "title": "semcod-mcp-tool",
+      "provider": "openai",
+      "model": "mcp-skills/tool",
+      "apiBase": "http://localhost:9000/v1",
+      "apiKey": "sk-mcp-default-dev-key"
+    }
+  ]
+}
