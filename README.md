@@ -107,6 +107,20 @@ Plan refaktoryzacji: [`REFACTORING_PLAN.md`](REFACTORING_PLAN.md).
 
 Szybkie podpięcie **Cursor MCP**: skopiuj [`examples/integrations/cursor-mcp.json`](examples/integrations/cursor-mcp.json) → `.cursor/mcp.json` (wymaga działającego `make start`).
 
+### Pakiet CLI `semcod-mcp` (zalecane)
+
+```bash
+pip install -e ~/github/semcod/mcp   # lub: pip install semcod-mcp
+
+cd ~/github/semcod/nlp2cmd         # dowolny projekt
+semcod-mcp init                    # merge configów IDE bez nadpisywania
+semcod-mcp doctor                  # health stack + gateway
+semcod-mcp validate                # walidacja plików IDE
+semcod-mcp analyze --task "Audyt modułów API"
+```
+
+Opcje: `--stack-path`, `--global` (Cursor/Claude w ~), `--dry-run`, `--force`.
+
 ## Architektura
 
 ```
