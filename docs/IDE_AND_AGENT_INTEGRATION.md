@@ -362,7 +362,21 @@ Jeśli budujesz cienki serwis A2A przed gateway:
 
 ## 9. Automatyczne podpięcie do wielu projektów
 
-### Per-repo (zalecane)
+### Pakiet `semcod-mcp` (zalecane)
+
+```bash
+pip install -e ~/github/semcod/mcp
+
+cd /path/to/your/project
+semcod-mcp init              # .cursor, .vscode, .windsurf, .continue, manifest
+semcod-mcp doctor
+semcod-mcp validate
+semcod-mcp analyze
+```
+
+`init` robi **merge** — nie usuwa istniejących `mcpServers` ani ustawień VS Code.
+
+### Per-repo (ręcznie)
 
 W każdym repozytorium semcod/wronai:
 

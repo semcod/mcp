@@ -37,6 +37,7 @@ help:
 	@echo "  make logs          - tail compose logs"
 	@echo "  make ps            - list services"
 	@echo "  make smoke         - basic curl smoke-test against gateway/webui"
+	@echo "  pip install -e .   - install semcod-mcp CLI (init/doctor/validate/analyze)"
 	@echo "  make ansible-e2e   - run Ansible docker E2E (gateway/openwebui/prompts)"
 	@echo "  make ansible-gh2mcp - run Ansible gh2mcp E2E (token/org/repo endpoints + chat commands)"
 	@echo "  make ansible-github-qa - run Ansible GitHub Q&A E2E (github-qa model + /repo/recent)"

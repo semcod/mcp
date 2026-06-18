@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "semcod-mcp"
+version = "0.1.0"
+description = "Initialize semcod MCP stack integration for Cursor, VS Code, Claude and other IDEs — init, doctor, validate, analyze."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [{ name = "semcod", email = "tom@sapletta.com" }]
+keywords = ["mcp", "semcod", "cursor", "ide", "llm", "code-quality"]
+dependencies = [
+  "click>=8.0",
+  "httpx>=0.26.0",
+  "pyyaml>=6.0",
+  "rich>=13.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+semcod-mcp = "semcod_mcp.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["semcod_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
