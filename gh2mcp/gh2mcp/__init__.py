@@ -1,4 +1,4 @@
 from .sync import GitHubTokenSyncService
 
 __all__ = ["GitHubTokenSyncService"]
-__version__ = "0.1.2"
+__version__ = "0.1.3"

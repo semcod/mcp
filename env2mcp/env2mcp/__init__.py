@@ -9,5 +9,5 @@ Provides utilities to:
 from .config import EnvConfig, load_env, save_env
 from .github_cli import GitHubCLI, get_github_token
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 __all__ = ["EnvConfig", "load_env", "save_env", "GitHubCLI", "get_github_token"]

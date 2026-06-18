@@ -265,15 +265,15 @@ COUPLING:
        mcp-gateway                                   8                                                                                                          ──                    !! fan-out
      gh2mcp.gh2mcp                 4                 1                                                                                                                            ──
   CYCLES: none
-  HUB: semcod_mcp/ (fan-in=6)
   HUB: env2mcp.env2mcp/ (fan-in=16)
   HUB: scripts/ (fan-in=64)
+  HUB: semcod_mcp/ (fan-in=6)
+  SMELL: env2mcp.env2mcp/ fan-out=34 → split needed
   SMELL: mcp-skills/ fan-out=10 → split needed
   SMELL: git2mcp.examples/ fan-out=8 → split needed
-  SMELL: dashboard/ fan-out=8 → split needed
-  SMELL: env2mcp.env2mcp/ fan-out=34 → split needed
   SMELL: mcp-gateway/ fan-out=8 → split needed
   SMELL: llm-agent/ fan-out=10 → split needed
+  SMELL: dashboard/ fan-out=8 → split needed
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon

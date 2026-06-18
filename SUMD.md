@@ -21,7 +21,7 @@ Initialize semcod MCP stack integration for Cursor, VS Code, Claude and other ID
 ## Metadata
 
 - **name**: `semcod-mcp`
-- **version**: `0.1.1`
+- **version**: `0.1.2`
 - **python_requires**: `>=3.10`
 - **license**: Apache-2.0
 - **ai_model**: `openrouter/qwen/qwen3-coder-next`
@@ -41,7 +41,7 @@ SUMD (description) → DOQL/source (code) → taskfile (automation) → testql (
 
 app {
   name: semcod-mcp;
-  version: 0.1.1;
+  version: 0.1.2;
 }
 
 dependencies {
@@ -313,7 +313,7 @@ environment[name="prod"] {
 ```yaml
 project:
   name: semcod-mcp
-  version: 0.1.1
+  version: 0.1.2
   env: local
 ```
 
@@ -1073,7 +1073,7 @@ D:
 
 ```prolog markpact:analysis path=project/logic.pl
 % ── Project Metadata ─────────────────────────────────────
-project_metadata('mcp', '0.1.1', 'python').
+project_metadata('mcp', '0.1.2', 'python').
 
 % ── Project Files ────────────────────────────────────────
 project_file('app.doql.less', 262, 'less').
@@ -1930,7 +1930,7 @@ sumd_deploy_compose_file('docker-compose.yml').
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/semcod/mcp
-# generated in 0.09s
+# generated in 0.10s
 # nodes: 171 | edges: 189 | modules: 30
 # CC̄=4.4
 
@@ -1951,14 +1951,14 @@ HUBS[20]:
     CC=9  in:0  out:44  total:44
   mcp-gateway.server.dispatch_skill
     CC=19  in:2  out:41  total:43
-  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
-    CC=15  in:0  out:39  total:39
   semcod_mcp.doctor.run_doctor
     CC=11  in:1  out:38  total:39
-  semcod_mcp.init_cmd.run_init
-    CC=14  in:1  out:37  total:38
+  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
+    CC=15  in:0  out:39  total:39
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
     CC=32  in:0  out:38  total:38
+  semcod_mcp.init_cmd.run_init
+    CC=14  in:1  out:37  total:38
   mcp-skills.code_analysis.build_maintainability_recommendations
     CC=24  in:2  out:34  total:36
   semcod_mcp.deinit_cmd.run_deinit
@@ -1971,10 +1971,10 @@ HUBS[20]:
     CC=14  in:1  out:29  total:30
   mcp-gateway.server._resolve_repo_id_template
     CC=14  in:1  out:28  total:29
+  semcod_mcp.validate.run_validate
+    CC=13  in:1  out:24  total:25
   mcp-skills.code_analysis.compute_repo_file_metrics
     CC=15  in:2  out:23  total:25
-  mcp-gateway.gateway_render.summary_text
-    CC=9  in:1  out:24  total:25
 
 MODULES:
   dashboard.server  [1 funcs]
