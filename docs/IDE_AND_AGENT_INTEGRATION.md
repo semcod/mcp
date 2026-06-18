@@ -364,17 +364,20 @@ Jeśli budujesz cienki serwis A2A przed gateway:
 
 ### Pakiet `semcod-mcp` (zalecane)
 
+Pełna dokumentacja CLI i tabela idempotentności: [`docs/SEMCOD_MCP_CLI.md`](SEMCOD_MCP_CLI.md).
+
 ```bash
 pip install -e ~/github/semcod/mcp
 
 cd /path/to/your/project
 semcod-mcp init              # .cursor, .vscode, .windsurf, .continue, manifest
+semcod-mcp init              # ponownie: unchanged, bez duplikatów semcod-mcp-skills
 semcod-mcp doctor
 semcod-mcp validate
 semcod-mcp analyze
 ```
 
-`init` robi **merge** — nie usuwa istniejących `mcpServers` ani ustawień VS Code.
+`init` robi **merge** — nie usuwa istniejących `mcpServers` ani ustawień VS Code. Drugie uruchomienie bez `--force` **nie zmienia plików**.
 
 ### Per-repo (ręcznie)
 

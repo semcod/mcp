@@ -89,27 +89,64 @@ def manifest_data(
     stack_path: Path,
     repo_id: str | None,
     ides: list[str],
+    *,
+    initialized_at: str | None = None,
 ) -> dict[str, Any]:
+    now = datetime.now(timezone.utc).isoformat()
     return {
         "version": 1,
-        "stack_path": str(stack_path),
+        "stack_path": str(stack_path.resolve()),
         "gateway_url": gateway_url(stack_path),
         "api_key_env": "SEMCOD_MCP_API_KEY",
         "default_api_key": default_api_key(),
         "repo_id": repo_id,
-        "project_dir": str(project_dir),
+        "project_dir": str(project_dir.resolve()),
         "ides": sorted(set(ides)),
-        "initialized_at": datetime.now(timezone.utc).isoformat(),
+        "initialized_at": initialized_at or now,
+        "last_synced_at": now,
     }
 
 
-def write_manifest(path: Path, data: dict[str, Any], *, dry_run: bool = False) -> None:
+def _manifest_compare_keys(data: dict[str, Any]) -> dict[str, Any]:
+    """Fields that define whether manifest needs a rewrite."""
+    return {
+        "version": data.get("version"),
+        "stack_path": data.get("stack_path"),
+        "gateway_url": data.get("gateway_url"),
+        "repo_id": data.get("repo_id"),
+        "ides": sorted(data.get("ides") or []),
+    }
+
+
+def write_manifest(
+    path: Path,
+    data: dict[str, Any],
+    *,
+    dry_run: bool = False,
+    force: bool = False,
+) -> str:
+    """Write manifest; preserve initialized_at on no-op re-init. Returns status message."""
+    existing: dict[str, Any] | None = None
+    if path.is_file():
+        existing = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+    if existing:
+        data = {
+            **data,
+            "initialized_at": existing.get("initialized_at") or data.get("initialized_at"),
+        }
+        if _manifest_compare_keys(existing) == _manifest_compare_keys(data) and not force:
+            return "unchanged: manifest"
+
     if dry_run:
-        return
+        return "would write: manifest"
+
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         yaml.safe_dump(data, sort_keys=False, allow_unicode=True),
         encoding="utf-8",
     )
+    return "wrote: manifest"
 
 
 def read_manifest(project_dir: Path) -> dict[str, Any] | None:

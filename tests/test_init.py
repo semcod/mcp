@@ -42,3 +42,29 @@ def test_init_merges_cursor_mcp(tmp_path: Path):
 
     report = run_validate(project)
     assert report.ok or all(i.level != "error" for i in report.issues)
+
+
+def test_init_idempotent_second_run_no_duplicates(tmp_path: Path):
+    stack = tmp_path / "stack"
+    stack.mkdir()
+    (stack / "docker-compose.yml").write_text("services: {}\n")
+    (stack / "mcp-gateway").mkdir()
+
+    project = tmp_path / "project"
+    project.mkdir()
+
+    first = run_init(project, stack_path=stack, dry_run=False)
+    assert first.changed
+
+    cursor_after_first = (project / ".cursor" / "mcp.json").read_text()
+    manifest_after_first = (project / MANIFEST_NAME).read_text()
+    continue_after_first = (project / ".continue" / "config.json").read_text()
+
+    second = run_init(project, stack_path=stack, dry_run=False)
+    assert not second.changed
+    assert list(json.loads(cursor_after_first)["mcpServers"].keys()).count(SERVER_NAME) == 1
+
+    assert (project / ".cursor" / "mcp.json").read_text() == cursor_after_first
+    assert (project / MANIFEST_NAME).read_text() == manifest_after_first
+    assert (project / ".continue" / "config.json").read_text() == continue_after_first
+    assert any("unchanged" in m for m in second.messages)
