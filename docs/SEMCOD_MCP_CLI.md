@@ -18,7 +18,7 @@ pip install -e ~/github/semcod/mcp
 | `semcod-mcp deinit` | Usuwa wpisy dodane przez `init` (inne `mcpServers` zostają) |
 | `semcod-mcp doctor` | Health check: Docker, gateway, manifest |
 | `semcod-mcp validate` | Walidacja plików integracji |
-| `semcod-mcp analyze` | Analiza repo przez gateway (`--task`, opcjonalnie `--execute`) |
+| `semcod-mcp analyze` | Analiza repo przez gateway (`--task`, `--local code2llm`, live `source_path`) |
 
 ## Manifest `.semcod-mcp.yaml`
 
@@ -108,7 +108,12 @@ semcod-mcp init    # bezpieczne — nic nie duplikuje
 semcod-mcp doctor
 semcod-mcp validate
 semcod-mcp analyze --task "Które pliki split w tym repo?"
+# domyślnie: working tree via Source: /host-semcod/... (bez commita)
+# semcod-mcp analyze --local     # code2llm na hoście
+# semcod-mcp analyze --async     # kolejka Redis/RQ
 ```
+
+**Ekosystem semcod:** [SEMCOD_ECOSYSTEM.md](SEMCOD_ECOSYSTEM.md) — koru, planfile, code2llm, wup, goal i mapowanie na MCP.
 
 Wynik `analyze` (przez gateway) zawiera m.in. `largest_files` i rekomendacje z konkretnymi ścieżkami plików — szczegóły: [USAGE.md § Jak czytać wynik](USAGE.md#jak-czytać-wynik-w-czacie).
 

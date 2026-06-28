@@ -8,7 +8,8 @@ from typing import Any
 
 import httpx
 
-from gateway_config import LLM_MODEL, OPENROUTER_API_KEY, SKILLS_URL
+from gateway_config import LLM_MODEL, SKILLS_URL
+import gateway_config
 from gateway_prompt import message_content_to_text
 
 
@@ -81,7 +82,8 @@ async def run_skills_tool(
 
 
 async def ask_openrouter_github_qa(user_request: str, github_context: dict[str, Any]) -> dict[str, Any]:
-    if not OPENROUTER_API_KEY:
+    api_key = gateway_config.OPENROUTER_API_KEY
+    if not api_key:
         return {
             "ok": False,
             "error": "OPENROUTER_API_KEY is not configured",
@@ -100,7 +102,7 @@ async def ask_openrouter_github_qa(user_request: str, github_context: dict[str, 
     )
 
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://mcp-gateway.local",
         "X-Title": "mcp-gateway-github-qa",

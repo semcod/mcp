@@ -12,7 +12,6 @@ from urllib.parse import urlparse
 import httpx
 
 from gateway_config import GITHUB_API_URL, MCP_ENV_FILE
-from gateway_prompt import extract_github_token_from_text, normalize_command_text
 
 try:
     from env2mcp import EnvConfig, GitHubCLI
@@ -55,75 +54,6 @@ def github_repo_from_url(repo_url: str | None) -> tuple[str, str] | None:
     return parts[0], parts[1]
 
 
-def is_github_token_save_command(user_msg: str, prompt_ctx: dict[str, str]) -> bool:
-    normalized = normalize_command_text(user_msg)
-    if not normalized:
-        return False
-
-    words = set(normalized.split())
-    has_token_word = "token" in words
-    has_gh_word = "github" in words or "gh" in words or "gihutb" in words
-    has_save_intent = (
-        "zapisz" in words
-        or "save" in words
-        or "zapisanie" in words
-        or "set" in words
-        or "env" in words
-        or ".env" in user_msg.lower()
-    )
-
-    explicit_token_value = bool(prompt_ctx.get("github_token") or extract_github_token_from_text(user_msg))
-    if has_save_intent and has_token_word and has_gh_word:
-        return True
-    if explicit_token_value and has_save_intent:
-        return True
-    return False
-
-
-def is_github_token_sync_command(user_msg: str, prompt_ctx: dict[str, str]) -> bool:
-    if prompt_ctx.get("github_token"):
-        return False
-
-    normalized = normalize_command_text(user_msg)
-    if not normalized:
-        return False
-
-    if normalized in {"github token", "token github", "token gh", "gh token"}:
-        return True
-
-    cleaned_user_msg = user_msg.replace("*", "").strip()
-    if re.search(r"\bgithub\s+token\s*:\s*$", cleaned_user_msg, re.IGNORECASE):
-        return True
-    if re.search(r"\btoken\s*:\s*$", cleaned_user_msg, re.IGNORECASE):
-        return True
-
-    words = set(normalized.split())
-    has_token = "token" in words
-    has_gh = "github" in words or "gh" in words or "gihutb" in words
-    intent_words = {
-        "pobierz",
-        "zaktualizuj",
-        "aktualizuj",
-        "uaktualnij",
-        "pokaz",
-        "pokaż",
-        "show",
-        "fetch",
-        "get",
-        "sync",
-        "zsynchronizuj",
-        "odswiez",
-        "odśwież",
-        "aktualny",
-        "refresh",
-        "update",
-        "nowy",
-        "najnowszy",
-    }
-    has_intent = bool(words & intent_words) or "gh auth token" in normalized
-    return has_token and has_gh and has_intent
-
-
 def extract_org_from_text(user_msg: str, prompt_ctx: dict[str, str]) -> str | None:
     repo_url = prompt_ctx.get("repo_url")
     if repo_url:
@@ -161,101 +91,6 @@ def extract_org_from_text(user_msg: str, prompt_ctx: dict[str, str]) -> str | No
                 continue
             return value
     return None
-
-
-def is_org_set_command(user_msg: str) -> bool:
-    normalized = normalize_command_text(user_msg)
-    words = set(normalized.split())
-    has_org = any(word.startswith("organizac") for word in words) or any(
-        token in words
-        for token in {
-            "org",
-            "orgs",
-            "organization",
-            "organizations",
-        }
-    )
-    has_set = "ustaw" in words or "zmien" in words or "zmień" in words or "set" in words or "change" in words
-    return has_org and has_set
-
-
-def is_org_list_command(user_msg: str) -> bool:
-    normalized = normalize_command_text(user_msg)
-    words = set(normalized.split())
-    has_org = any(word.startswith("organizac") for word in words) or any(
-        token in words
-        for token in {
-            "org",
-            "orgs",
-            "organization",
-            "organizations",
-        }
-    )
-    has_repo = any(
-        token in words
-        for token in {
-            "repo",
-            "repos",
-            "repozytorium",
-            "repozytoria",
-            "repozytoriow",
-            "repozytoriów",
-            "repositories",
-        }
-    )
-    has_list = "pokaz" in words or "pokaż" in words or "lista" in words or "wylistuj" in words or "list" in words
-    return has_org and has_list and (has_repo or "wszystkich" in words or "all" in words)
-
-
-def is_repo_list_command(user_msg: str) -> bool:
-    normalized = normalize_command_text(user_msg)
-    words = set(normalized.split())
-
-    has_github = "github" in words or "gh" in words
-    has_repo = any(
-        token in words
-        for token in {
-            "repo",
-            "repos",
-            "repozytorium",
-            "repozytoria",
-            "repozytoriow",
-            "repozytoriów",
-            "repositories",
-        }
-    )
-    has_list = (
-        "pokaz" in words
-        or "pokaż" in words
-        or "lista" in words
-        or "wylistuj" in words
-        or "list" in words
-        or "show" in words
-    )
-    has_last = "ostatnio" in words or "ostatnich" in words or "last" in words or "recent" in words
-    has_edited = (
-        "edytowanych" in words
-        or "edytowane" in words
-        or "edited" in words
-        or "modified" in words
-        or "updated" in words
-        or "pushed" in words
-    )
-
-    return has_github and has_repo and has_list and (
-        has_last or has_edited or "10" in user_msg or "pięć" in user_msg or "piec" in user_msg
-    )
-
-
-def extract_repo_list_limit(user_msg: str, default: int = 10, max_limit: int = 30) -> int:
-    match = re.search(r"\b(\d{1,3})\b", user_msg)
-    if not match:
-        return default
-    try:
-        value = int(match.group(1))
-    except Exception:
-        return default
-    return max(1, min(value, max_limit))
 
 
 def load_env_file_values(env_path: Path) -> dict[str, str]:
@@ -430,3 +265,36 @@ async def create_github_pr(
         "head": data.get("head", {}).get("ref"),
         "base": data.get("base", {}).get("ref"),
     }
+
+
+from gateway_github_nlp import (  # noqa: E402
+    extract_repo_list_limit,
+    is_github_token_save_command,
+    is_github_token_sync_command,
+    is_org_list_command,
+    is_org_set_command,
+    is_repo_list_command,
+)
+from gateway_prompt import extract_github_token_from_text  # noqa: E402
+
+__all__ = [
+    "create_github_pr",
+    "default_draft_name",
+    "default_pr_body",
+    "default_pr_title",
+    "extract_github_token_from_text",
+    "extract_org_from_text",
+    "extract_repo_list_limit",
+    "github_repo_from_url",
+    "inject_github_token",
+    "is_github_token_save_command",
+    "is_github_token_sync_command",
+    "is_org_list_command",
+    "is_org_set_command",
+    "is_repo_list_command",
+    "load_env_file_values",
+    "normalize_repo_url",
+    "redact_repo_url",
+    "runtime_github_token",
+    "save_github_token",
+]

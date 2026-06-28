@@ -1,52 +1,52 @@
-# mcp | 421 func | 41f | 16991L | python | 2026-06-18
+# mcp | 446 func | 49f | 17269L | python | 2026-06-18
 # generated in 0.00s
 
 HEALTH:
-  CC̄=4.4  critical=52 (limit:10)  dup=3  cycles=0
+  CC̄=4.5  critical=55 (limit:10)  dup=5  cycles=0
 
 ALERTS[20]:
   !!! high_fan_out     chat_completions = 56 (limit:10)
+  !!! cc_exceeded      run_chat_workflow = 43 (limit:15)
   !!! high_fan_out     run_tool_against_repo = 41 (limit:10)
   !!! cc_exceeded      render_tool_text = 40 (limit:15)
   !!! cc_exceeded      run_tool_against_repo = 37 (limit:15)
   !!! cc_exceeded      GitHubTokenSyncService.get_recent_repos = 32 (limit:15)
+  !!! high_fan_out     handle_chat_completions = 32 (limit:10)
+  !!! cc_exceeded      handle_chat_completions = 31 (limit:15)
   !!! cc_exceeded      chat_completions = 31 (limit:15)
   !!! high_fan_out     MCPSkillsServer._sync_from_git_proxy = 30 (limit:10)
-  !!! cc_exceeded      render_system_text = 27 (limit:15)
-  !!! high_fan_out     dispatch_skill = 26 (limit:10)
-  !!! high_fan_out     GitHubTokenSyncService.get_recent_repos = 24 (limit:10)
 
-MODULES[92] (top by size):
-  M[mcp-gateway/server.py] 2468L C:2 F:74 CC↑31 D:0 (python)
+MODULES[101] (top by size):
   M[planfile.yaml] 1319L C:0 F:0 CC↑0 D:0 (yaml)
   M[mcp-skills/server.py] 691L C:1 F:22 CC↑15 D:0 (python)
   M[mcp-webui/server.py] 621L C:0 F:19 CC↑16 D:0 (python)
+  M[mcp-gateway/gateway_chat.py] 563L C:0 F:2 CC↑43 D:0 (python)
   M[llm-agent/agent_standalone.py] 540L C:3 F:14 CC↑15 D:0 (python)
   M[goal.yaml] 528L C:0 F:0 CC↑0 D:0 (yaml)
   M[ansible/e2e-gh2mcp.yml] 520L C:0 F:0 CC↑0 D:0 (yml)
-  M[mcp-gateway/gateway_render.py] 502L C:0 F:13 CC↑40 D:1 (python)
+  M[mcp-gateway/gateway_render.py] 502L C:0 F:13 CC↑40 D:3 (python)
   M[mcp-git-proxy/server.py] 443L C:19 F:22 CC↑9 D:0 (python)
   M[git2mcp/git2mcp/proxy.py] 437L C:1 F:21 CC↑12 D:0 (python)
+  M[mcp-gateway/gateway_github.py] 432L C:0 F:18 CC↑23 D:3 (python)
   M[gh2mcp/gh2mcp/sync.py] 430L C:1 F:7 CC↑32 D:0 (python)
   M[scripts/test.sh] 404L C:1 F:14 CC↑0 D:12 (shell)
+  M[mcp-gateway/gateway_gh2mcp.py] 398L C:0 F:14 CC↑14 D:1 (python)
   M[scripts/generate_demo_repos.sh] 396L C:0 F:18 CC↑0 D:0 (shell)
-  M[mcp-skills/tool_run.py] 388L C:0 F:7 CC↑37 D:1 (python)
-  M[llm-agent/agent.py] 375L C:2 F:13 CC↑4 D:0 (python)
-  LANGS: python:47/yaml:9/other:9/yml:7/shell:7/txt:6/toml:4/json:2/ini:1
+  LANGS: python:56/yaml:9/other:9/yml:7/shell:7/txt:6/toml:4/json:2/ini:1
 
 HOTSPOTS[10]:
   ★ chat_completions fan=56  // Orchestrates 56 calls
   ★ run_tool_against_repo fan=41  // Orchestrates 41 calls
+  ★ handle_chat_completions fan=32  // Orchestrates 32 calls
   ★ MCPSkillsServer._sync_from_git_proxy fan=30  // Orchestrates 30 calls
-  ★ dispatch_skill fan=26  // 26-way dispatch
-  ★ GitHubTokenSyncService.get_recent_repos fan=24  // Orchestrates 24 calls
+  ★ run_chat_workflow fan=26  // Orchestrates 26 calls
 
 REFACTOR[15]:
   [1] H/L Split GitHubTokenSyncService.get_recent_repos (CC=32)
-  [2] H/L Split chat_completions (CC=31)
-  [3] H/L Split render_system_text (CC=27)
-  [4] H/L Split render_tool_text (CC=40)
-  [5] H/L Split run_tool_against_repo (CC=37)
+  [2] H/L Split render_system_text (CC=27)
+  [3] H/L Split render_tool_text (CC=40)
+  [4] H/L Split run_tool_against_repo (CC=37)
+  [5] H/L Split run_chat_workflow (CC=43)
 
 EVOLUTION:
-  2026-06-18 CC̄=4.4 crit=52 16991L // Automated analysis
+  2026-06-18 CC̄=4.5 crit=55 17269L // Automated analysis

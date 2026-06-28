@@ -12,6 +12,7 @@ Spis treści i linki między dokumentami projektu [semcod/mcp](https://github.co
 | [**CURSOR_MCP_WORKFLOW.md**](CURSOR_MCP_WORKFLOW.md) | **Cursor Agent** — reload MCP, test, workflow 3-fazowy |
 | [USAGE.md](USAGE.md) | 10+ scenariuszy end-to-end (OpenWebUI, GitHub, analyze, refactor) |
 | [SEMCOD_MCP_CLI.md](SEMCOD_MCP_CLI.md) | Pakiet `semcod-mcp`: `init`, `deinit`, `doctor`, `validate`, `analyze` |
+| [SEMCOD_ECOSYSTEM.md](SEMCOD_ECOSYSTEM.md) | semcod-mcp + code2llm, koru, planfile, wup — korzyści i workflow bez commita |
 | [IDE_AND_AGENT_INTEGRATION.md](IDE_AND_AGENT_INTEGRATION.md) | Cursor, VS Code, Windsurf, Continue, Devin, A2A |
 
 ---
@@ -32,16 +33,20 @@ Spis treści i linki między dokumentami projektu [semcod/mcp](https://github.co
 | Dokument | Opis |
 |----------|------|
 | [USAGE.md § Jak czytać wynik](USAGE.md#jak-czytać-wynik-w-czacie) | Markdown w czacie + `GET /jobs/{id}` |
-| [GATEWAY_MODULE_SPLIT.md](GATEWAY_MODULE_SPLIT.md) | Plan podziału `mcp-gateway/server.py` |
+| [GATEWAY_MODULE_SPLIT.md](GATEWAY_MODULE_SPLIT.md) | Architektura gateway po splicie: korzyści, jak używać, mapa modułów |
 | [REFACTORING_PLAN.md](../REFACTORING_PLAN.md) | Roadmap produktowy (etapy 1–6) |
 | [USE_CASES.md](USE_CASES.md) | Gotowe prompty refactor/migration |
 | [CHAT_PLAYBOOKS.md](CHAT_PLAYBOOKS.md) | Dialogi operacyjne copy/paste |
 
 ### Moduły po refaktorze (2026-06)
 
-**mcp-skills:** `server.py` (~690 L), `code_analysis.py`, `tools_registry.py`, `tool_run.py`, `http_models.py`, `redsl_runner.py`, `mcp_parse.py`
+**mcp-gateway** (~228 L `server.py` + moduły `gateway_*`): szczegóły, korzyści i workflow developera w [**GATEWAY_MODULE_SPLIT.md**](GATEWAY_MODULE_SPLIT.md).
 
-**mcp-gateway:** `server.py` (~2480 L), `gateway_config.py`, `gateway_render.py` — etap 2 w [GATEWAY_MODULE_SPLIT.md](GATEWAY_MODULE_SPLIT.md)
+**mcp-skills:** `server.py`, `code_analysis.py`, `analysis_recommendations.py`, `tool_run.py` (+ `tool_materialize`, `tool_exec`, `tool_common`), `tools_registry.py`, `http_models.py`, `redsl_runner.py`, `mcp_parse.py`
+
+**gh2mcp:** `sync.py`, `gh_repo_queries.py`
+
+**CLI:** `semcod-mcp init` / `deinit` — [SEMCOD_MCP_CLI.md](SEMCOD_MCP_CLI.md)
 
 ---
 

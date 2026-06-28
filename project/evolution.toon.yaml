@@ -1,10 +1,10 @@
-# code2llm/evolution | 364 func | 32f | 2026-06-18
+# code2llm/evolution | 389 func | 40f | 2026-06-18
 # generated in 0.00s
 
 NEXT[10] (ranked by impact):
   [1] !! SPLIT           mcp-gateway/server.py
-      WHY: 2468L, 2 classes, max CC=31
-      EFFORT: ~4h  IMPACT: 76508
+      WHY: 1206L, 2 classes, max CC=31
+      EFFORT: ~4h  IMPACT: 37386
 
   [2] !! SPLIT           mcp-skills/server.py
       WHY: 691L, 1 classes, max CC=15
@@ -18,41 +18,41 @@ NEXT[10] (ranked by impact):
       WHY: CC=37 exceeds 15
       EFFORT: ~1h  IMPACT: 1517
 
-  [5] !! SPLIT-FUNC      GitHubTokenSyncService.get_recent_repos  CC=32  fan=24
+  [5] !! SPLIT-FUNC      run_chat_workflow  CC=43  fan=26
+      WHY: CC=43 exceeds 15
+      EFFORT: ~1h  IMPACT: 1118
+
+  [6] !! SPLIT-FUNC      handle_chat_completions  CC=31  fan=32
+      WHY: CC=31 exceeds 15
+      EFFORT: ~1h  IMPACT: 992
+
+  [7] !! SPLIT-FUNC      GitHubTokenSyncService.get_recent_repos  CC=32  fan=24
       WHY: CC=32 exceeds 15
       EFFORT: ~1h  IMPACT: 768
 
-  [6] !! SPLIT-FUNC      render_tool_text  CC=40  fan=15
+  [8] !! SPLIT-FUNC      render_tool_text  CC=40  fan=15
       WHY: CC=40 exceeds 15
       EFFORT: ~1h  IMPACT: 600
 
-  [7] !  SPLIT-FUNC      dispatch_skill  CC=19  fan=26
+  [9] !  SPLIT-FUNC      dispatch_skill  CC=19  fan=26
       WHY: CC=19 exceeds 15
       EFFORT: ~1h  IMPACT: 494
 
-  [8] !  SPLIT-FUNC      MCPSkillsServer._sync_from_git_proxy  CC=15  fan=30
+  [10] !  SPLIT-FUNC      MCPSkillsServer._sync_from_git_proxy  CC=15  fan=30
       WHY: CC=15 exceeds 15
       EFFORT: ~1h  IMPACT: 450
 
-  [9] !  SPLIT-FUNC      GitHubTokenSyncService.get_last_pushed_repo  CC=23  fan=18
-      WHY: CC=23 exceeds 15
-      EFFORT: ~1h  IMPACT: 414
-
-  [10] !  SPLIT-FUNC      parse_tool_intent  CC=23  fan=16
-      WHY: CC=23 exceeds 15
-      EFFORT: ~1h  IMPACT: 368
-
 
 RISKS[3]:
-  ⚠ Splitting mcp-gateway/server.py may break 74 import paths
   ⚠ Splitting planfile.yaml may break 0 import paths
+  ⚠ Splitting mcp-gateway/server.py may break 29 import paths
   ⚠ Splitting mcp-skills/server.py may break 22 import paths
 
 METRICS-TARGET:
-  CC̄:          5.0 → ≤3.5
-  max-CC:      40 → ≤20
-  god-modules: 8 → 0
-  high-CC(≥15): 23 → ≤11
+  CC̄:          5.1 → ≤3.6
+  max-CC:      43 → ≤20
+  god-modules: 9 → 0
+  high-CC(≥15): 25 → ≤12
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -80,4 +80,4 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=5.0 → now CC̄=5.0
+  prev CC̄=5.0 → now CC̄=5.1

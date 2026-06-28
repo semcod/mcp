@@ -1278,19 +1278,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-a8af84e6
-    name: Fix string-concat issues
-    description: Resolve 6 string-concat issues in mcp-gateway/server.py
-    task_type: prefactor
-    priority: high
-    estimate: 2d
-    files:
-    - mcp-gateway/server.py
-    rule_id: string-concat
-    count: 6
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-2d0dea29
     name: Fix unused-imports issues
     description: Resolve 14 unused-imports issues in mcp-gateway/server.py
@@ -1314,6 +1301,19 @@ sprints:
     - mcp-gateway/server.py
     rule_id: magic-numbers
     count: 26
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-0a736b64
+    name: Fix string-concat issues
+    description: Resolve 2 string-concat issues in mcp-gateway/gateway_chat.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - mcp-gateway/gateway_chat.py
+    rule_id: string-concat
+    count: 2
     model_hints:
       planning: balanced
       implementation: balanced

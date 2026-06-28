@@ -49,6 +49,16 @@ Po starcie:
 
 Wewnętrzne usługi (`mcp-skills`, `llm-agent`) nie są publiczne.
 
+### Architektura modułowa (2026-06)
+
+Gateway i skills zostały podzielone na mniejsze pliki (`gateway_*`, `tool_materialize`, `gh_repo_queries`, …). **Korzyści:** niższa złożoność, szybsze testy, łatwiejsze PR-y, `make reload-gateway` bez dotykania całego monolitu.
+
+**Developer:** zobacz [GATEWAY_MODULE_SPLIT.md](GATEWAY_MODULE_SPLIT.md) — mapa plików, `make pytest` / `make smoke`.
+
+**semcod-mcp + paczki:** [SEMCOD_ECOSYSTEM.md](SEMCOD_ECOSYSTEM.md) — analyze na working tree (`Source: /host-semcod/...`), code2llm, koru, planfile.
+
+**Użytkownik stacku:** bez zmian w API — te same modele i prompty.
+
 ---
 
 ## Scenariusz 1 — użytkownik końcowy w OpenWebUI
@@ -67,6 +77,8 @@ OpenWebUI w naszym compose jest już skonfigurowany przez env (`OPENAI_API_BASE_
 3. **Workspace → Models** — pojawią się:
    - `mcp-skills/refactor`
    - `mcp-skills/analyze`
+   - `mcp-skills/tool`
+   - `mcp-skills/github-qa` (pytania o GitHub z kontekstem `gh` + OpenRouter; wymaga `OPENROUTER_API_KEY`)
 
 ### 1.2 Wysłanie zadania
 

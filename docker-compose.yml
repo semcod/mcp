@@ -90,6 +90,10 @@ services:
       - ./mcp-skills/tools_registry.py:/app/tools_registry.py:ro
       - ./mcp-skills/http_models.py:/app/http_models.py:ro
       - ./mcp-skills/tool_run.py:/app/tool_run.py:ro
+      - ./mcp-skills/tool_common.py:/app/tool_common.py:ro
+      - ./mcp-skills/tool_materialize.py:/app/tool_materialize.py:ro
+      - ./mcp-skills/tool_exec.py:/app/tool_exec.py:ro
+      - ./mcp-skills/analysis_recommendations.py:/app/analysis_recommendations.py:ro
       - ./mcp-skills/redsl_runner.py:/app/redsl_runner.py:ro
       - ./mcp-skills/mcp_parse.py:/app/mcp_parse.py:ro
     healthcheck:
