@@ -15,7 +15,7 @@ SUMD - Structured Unified Markdown Descriptor for AI-aware project refactorizati
 ## Metadata
 
 - **name**: `semcod-mcp`
-- **version**: `0.1.2`
+- **version**: `0.1.4`
 - **python_requires**: `>=3.10`
 - **license**: Apache-2.0
 - **ai_model**: `openrouter/qwen/qwen3-coder-next`
@@ -35,7 +35,7 @@ SUMD (description) → DOQL/source (code) → taskfile (automation) → testql (
 
 app {
   name: semcod-mcp;
-  version: 0.1.2;
+  version: 0.1.4;
 }
 
 dependencies {
@@ -318,7 +318,7 @@ pfix>=0.1.60
 
 ## Call Graph
 
-*171 nodes · 189 edges · 30 modules · CC̄=4.4*
+*189 nodes · 214 edges · 38 modules · CC̄=4.5*
 
 ### Hubs (by degree)
 
@@ -327,17 +327,17 @@ pfix>=0.1.60
 | `chat_completions` *(in mcp-gateway.server)* | 31 ⚠ | 0 | 114 | **114** |
 | `run_tool_against_repo` *(in mcp-skills.tool_run)* | 37 ⚠ | 2 | 80 | **82** |
 | `render_tool_text` *(in mcp-gateway.gateway_render)* | 40 ⚠ | 1 | 80 | **81** |
+| `handle_chat_completions` *(in mcp-gateway.gateway_chat)* | 31 ⚠ | 0 | 69 | **69** |
 | `print` *(in scripts.test)* | 0 | 64 | 0 | **64** |
 | `render_refactor_text` *(in mcp-gateway.gateway_render)* | 17 ⚠ | 1 | 51 | **52** |
 | `render_system_text` *(in mcp-gateway.gateway_render)* | 27 ⚠ | 1 | 45 | **46** |
-| `redsl_refactor` *(in mcp-skills.server)* | 9 | 0 | 44 | **44** |
-| `dispatch_skill` *(in mcp-gateway.server)* | 19 ⚠ | 2 | 41 | **43** |
+| `run_chat_workflow` *(in mcp-gateway.gateway_chat)* | 43 ⚠ | 2 | 43 | **45** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/semcod/mcp
-# generated in 0.10s
-# nodes: 171 | edges: 189 | modules: 30
-# CC̄=4.4
+# generated in 0.09s
+# nodes: 189 | edges: 214 | modules: 38
+# CC̄=4.5
 
 HUBS[20]:
   mcp-gateway.server.chat_completions
@@ -346,20 +346,24 @@ HUBS[20]:
     CC=37  in:2  out:80  total:82
   mcp-gateway.gateway_render.render_tool_text
     CC=40  in:1  out:80  total:81
+  mcp-gateway.gateway_chat.handle_chat_completions
+    CC=31  in:0  out:69  total:69
   scripts.test.print
     CC=0  in:64  out:0  total:64
   mcp-gateway.gateway_render.render_refactor_text
     CC=17  in:1  out:51  total:52
   mcp-gateway.gateway_render.render_system_text
     CC=27  in:1  out:45  total:46
+  mcp-gateway.gateway_chat.run_chat_workflow
+    CC=43  in:2  out:43  total:45
+  mcp-gateway.gateway_dispatch.dispatch_skill
+    CC=19  in:3  out:41  total:44
   mcp-skills.server.redsl_refactor
     CC=9  in:0  out:44  total:44
-  mcp-gateway.server.dispatch_skill
-    CC=19  in:2  out:41  total:43
-  semcod_mcp.doctor.run_doctor
-    CC=11  in:1  out:38  total:39
   mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
     CC=15  in:0  out:39  total:39
+  semcod_mcp.doctor.run_doctor
+    CC=11  in:1  out:38  total:39
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
     CC=32  in:0  out:38  total:38
   semcod_mcp.init_cmd.run_init
@@ -376,10 +380,6 @@ HUBS[20]:
     CC=14  in:1  out:29  total:30
   mcp-gateway.server._resolve_repo_id_template
     CC=14  in:1  out:28  total:29
-  semcod_mcp.validate.run_validate
-    CC=13  in:1  out:24  total:25
-  mcp-skills.code_analysis.compute_repo_file_metrics
-    CC=15  in:2  out:23  total:25
 
 MODULES:
   dashboard.server  [1 funcs]
@@ -423,6 +423,52 @@ MODULES:
     _safe_doc_path  CC=4  out:9
     index  CC=4  out:11
     render_doc  CC=1  out:6
+  mcp-gateway.gateway_chat  [2 funcs]
+    handle_chat_completions  CC=31  out:69
+    run_chat_workflow  CC=43  out:43
+  mcp-gateway.gateway_dispatch  [1 funcs]
+    dispatch_skill  CC=19  out:41
+  mcp-gateway.gateway_gh2mcp  [13 funcs]
+    get_default_github_repo  CC=7  out:7
+    gh2mcp_status_via_gh2mcp  CC=2  out:11
+    is_github_auth_error  CC=3  out:2
+    is_github_configured  CC=1  out:2
+    last_pushed_repo_via_gh2mcp  CC=2  out:12
+    list_orgs_via_gh2mcp  CC=2  out:10
+    list_recent_repos_via_gh2mcp  CC=2  out:11
+    repo_owner  CC=4  out:2
+    resolve_repo_id_template  CC=14  out:28
+    run_github_qa  CC=9  out:16
+  mcp-gateway.gateway_github  [15 funcs]
+    create_github_pr  CC=3  out:14
+    extract_org_from_text  CC=9  out:9
+    extract_repo_list_limit  CC=3  out:5
+    github_repo_from_url  CC=9  out:10
+    inject_github_token  CC=9  out:6
+    is_github_token_save_command  CC=15  out:7
+    is_github_token_sync_command  CC=11  out:9
+    is_org_list_command  CC=13  out:7
+    is_org_set_command  CC=9  out:6
+    is_repo_list_command  CC=23  out:4
+  mcp-gateway.gateway_jobs  [9 funcs]
+    execute_dispatch_job  CC=3  out:15
+    get_queue  CC=5  out:2
+    get_rq_redis_client  CC=4  out:2
+    get_state_redis_client  CC=4  out:2
+    job_storage_key  CC=1  out:0
+    load_job  CC=5  out:6
+    queue_workflow_job  CC=2  out:3
+    save_job  CC=3  out:4
+    update_job  CC=2  out:4
+  mcp-gateway.gateway_prompt  [8 funcs]
+    extract_github_token_from_text  CC=2  out:2
+    extract_owner_from_repo_template  CC=4  out:3
+    extract_repo_template_expression  CC=3  out:3
+    is_last_pushed_repo_template  CC=15  out:3
+    normalize_command_text  CC=1  out:5
+    parse_prompt_context  CC=8  out:10
+    parse_tool_intent  CC=23  out:17
+    strip_url_suffix  CC=1  out:1
   mcp-gateway.gateway_render  [7 funcs]
     render_analyze_text  CC=14  out:30
     render_chat_content  CC=13  out:16
@@ -431,17 +477,31 @@ MODULES:
     render_system_text  CC=27  out:45
     render_tool_text  CC=40  out:80
     summary_text  CC=9  out:24
-  mcp-gateway.server  [60 funcs]
-    _ask_openrouter_github_qa  CC=12  out:15
-    _create_github_pr  CC=3  out:14
-    _enrich_analysis_with_file_metrics  CC=13  out:12
-    _expect_json  CC=3  out:4
-    _extract_github_token_from_text  CC=2  out:2
-    _extract_org_from_text  CC=9  out:9
-    _extract_owner_from_repo_template  CC=4  out:3
-    _extract_repo_template_expression  CC=3  out:3
+  mcp-gateway.gateway_skills  [5 funcs]
+    ask_openrouter_github_qa  CC=12  out:15
+    enrich_analysis_with_file_metrics  CC=13  out:12
+    expect_json  CC=3  out:4
+    is_tools_list_command  CC=6  out:8
+    run_skills_analysis  CC=4  out:16
+  mcp-gateway.gateway_tenants  [7 funcs]
+    authenticate  CC=4  out:8
+    find_tenant_by_key  CC=3  out:2
+    get_last_used_repo  CC=8  out:6
+    get_most_used_repo  CC=8  out:5
+    get_preferred_repo  CC=2  out:2
+    get_redis_client  CC=4  out:1
+    track_repo_usage  CC=3  out:8
+  mcp-gateway.server  [18 funcs]
     _get_default_github_repo  CC=7  out:7
     _get_last_used_repo  CC=8  out:6
+    _get_most_used_repo  CC=8  out:5
+    _get_preferred_repo  CC=2  out:2
+    _get_redis_client  CC=4  out:1
+    _gh2mcp_status_via_gh2mcp  CC=2  out:11
+    _is_github_auth_error  CC=3  out:2
+    _is_github_configured  CC=1  out:2
+    _last_pushed_repo_via_gh2mcp  CC=2  out:12
+    _list_recent_repos_via_gh2mcp  CC=2  out:11
   mcp-skills.code_analysis  [6 funcs]
     _should_skip_path  CC=2  out:1
     build_maintainability_recommendations  CC=24  out:34
@@ -542,45 +602,45 @@ EDGES:
   gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
   gh2mcp.gh2mcp.server.on_startup → gh2mcp.gh2mcp.server._periodic_sync
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._track_repo_usage → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_last_used_repo → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_most_used_repo → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_preferred_repo → mcp-gateway.server._get_last_used_repo
-  mcp-gateway.server._get_preferred_repo → mcp-gateway.server._get_most_used_repo
-  mcp-gateway.server._is_github_configured → mcp-gateway.server._runtime_github_token
-  mcp-gateway.server._get_default_github_repo → mcp-gateway.server._is_github_configured
-  mcp-gateway.server._get_default_github_repo → mcp-gateway.server._last_pushed_repo_via_gh2mcp
-  mcp-gateway.server._is_last_pushed_repo_template → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_last_pushed_repo_template → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_github_token_save_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_github_token_save_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_github_token_save_command → mcp-gateway.server._extract_github_token_from_text
-  mcp-gateway.server._extract_org_from_text → mcp-gateway.server._normalize_repo_url
-  mcp-gateway.server._extract_org_from_text → mcp-gateway.server._github_repo_from_url
-  mcp-gateway.server._is_org_set_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_org_set_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_org_list_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_org_list_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_repo_list_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_repo_list_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server.parse_tool_intent → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server.parse_tool_intent → mcp-gateway.server._strip_url_suffix
-  mcp-gateway.server._is_github_token_sync_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_github_token_sync_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._sync_github_token_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._set_default_org_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._list_recent_repos_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._list_orgs_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._gh2mcp_status_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._extract_repo_template_expression
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._is_last_pushed_repo_template
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._extract_owner_from_repo_template
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._last_pushed_repo_via_gh2mcp
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._is_github_auth_error
-  mcp-gateway.server._save_github_token_via_env2mcp → mcp-gateway.server._extract_github_token_from_text
-  mcp-gateway.server._save_github_token_via_env2mcp → mcp-gateway.server._save_github_token
-  mcp-gateway.server._runtime_github_token → mcp-gateway.server._load_env_file_values
-  mcp-gateway.server._inject_github_token → mcp-gateway.server._runtime_github_token
+  mcp-gateway.gateway_render.render_tool_text → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_system_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_queued_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_analyze_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_refactor_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_tool_text
+  llm-agent.agent_standalone.main → scripts.test.print
+  llm-agent.agent.main → scripts.test.print
+  mcp-skills.tool_run._ensure_tool_installed → mcp-skills.tool_run._truncate_text
+  mcp-skills.tool_run._git_clone_or_update → mcp-skills.tool_run._inject_github_token
+  mcp-skills.tool_run._git_clone_or_update → mcp-skills.tool_run._truncate_text
+  mcp-skills.tool_run.collect_output_files → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.tool_run.run_tool_against_repo → mcp-skills.tool_run._ensure_tool_installed
+  mcp-skills.tool_run.run_tool_against_repo → mcp-skills.tool_run.collect_output_files
+  mcp-skills.code_analysis.compute_repo_file_metrics → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.detect_repo_patterns → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.build_maintainability_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.code_analysis.build_maintainability_recommendations → semcod_mcp.doctor.DoctorReport.add
+  mcp-skills.code_analysis.merge_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo → mcp-skills.code_analysis.compute_repo_file_metrics
+  mcp-skills.server.MCPSkillsServer._detect_code_patterns → mcp-skills.code_analysis.detect_repo_patterns
+  mcp-skills.server.MCPSkillsServer._recommend_refactoring → mcp-skills.code_analysis.build_maintainability_recommendations
+  mcp-skills.server.MCPSkillsServer._recommend_refactoring → mcp-skills.code_analysis.recommendations_payload
+  mcp-skills.server.analyze_code_structure → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.compute_metrics → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.detect_patterns → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.recommend_refactoring → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.compute_repo_file_metrics
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.build_maintainability_recommendations
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.merge_recommendations
+  mcp-skills.server.run_tool_endpoint → mcp-skills.tool_run.run_tool_against_repo
+  mcp-skills.server._run_tool_against_repo → mcp-skills.tool_run.run_tool_against_repo
+  env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
+  env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
 ```
 
 ## Refactoring Analysis
@@ -591,9 +651,9 @@ EDGES:
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/semcod/mcp
-# generated in 0.10s
-# nodes: 171 | edges: 189 | modules: 30
-# CC̄=4.4
+# generated in 0.09s
+# nodes: 189 | edges: 214 | modules: 38
+# CC̄=4.5
 
 HUBS[20]:
   mcp-gateway.server.chat_completions
@@ -602,20 +662,24 @@ HUBS[20]:
     CC=37  in:2  out:80  total:82
   mcp-gateway.gateway_render.render_tool_text
     CC=40  in:1  out:80  total:81
+  mcp-gateway.gateway_chat.handle_chat_completions
+    CC=31  in:0  out:69  total:69
   scripts.test.print
     CC=0  in:64  out:0  total:64
   mcp-gateway.gateway_render.render_refactor_text
     CC=17  in:1  out:51  total:52
   mcp-gateway.gateway_render.render_system_text
     CC=27  in:1  out:45  total:46
+  mcp-gateway.gateway_chat.run_chat_workflow
+    CC=43  in:2  out:43  total:45
+  mcp-gateway.gateway_dispatch.dispatch_skill
+    CC=19  in:3  out:41  total:44
   mcp-skills.server.redsl_refactor
     CC=9  in:0  out:44  total:44
-  mcp-gateway.server.dispatch_skill
-    CC=19  in:2  out:41  total:43
-  semcod_mcp.doctor.run_doctor
-    CC=11  in:1  out:38  total:39
   mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
     CC=15  in:0  out:39  total:39
+  semcod_mcp.doctor.run_doctor
+    CC=11  in:1  out:38  total:39
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
     CC=32  in:0  out:38  total:38
   semcod_mcp.init_cmd.run_init
@@ -632,10 +696,6 @@ HUBS[20]:
     CC=14  in:1  out:29  total:30
   mcp-gateway.server._resolve_repo_id_template
     CC=14  in:1  out:28  total:29
-  semcod_mcp.validate.run_validate
-    CC=13  in:1  out:24  total:25
-  mcp-skills.code_analysis.compute_repo_file_metrics
-    CC=15  in:2  out:23  total:25
 
 MODULES:
   dashboard.server  [1 funcs]
@@ -679,6 +739,52 @@ MODULES:
     _safe_doc_path  CC=4  out:9
     index  CC=4  out:11
     render_doc  CC=1  out:6
+  mcp-gateway.gateway_chat  [2 funcs]
+    handle_chat_completions  CC=31  out:69
+    run_chat_workflow  CC=43  out:43
+  mcp-gateway.gateway_dispatch  [1 funcs]
+    dispatch_skill  CC=19  out:41
+  mcp-gateway.gateway_gh2mcp  [13 funcs]
+    get_default_github_repo  CC=7  out:7
+    gh2mcp_status_via_gh2mcp  CC=2  out:11
+    is_github_auth_error  CC=3  out:2
+    is_github_configured  CC=1  out:2
+    last_pushed_repo_via_gh2mcp  CC=2  out:12
+    list_orgs_via_gh2mcp  CC=2  out:10
+    list_recent_repos_via_gh2mcp  CC=2  out:11
+    repo_owner  CC=4  out:2
+    resolve_repo_id_template  CC=14  out:28
+    run_github_qa  CC=9  out:16
+  mcp-gateway.gateway_github  [15 funcs]
+    create_github_pr  CC=3  out:14
+    extract_org_from_text  CC=9  out:9
+    extract_repo_list_limit  CC=3  out:5
+    github_repo_from_url  CC=9  out:10
+    inject_github_token  CC=9  out:6
+    is_github_token_save_command  CC=15  out:7
+    is_github_token_sync_command  CC=11  out:9
+    is_org_list_command  CC=13  out:7
+    is_org_set_command  CC=9  out:6
+    is_repo_list_command  CC=23  out:4
+  mcp-gateway.gateway_jobs  [9 funcs]
+    execute_dispatch_job  CC=3  out:15
+    get_queue  CC=5  out:2
+    get_rq_redis_client  CC=4  out:2
+    get_state_redis_client  CC=4  out:2
+    job_storage_key  CC=1  out:0
+    load_job  CC=5  out:6
+    queue_workflow_job  CC=2  out:3
+    save_job  CC=3  out:4
+    update_job  CC=2  out:4
+  mcp-gateway.gateway_prompt  [8 funcs]
+    extract_github_token_from_text  CC=2  out:2
+    extract_owner_from_repo_template  CC=4  out:3
+    extract_repo_template_expression  CC=3  out:3
+    is_last_pushed_repo_template  CC=15  out:3
+    normalize_command_text  CC=1  out:5
+    parse_prompt_context  CC=8  out:10
+    parse_tool_intent  CC=23  out:17
+    strip_url_suffix  CC=1  out:1
   mcp-gateway.gateway_render  [7 funcs]
     render_analyze_text  CC=14  out:30
     render_chat_content  CC=13  out:16
@@ -687,17 +793,31 @@ MODULES:
     render_system_text  CC=27  out:45
     render_tool_text  CC=40  out:80
     summary_text  CC=9  out:24
-  mcp-gateway.server  [60 funcs]
-    _ask_openrouter_github_qa  CC=12  out:15
-    _create_github_pr  CC=3  out:14
-    _enrich_analysis_with_file_metrics  CC=13  out:12
-    _expect_json  CC=3  out:4
-    _extract_github_token_from_text  CC=2  out:2
-    _extract_org_from_text  CC=9  out:9
-    _extract_owner_from_repo_template  CC=4  out:3
-    _extract_repo_template_expression  CC=3  out:3
+  mcp-gateway.gateway_skills  [5 funcs]
+    ask_openrouter_github_qa  CC=12  out:15
+    enrich_analysis_with_file_metrics  CC=13  out:12
+    expect_json  CC=3  out:4
+    is_tools_list_command  CC=6  out:8
+    run_skills_analysis  CC=4  out:16
+  mcp-gateway.gateway_tenants  [7 funcs]
+    authenticate  CC=4  out:8
+    find_tenant_by_key  CC=3  out:2
+    get_last_used_repo  CC=8  out:6
+    get_most_used_repo  CC=8  out:5
+    get_preferred_repo  CC=2  out:2
+    get_redis_client  CC=4  out:1
+    track_repo_usage  CC=3  out:8
+  mcp-gateway.server  [18 funcs]
     _get_default_github_repo  CC=7  out:7
     _get_last_used_repo  CC=8  out:6
+    _get_most_used_repo  CC=8  out:5
+    _get_preferred_repo  CC=2  out:2
+    _get_redis_client  CC=4  out:1
+    _gh2mcp_status_via_gh2mcp  CC=2  out:11
+    _is_github_auth_error  CC=3  out:2
+    _is_github_configured  CC=1  out:2
+    _last_pushed_repo_via_gh2mcp  CC=2  out:12
+    _list_recent_repos_via_gh2mcp  CC=2  out:11
   mcp-skills.code_analysis  [6 funcs]
     _should_skip_path  CC=2  out:1
     build_maintainability_recommendations  CC=24  out:34
@@ -798,64 +918,58 @@ EDGES:
   gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
   gh2mcp.gh2mcp.server.on_startup → gh2mcp.gh2mcp.server._periodic_sync
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._track_repo_usage → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_last_used_repo → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_most_used_repo → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_preferred_repo → mcp-gateway.server._get_last_used_repo
-  mcp-gateway.server._get_preferred_repo → mcp-gateway.server._get_most_used_repo
-  mcp-gateway.server._is_github_configured → mcp-gateway.server._runtime_github_token
-  mcp-gateway.server._get_default_github_repo → mcp-gateway.server._is_github_configured
-  mcp-gateway.server._get_default_github_repo → mcp-gateway.server._last_pushed_repo_via_gh2mcp
-  mcp-gateway.server._is_last_pushed_repo_template → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_last_pushed_repo_template → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_github_token_save_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_github_token_save_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_github_token_save_command → mcp-gateway.server._extract_github_token_from_text
-  mcp-gateway.server._extract_org_from_text → mcp-gateway.server._normalize_repo_url
-  mcp-gateway.server._extract_org_from_text → mcp-gateway.server._github_repo_from_url
-  mcp-gateway.server._is_org_set_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_org_set_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_org_list_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_org_list_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_repo_list_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_repo_list_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server.parse_tool_intent → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server.parse_tool_intent → mcp-gateway.server._strip_url_suffix
-  mcp-gateway.server._is_github_token_sync_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_github_token_sync_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._sync_github_token_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._set_default_org_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._list_recent_repos_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._list_orgs_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._gh2mcp_status_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._extract_repo_template_expression
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._is_last_pushed_repo_template
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._extract_owner_from_repo_template
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._last_pushed_repo_via_gh2mcp
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._is_github_auth_error
-  mcp-gateway.server._save_github_token_via_env2mcp → mcp-gateway.server._extract_github_token_from_text
-  mcp-gateway.server._save_github_token_via_env2mcp → mcp-gateway.server._save_github_token
-  mcp-gateway.server._runtime_github_token → mcp-gateway.server._load_env_file_values
-  mcp-gateway.server._inject_github_token → mcp-gateway.server._runtime_github_token
+  mcp-gateway.gateway_render.render_tool_text → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_system_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_queued_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_analyze_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_refactor_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_tool_text
+  llm-agent.agent_standalone.main → scripts.test.print
+  llm-agent.agent.main → scripts.test.print
+  mcp-skills.tool_run._ensure_tool_installed → mcp-skills.tool_run._truncate_text
+  mcp-skills.tool_run._git_clone_or_update → mcp-skills.tool_run._inject_github_token
+  mcp-skills.tool_run._git_clone_or_update → mcp-skills.tool_run._truncate_text
+  mcp-skills.tool_run.collect_output_files → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.tool_run.run_tool_against_repo → mcp-skills.tool_run._ensure_tool_installed
+  mcp-skills.tool_run.run_tool_against_repo → mcp-skills.tool_run.collect_output_files
+  mcp-skills.code_analysis.compute_repo_file_metrics → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.detect_repo_patterns → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.build_maintainability_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.code_analysis.build_maintainability_recommendations → semcod_mcp.doctor.DoctorReport.add
+  mcp-skills.code_analysis.merge_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo → mcp-skills.code_analysis.compute_repo_file_metrics
+  mcp-skills.server.MCPSkillsServer._detect_code_patterns → mcp-skills.code_analysis.detect_repo_patterns
+  mcp-skills.server.MCPSkillsServer._recommend_refactoring → mcp-skills.code_analysis.build_maintainability_recommendations
+  mcp-skills.server.MCPSkillsServer._recommend_refactoring → mcp-skills.code_analysis.recommendations_payload
+  mcp-skills.server.analyze_code_structure → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.compute_metrics → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.detect_patterns → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.recommend_refactoring → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.compute_repo_file_metrics
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.build_maintainability_recommendations
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.merge_recommendations
+  mcp-skills.server.run_tool_endpoint → mcp-skills.tool_run.run_tool_against_repo
+  mcp-skills.server._run_tool_against_repo → mcp-skills.tool_run.run_tool_against_repo
+  env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
+  env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
 ```
 
 ### Code Analysis (`project/analysis.toon.yaml`)
 
 ```toon markpact:analysis path=project/analysis.toon.yaml
-# code2llm | 92f 16991L | python:47,yaml:9,yml:7,shell:7,txt:6,toml:4,json:2,ini:1 | 2026-06-18
+# code2llm | 101f 18254L | python:56,yaml:9,yml:7,shell:7,txt:6,toml:4,json:2,ini:1 | 2026-06-18
 # generated in 0.02s
-# CC̅=4.4 | critical:23/421 | dups:0 | cycles:0
+# CC̅=4.5 | critical:25/446 | dups:0 | cycles:0
 
 HEALTH[20]:
   🟡 CC    get_last_pushed_repo CC=23 (limit:15)
   🟡 CC    get_recent_repos CC=32 (limit:15)
   🟡 CC    sync_token CC=20 (limit:15)
-  🟡 CC    _is_last_pushed_repo_template CC=15 (limit:15)
-  🟡 CC    _is_github_token_save_command CC=15 (limit:15)
-  🟡 CC    _is_repo_list_command CC=23 (limit:15)
-  🟡 CC    parse_tool_intent CC=23 (limit:15)
-  🟡 CC    chat_completions CC=31 (limit:15)
-  🟡 CC    dispatch_skill CC=19 (limit:15)
   🟡 CC    render_system_text CC=27 (limit:15)
   🟡 CC    render_refactor_text CC=17 (limit:15)
   🟡 CC    render_tool_text CC=40 (limit:15)
@@ -867,11 +981,17 @@ HEALTH[20]:
   🟡 CC    build_maintainability_recommendations CC=24 (limit:15)
   🟡 CC    _sync_from_git_proxy CC=15 (limit:15)
   🟡 CC    save CC=20 (limit:15)
+  🟡 CC    _get_github_config CC=16 (limit:15)
+  🟡 CC    github_fetch_token_from_cli CC=16 (limit:15)
+  🟡 CC    run_deinit CC=15 (limit:15)
+  🟡 CC    is_github_token_save_command CC=15 (limit:15)
+  🟡 CC    is_repo_list_command CC=23 (limit:15)
+  🟡 CC    run_chat_workflow CC=43 (limit:15)
 
 REFACTOR[1]:
   1. split 20 high-CC methods  (CC>15)
 
-PIPELINES[221]:
+PIPELINES[225]:
   [1] Src [end_headers]: end_headers
       PURITY: 100% pure
   [2] Src [do_GET]: do_GET
@@ -974,10 +1094,19 @@ PIPELINES[221]:
       PURITY: 100% pure
 
 LAYERS:
-  mcp-gateway/                    CC̄=6.9    ←in:0  →out:8  !! split
-  │ !! server                    2468L  2C   74m  CC=31     ←0
-  │ !! gateway_render             502L  0C   13m  CC=40     ←1
+  mcp-gateway/                    CC̄=6.8    ←in:0  →out:9  !! split
+  │ !! server                    1206L  2C   29m  CC=31     ←1
+  │ !! gateway_chat               563L  0C    2m  CC=43     ←0
+  │ !! gateway_render             502L  0C   13m  CC=40     ←3
+  │ !! gateway_github             432L  0C   18m  CC=23     ←3
+  │ gateway_gh2mcp             398L  0C   14m  CC=14     ←1
+  │ !! gateway_prompt             271L  0C   10m  CC=23     ←5
+  │ gateway_skills             263L  0C    7m  CC=13     ←3
+  │ !! gateway_dispatch           248L  0C    1m  CC=19     ←3
+  │ gateway_jobs               175L  0C    9m  CC=5      ←2
+  │ gateway_tenants            141L  0C    9m  CC=8      ←1
   │ gateway_config              56L  0C    0m  CC=0.0    ←0
+  │ gateway_models              34L  2C    0m  CC=0.0    ←0
   │ worker                      18L  0C    1m  CC=2      ←0
   │ default.yaml                16L  0C    0m  CC=0.0    ←0
   │ Dockerfile                  15L  0C    0m  CC=0.0    ←0
@@ -1006,7 +1135,7 @@ LAYERS:
   env2mcp/                        CC̄=5.1    ←in:0  →out:0
   │ github_cli                 330L  1C   11m  CC=14     ←1
   │ cli                        252L  0C    8m  CC=11     ←0
-  │ !! config                     158L  1C   13m  CC=20     ←8
+  │ !! config                     158L  1C   13m  CC=20     ←11
   │ pyproject.toml              68L  0C    0m  CC=0.0    ←0
   │ __init__                    13L  0C    0m  CC=0.0    ←0
   │
@@ -1098,26 +1227,26 @@ LAYERS:
   │
 
 COUPLING:
-                             scripts   env2mcp.env2mcp         llm-agent        mcp-skills        semcod_mcp         dashboard  git2mcp.examples       mcp-gateway     gh2mcp.gh2mcp
-           scripts                ──               ←34               ←10                                                    ←8                ←8                                  ←4  hub
-   env2mcp.env2mcp                34                ──                                  ←4                ←3                                                    ←8                ←1  hub
+                             scripts   env2mcp.env2mcp         llm-agent        mcp-skills       mcp-gateway        semcod_mcp         dashboard  git2mcp.examples     gh2mcp.gh2mcp
+           scripts                ──               ←34               ←10                                                                      ←8                ←8                ←4  hub
+   env2mcp.env2mcp                34                ──                                  ←4                ←9                ←3                                                    ←1  hub
          llm-agent                10                                  ──                                                                                                              !! fan-out
-        mcp-skills                                   4                                  ──                 6                                                                          !! fan-out
-        semcod_mcp                                   3                                  ←6                ──                                                                          hub
-         dashboard                 8                                                                                        ──                                                        !! fan-out
-  git2mcp.examples                 8                                                                                                          ──                                      !! fan-out
-       mcp-gateway                                   8                                                                                                          ──                    !! fan-out
+        mcp-skills                                   4                                  ──                                   6                                                        !! fan-out
+       mcp-gateway                                   9                                                    ──                                                                          !! fan-out
+        semcod_mcp                                   3                                  ←6                                  ──                                                        hub
+         dashboard                 8                                                                                                          ──                                      !! fan-out
+  git2mcp.examples                 8                                                                                                                            ──                    !! fan-out
      gh2mcp.gh2mcp                 4                 1                                                                                                                            ──
   CYCLES: none
-  HUB: env2mcp.env2mcp/ (fan-in=16)
-  HUB: scripts/ (fan-in=64)
   HUB: semcod_mcp/ (fan-in=6)
-  SMELL: env2mcp.env2mcp/ fan-out=34 → split needed
+  HUB: scripts/ (fan-in=64)
+  HUB: env2mcp.env2mcp/ (fan-in=17)
+  SMELL: mcp-gateway/ fan-out=9 → split needed
   SMELL: mcp-skills/ fan-out=10 → split needed
-  SMELL: git2mcp.examples/ fan-out=8 → split needed
-  SMELL: mcp-gateway/ fan-out=8 → split needed
-  SMELL: llm-agent/ fan-out=10 → split needed
   SMELL: dashboard/ fan-out=8 → split needed
+  SMELL: env2mcp.env2mcp/ fan-out=34 → split needed
+  SMELL: git2mcp.examples/ fan-out=8 → split needed
+  SMELL: llm-agent/ fan-out=10 → split needed
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon
@@ -1127,22 +1256,22 @@ EXTERNAL:
 ### Duplication (`project/duplication.toon.yaml`)
 
 ```toon markpact:analysis path=project/duplication.toon.yaml
-# redup/duplication | 7 groups | 50f 10402L | 2026-06-18
+# redup/duplication | 7 groups | 59f 10680L | 2026-06-18
 
 SUMMARY:
-  files_scanned: 50
-  total_lines:   10402
+  files_scanned: 59
+  total_lines:   10680
   dup_groups:    7
   dup_fragments: 18
   saved_lines:   107
-  scan_ms:       4784
+  scan_ms:       4447
 
 HOTSPOTS[7] (files with most duplication):
   llm-agent/agent.py  dup=41L  groups=2  frags=2  (0.4%)
   llm-agent/agent_standalone.py  dup=41L  groups=2  frags=2  (0.4%)
   mcp-skills/server.py  dup=32L  groups=1  frags=4  (0.3%)
   mcp-git-proxy/server.py  dup=30L  groups=2  frags=6  (0.3%)
-  mcp-gateway/server.py  dup=26L  groups=1  frags=2  (0.2%)
+  mcp-gateway/gateway_jobs.py  dup=26L  groups=1  frags=2  (0.2%)
   semcod_mcp/deinit_cmd.py  dup=9L  groups=1  frags=1  (0.1%)
   semcod_mcp/init_cmd.py  dup=9L  groups=1  frags=1  (0.1%)
 
@@ -1160,9 +1289,9 @@ DUPLICATES[7] (ranked by impact):
       mcp-git-proxy/server.py:246-250  (stage)
       mcp-git-proxy/server.py:254-258  (stash_save)
       mcp-git-proxy/server.py:278-282  (checkpoint_create)
-  [bf41aa98652b1a64]   STRU  _get_state_redis_client  L=13 N=2 saved=13 sim=1.00
-      mcp-gateway/server.py:1560-1572  (_get_state_redis_client)
-      mcp-gateway/server.py:1575-1587  (_get_rq_redis_client)
+  [bf41aa98652b1a64]   STRU  get_state_redis_client  L=13 N=2 saved=13 sim=1.00
+      mcp-gateway/gateway_jobs.py:32-44  (get_state_redis_client)
+      mcp-gateway/gateway_jobs.py:47-59  (get_rq_redis_client)
   [5865906155183adc]   EXAC  _mock_llm_response_from_prompt  L=11 N=2 saved=11 sim=1.00
       llm-agent/agent.py:263-273  (_mock_llm_response_from_prompt)
       llm-agent/agent_standalone.py:436-446  (_mock_llm_response_from_prompt)
@@ -1183,9 +1312,9 @@ REFACTOR[7] (ranked by priority):
   [3] ○ extract_function   → mcp-git-proxy/utils/worktree_diff.py
       WHY: 4 occurrences of 5-line block across 1 files — saves 15 lines
       FILES: mcp-git-proxy/server.py
-  [4] ○ extract_function   → mcp-gateway/utils/_get_state_redis_client.py
+  [4] ○ extract_function   → mcp-gateway/utils/get_state_redis_client.py
       WHY: 2 occurrences of 13-line block across 1 files — saves 13 lines
-      FILES: mcp-gateway/server.py
+      FILES: mcp-gateway/gateway_jobs.py
   [5] ○ extract_class      → llm-agent/utils/_mock_llm_response_from_prompt.py
       WHY: 2 occurrences of 11-line block across 2 files — saves 11 lines
       FILES: llm-agent/agent.py, llm-agent/agent_standalone.py
@@ -1203,8 +1332,8 @@ QUICK_WINS[6] (low risk, high savings — do first):
       FILES: server.py
   [3] extract_function   saved=15L  → mcp-git-proxy/utils/worktree_diff.py
       FILES: server.py
-  [4] extract_function   saved=13L  → mcp-gateway/utils/_get_state_redis_client.py
-      FILES: server.py
+  [4] extract_function   saved=13L  → mcp-gateway/utils/get_state_redis_client.py
+      FILES: gateway_jobs.py
   [5] extract_class      saved=11L  → llm-agent/utils/_mock_llm_response_from_prompt.py
       FILES: agent.py, agent_standalone.py
   [6] extract_function   saved=9L  → semcod_mcp/utils/print_deinit_result.py
@@ -1214,7 +1343,7 @@ EFFORT_ESTIMATE (total ≈ 3.6h):
   medium _mock_llm_response                  saved=30L  ~60min
   medium analyze_code_structure              saved=24L  ~48min
   medium worktree_diff                       saved=15L  ~30min
-  easy   _get_state_redis_client             saved=13L  ~26min
+  easy   get_state_redis_client              saved=13L  ~26min
   easy   _mock_llm_response_from_prompt      saved=11L  ~22min
   easy   print_deinit_result                 saved=9L  ~18min
   easy   push                                saved=5L  ~10min
@@ -1227,13 +1356,13 @@ METRICS-TARGET:
 ### Evolution / Churn (`project/evolution.toon.yaml`)
 
 ```toon markpact:analysis path=project/evolution.toon.yaml
-# code2llm/evolution | 364 func | 32f | 2026-06-18
+# code2llm/evolution | 389 func | 40f | 2026-06-18
 # generated in 0.00s
 
 NEXT[10] (ranked by impact):
   [1] !! SPLIT           mcp-gateway/server.py
-      WHY: 2468L, 2 classes, max CC=31
-      EFFORT: ~4h  IMPACT: 76508
+      WHY: 1206L, 2 classes, max CC=31
+      EFFORT: ~4h  IMPACT: 37386
 
   [2] !! SPLIT           mcp-skills/server.py
       WHY: 691L, 1 classes, max CC=15
@@ -1247,41 +1376,41 @@ NEXT[10] (ranked by impact):
       WHY: CC=37 exceeds 15
       EFFORT: ~1h  IMPACT: 1517
 
-  [5] !! SPLIT-FUNC      GitHubTokenSyncService.get_recent_repos  CC=32  fan=24
+  [5] !! SPLIT-FUNC      run_chat_workflow  CC=43  fan=26
+      WHY: CC=43 exceeds 15
+      EFFORT: ~1h  IMPACT: 1118
+
+  [6] !! SPLIT-FUNC      handle_chat_completions  CC=31  fan=32
+      WHY: CC=31 exceeds 15
+      EFFORT: ~1h  IMPACT: 992
+
+  [7] !! SPLIT-FUNC      GitHubTokenSyncService.get_recent_repos  CC=32  fan=24
       WHY: CC=32 exceeds 15
       EFFORT: ~1h  IMPACT: 768
 
-  [6] !! SPLIT-FUNC      render_tool_text  CC=40  fan=15
+  [8] !! SPLIT-FUNC      render_tool_text  CC=40  fan=15
       WHY: CC=40 exceeds 15
       EFFORT: ~1h  IMPACT: 600
 
-  [7] !  SPLIT-FUNC      dispatch_skill  CC=19  fan=26
+  [9] !  SPLIT-FUNC      dispatch_skill  CC=19  fan=26
       WHY: CC=19 exceeds 15
       EFFORT: ~1h  IMPACT: 494
 
-  [8] !  SPLIT-FUNC      MCPSkillsServer._sync_from_git_proxy  CC=15  fan=30
+  [10] !  SPLIT-FUNC      MCPSkillsServer._sync_from_git_proxy  CC=15  fan=30
       WHY: CC=15 exceeds 15
       EFFORT: ~1h  IMPACT: 450
 
-  [9] !  SPLIT-FUNC      GitHubTokenSyncService.get_last_pushed_repo  CC=23  fan=18
-      WHY: CC=23 exceeds 15
-      EFFORT: ~1h  IMPACT: 414
-
-  [10] !  SPLIT-FUNC      parse_tool_intent  CC=23  fan=16
-      WHY: CC=23 exceeds 15
-      EFFORT: ~1h  IMPACT: 368
-
 
 RISKS[3]:
-  ⚠ Splitting mcp-gateway/server.py may break 74 import paths
   ⚠ Splitting planfile.yaml may break 0 import paths
+  ⚠ Splitting mcp-gateway/server.py may break 29 import paths
   ⚠ Splitting mcp-skills/server.py may break 22 import paths
 
 METRICS-TARGET:
-  CC̄:          5.0 → ≤3.5
-  max-CC:      40 → ≤20
-  god-modules: 8 → 0
-  high-CC(≥15): 23 → ≤11
+  CC̄:          5.1 → ≤3.6
+  max-CC:      43 → ≤20
+  god-modules: 9 → 0
+  high-CC(≥15): 25 → ≤12
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -1309,7 +1438,7 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=5.0 → now CC̄=5.0
+  prev CC̄=5.0 → now CC̄=5.1
 ```
 
 ## Intent

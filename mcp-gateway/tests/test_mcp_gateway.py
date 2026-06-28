@@ -7,5 +7,5 @@ def test_placeholder():
 
 
 def test_import():
-    """Verify the main package can be imported."""
-    import mcp_gateway  # noqa: F401
+    """Verify the main gateway module can be imported."""
+    import server  # noqa: F401

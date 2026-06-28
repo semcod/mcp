@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.10] - 2026-06-18
 
 ### Fixed
+- Fix string-concat issues (ticket-0a736b64)
+
+## [0.1.10] - 2026-06-18
+
+### Fixed
 - Fix unused-imports issues (ticket-d4b1ca36)
 - Fix magic-numbers issues (ticket-b8f91c35)
 - Fix string-concat issues (ticket-da3705cc)

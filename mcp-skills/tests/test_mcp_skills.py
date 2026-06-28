@@ -7,5 +7,12 @@ def test_placeholder():
 
 
 def test_import():
-    """Verify the main package can be imported."""
-    import mcp_skills  # noqa: F401
+    """Verify the main skills server module can be imported."""
+    import importlib.util
+    from pathlib import Path
+
+    server_path = Path(__file__).resolve().parents[1] / "server.py"
+    spec = importlib.util.spec_from_file_location("mcp_skills_server_test", server_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert hasattr(module, "app") or hasattr(module, "skills_server")

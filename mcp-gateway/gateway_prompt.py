@@ -206,6 +206,39 @@ def strip_url_suffix(url: str) -> str:
     return url.rstrip(".,;:!?)")
 
 
+def resolve_tool_repo(
+    text: str,
+    prompt_ctx: dict[str, str] | None,
+    repo_url: str | None,
+) -> tuple[str | None, str | None]:
+    """Resolve repo_id and repo_url from prompt context, slug, or URL."""
+    repo_id: str | None = None
+    if prompt_ctx:
+        repo_id = prompt_ctx.get("repo_id")
+
+    if not repo_id and not repo_url:
+        slug_match = re.search(
+            r"\b([A-Za-z0-9][A-Za-z0-9_.\-]*)/([A-Za-z0-9][A-Za-z0-9_.\-]*)\b",
+            text,
+        )
+        if slug_match:
+            repo_id = f"{slug_match.group(1)}/{slug_match.group(2)}"
+
+    if not repo_id and repo_url:
+        try:
+            parsed = urlparse(repo_url)
+            parts = [p for p in parsed.path.strip("/").split("/") if p]
+            if len(parts) >= 2:
+                last = parts[1]
+                if last.endswith(".git"):
+                    last = last[:-4]
+                repo_id = f"{parts[0]}/{last}"
+        except Exception:
+            pass
+
+    return repo_id, repo_url
+
+
 def parse_tool_intent(user_msg: str, prompt_ctx: dict[str, str] | None = None) -> dict[str, Any] | None:
     """Detect requests like 'wygeneruj sumd dla <URL>' / 'run code2llm on owner/repo'."""
     if not user_msg:
@@ -238,29 +271,7 @@ def parse_tool_intent(user_msg: str, prompt_ctx: dict[str, str] | None = None) -
     if not (has_verb or is_first_word or repo_url):
         return None
 
-    repo_id: str | None = None
-    if prompt_ctx:
-        repo_id = prompt_ctx.get("repo_id")
-
-    if not repo_id and not repo_url:
-        slug_match = re.search(
-            r"\b([A-Za-z0-9][A-Za-z0-9_.\-]*)/([A-Za-z0-9][A-Za-z0-9_.\-]*)\b",
-            text,
-        )
-        if slug_match:
-            repo_id = f"{slug_match.group(1)}/{slug_match.group(2)}"
-
-    if not repo_id and repo_url:
-        try:
-            parsed = urlparse(repo_url)
-            parts = [p for p in parsed.path.strip("/").split("/") if p]
-            if len(parts) >= 2:
-                last = parts[1]
-                if last.endswith(".git"):
-                    last = last[:-4]
-                repo_id = f"{parts[0]}/{last}"
-        except Exception:
-            pass
+    repo_id, repo_url = resolve_tool_repo(text, prompt_ctx, repo_url)
 
     return {
         "tool": tool_name,

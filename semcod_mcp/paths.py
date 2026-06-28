@@ -68,3 +68,26 @@ def gateway_url(stack_path: Path | None) -> str:
 
 def default_api_key() -> str:
     return os.getenv("SEMCOD_MCP_API_KEY", os.getenv("WEBUI_API_KEY", "sk-mcp-default-dev-key"))
+
+
+def container_source_path(project_dir: Path, stack_path: Path | None) -> str | None:
+    """Map host project dir to git-proxy mount (compose: ..:/host-semcod:ro).
+
+    Example: ~/github/semcod/mcp → /host-semcod/mcp (live working tree, no commit).
+    """
+    if stack_path is None:
+        return None
+    project_dir = project_dir.resolve()
+    stack_path = stack_path.resolve()
+    host_root = stack_path.parent
+    try:
+        rel = project_dir.relative_to(host_root)
+        return f"/host-semcod/{rel.as_posix()}"
+    except ValueError:
+        pass
+    host_repos = stack_path / "repos"
+    try:
+        rel = project_dir.relative_to(host_repos.resolve())
+        return f"/host-repos/{rel.as_posix()}"
+    except ValueError:
+        return None

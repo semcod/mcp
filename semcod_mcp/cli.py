@@ -117,9 +117,43 @@ def validate_cmd(path: Path) -> None:
 @click.argument("path", type=click.Path(path_type=Path), default=".")
 @click.option("--task", default="Szybka analiza struktury i rekomendacje refaktoryzacji.")
 @click.option("--execute", is_flag=True, help="Pass Execute: true to gateway")
-def analyze_cmd(path: Path, task: str, execute: bool) -> None:
-    """Run gateway analysis for repo (or local fallback summary)."""
-    report = run_analyze(path, task=task, execute=execute)
+@click.option(
+    "--local",
+    "local_tool",
+    flag_value="code2llm",
+    help="Analiza code2llm na working tree (bez gateway, bez commita)",
+)
+@click.option(
+    "--no-source",
+    is_flag=True,
+    help="Nie przekazuj Source: /host-semcod/... (użyj tylko zsynchronizowanego repo)",
+)
+@click.option(
+    "--async",
+    "async_mode",
+    is_flag=True,
+    help="Kolejka Redis/RQ zamiast synchronicznego analyze",
+)
+@click.option("--timeout", default=120.0, show_default=True, help="Timeout HTTP / poll job (s)")
+def analyze_cmd(
+    path: Path,
+    task: str,
+    execute: bool,
+    local_tool: str | None,
+    no_source: bool,
+    async_mode: bool,
+    timeout: float,
+) -> None:
+    """Run gateway analysis for repo (live source_path) or local code2llm."""
+    report = run_analyze(
+        path,
+        task=task,
+        execute=execute,
+        timeout=timeout,
+        use_local_source=not no_source,
+        sync_mode=not async_mode,
+        local_tool=local_tool,
+    )
     console.print(f"[bold]Repo:[/bold] {report.repo_id or '—'}  [bold]Mode:[/bold] {report.mode}")
     console.print(report.summary)
     for note in report.notes:

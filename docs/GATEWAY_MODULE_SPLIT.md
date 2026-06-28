@@ -1,104 +1,174 @@
-# mcp-gateway — plan podziału `server.py`
+# mcp-gateway — architektura modułów po refaktoryzacji
 
-**Powiązane:** [spis dokumentacji](README.md) · [REFACTORING_PLAN.md](../REFACTORING_PLAN.md) · [IDE_AND_AGENT_INTEGRATION.md](IDE_AND_AGENT_INTEGRATION.md) · [`code_analysis.py`](../mcp-skills/code_analysis.py)
+**Powiązane:** [spis dokumentacji](README.md) · [USAGE.md](USAGE.md) · [SEMCOD_MCP_CLI.md](SEMCOD_MCP_CLI.md) · [REFACTORING_PLAN.md](../REFACTORING_PLAN.md)
 
-Stan wyjściowy: **~2908 linii** w jednym pliku (`mcp-gateway/server.py`).
+Stan wyjściowy (2026-06): **~2908 linii** w jednym pliku (`mcp-gateway/server.py`).
 
-Cel: moduły po **200–500 linii**, zachowanie API (`import server as gateway` w testach).
+Stan docelowy: **~228 linii** w `server.py` (tylko routes + re-eksporty dla testów), logika w modułach `gateway_*` po **50–460 linii**.
 
-## Docelowa struktura
+---
+
+## Po co ten podział — korzyści
+
+| Korzyść | Co to daje w praktyce |
+|---------|------------------------|
+| **Niższa złożoność (CC)** | code2llm wskazywał 20 metod z CC>15; po splicie łatwiej utrzymać limit i review PR |
+| **Szybsze testy** | `pytest mcp-gateway/` ~1 s; monkeypatch na `import server as gateway` bez zmian w testach |
+| **Izolowane zmiany** | NLP GitHub, render Markdown, dispatch refactor — osobne pliki, mniejsze konflikty merge |
+| **Bezpieczniejszy Docker** | `make reload-gateway` kopiuje tylko potrzebne moduły; bind-mounty w compose dla dev |
+| **Łatwiejsze rozszerzanie** | nowy skill → `gateway_dispatch.py` + ewentualnie `dispatch_*.py`; nowa komenda czatu → `gateway_github_nlp.py` |
+| **Lepsza obserwowalność** | audit w `gateway_tenants`, joby w `gateway_jobs`, chat routing w `chat_workflow_handlers.py` |
+
+---
+
+## Jak używać (developer)
+
+### Uruchomienie i weryfikacja
+
+```bash
+# Stack + smoke (health, modele, tools/list, webui)
+make start
+make smoke
+
+# Po zmianach w gateway / gh2mcp / skills
+make reload-gateway
+
+# Testy jednostkowe (gateway + gh2mcp + fragmenty skills)
+make pytest
+# lub tylko gateway:
+cd mcp-gateway && python3 -m pytest -q
+```
+
+### Gdzie szukać logiki
+
+| Chcesz… | Plik |
+|---------|------|
+| Dodać endpoint HTTP | `server.py` |
+| Zmienić routing czatu / SSE | `gateway_chat.py`, `chat_workflow_handlers.py` |
+| Nowa komenda „pokaż repo GitHub” | `gateway_github_nlp.py` |
+| Token, PR, URL repo | `gateway_github.py` |
+| Analyze / refactor workflow | `gateway_dispatch.py`, `dispatch_refactor.py` |
+| Format odpowiedzi w czacie | `gateway_render.py`, `render_tools.py`, `render_system_actions.py` |
+| Parsowanie promptu użytkownika | `gateway_prompt.py` |
+| GitHub Q&A (OpenRouter) | `gateway_gh2mcp.py` + `gateway_skills.ask_openrouter_github_qa` |
+| Joby w tle (Redis/RQ) | `gateway_jobs.py` |
+
+### Kontrakt testów
+
+Testy używają `import server as gateway` i monkeypatchują `gateway._*` — **nie zmieniaj nazw re-eksportów** na końcu `server.py` bez aktualizacji testów.
+
+### Konfiguracja GitHub Q&A
+
+W `.env`:
+
+```bash
+OPENROUTER_API_KEY=sk-or-v1-...
+LLM_MODEL=openrouter/x-ai/grok-code-fast-1
+```
+
+Model w czacie: `mcp-skills/github-qa`. Bez klucza gateway zwróci czytelny komunikat o `OPENROUTER_API_KEY` (nie wywołuje OpenRouter).
+
+```bash
+curl -s -H "Authorization: Bearer sk-mcp-default-dev-key" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"mcp-skills/github-qa","messages":[{"role":"user","content":"jakie mam ostatnie repo?"}]}' \
+  http://localhost:9000/v1/chat/completions
+```
+
+---
+
+## Struktura plików (aktualna)
+
+### mcp-gateway
 
 ```
 mcp-gateway/
-├── server.py              # FastAPI routes only (~250 L)
-├── gateway_config.py      # env, stałe, SKILL_MODELS (~80 L)
-├── gateway_prompt.py      # parse_prompt_context, parse_tool_intent (~270 L) ✅
-├── gateway_github.py      # NLP GitHub commands, repo URL helpers (~240 L) ✅
-├── gateway_skills.py      # klient HTTP mcp-skills (~260 L) ✅
-├── gateway_jobs.py        # Redis/RQ job store (~175 L) ✅
-├── gateway_dispatch.py    # dispatch_skill workflow (~250 L) ✅
-├── gateway_tenants.py     # load_tenants, auth, audit, repo usage (~220 L)
-├── gateway_render.py      # _render_* formatters (~550 L)
-├── gateway_skills.py      # _run_skills_analysis, enrich, tools, github_qa (~400 L)
-├── gateway_jobs.py        # Redis/RQ job store, execute_dispatch_job (~180 L)
-├── gateway_dispatch.py    # dispatch_skill workflow (~240 L)
-├── gateway_models.py      # Pydantic request models (~40 L)
-└── tests/                 # bez zmian importów: server re-eksportuje symbole
+├── server.py                  # ~228 L  routes + re-eksporty
+├── gateway_config.py          # env, SKILL_MODELS
+├── gateway_models.py          # Pydantic request models
+├── gateway_tenants.py         # auth, audit, repo usage
+├── gateway_prompt.py          # parse_prompt_context, parse_tool_intent
+├── gateway_github.py          # URL, token, PR, env file
+├── gateway_github_nlp.py      # detekcja komend NLP (token, org, lista repo)
+├── gateway_gh2mcp.py          # klient gh2mcp, repo templates, GitHub Q&A
+├── gateway_skills.py          # klient HTTP mcp-skills, OpenRouter Q&A
+├── gateway_jobs.py            # Redis/RQ job store
+├── gateway_dispatch.py        # sync + analyze + delegacja refactor
+├── dispatch_refactor.py       # commit, push, PR w refactor
+├── gateway_chat.py            # handle_chat_completions, SSE
+├── chat_workflow_handlers.py  # GitHub admin, tools list, tool intent
+├── gateway_render.py          # render_chat_content, analyze/refactor MD
+├── render_tools.py            # render_tool_text, tools list
+├── render_system_actions.py   # render list repo/org
+├── render_refactor_actions.py # sekcja statusu refactor
+└── worker.py                  # RQ worker
 ```
+
+### mcp-skills (split tool_run)
+
+```
+mcp-skills/
+├── server.py
+├── code_analysis.py
+├── analysis_recommendations.py
+├── tool_run.py           # cienki orchestrator (~106 L)
+├── tool_materialize.py   # git clone / git-proxy sync
+├── tool_exec.py          # pip install, subprocess, fallback
+├── tool_common.py        # truncate, limity
+├── tools_registry.py
+└── ...
+```
+
+### gh2mcp
+
+```
+gh2mcp/
+├── sync.py              # GitHubTokenSyncService (cienki)
+└── gh_repo_queries.py   # gh repo list, token resolve, dedupe
+```
+
+---
 
 ## Mapowanie funkcji → moduł
 
-| Moduł | Odpowiedzialność | Kluczowe symbole |
-|-------|------------------|------------------|
-| `gateway_config.py` | Konfiguracja środowiska | `TENANTS_DIR`, `SKILLS_URL`, `SKILL_MODELS`, `MCP_ASYNC_ENABLED` |
-| `gateway_tenants.py` | Multi-tenant + historia repo | `load_tenants`, `authenticate`, `audit`, `_track_repo_usage` |
-| `gateway_prompt.py` | Parsowanie promptów użytkownika | `parse_prompt_context`, `parse_tool_intent`, `message_content_to_text` |
-| `gateway_github.py` | GitHub admin + PR | `_save_github_token`, `_create_github_pr`, `_list_recent_repos_via_gh2mcp` |
-| `gateway_render.py` | Markdown dla chat UI | `_render_analyze_text`, `_render_refactor_text`, `_render_chat_content` |
-| `gateway_skills.py` | Klient HTTP mcp-skills | `_run_skills_analysis`, `_enrich_analysis_with_file_metrics`, `_run_skills_tool` |
-| `gateway_jobs.py` | Async jobs (Redis/RQ) | `_save_job`, `_load_job`, `execute_dispatch_job` |
-| `gateway_dispatch.py` | Orkiestracja sync→analyze→commit | `dispatch_skill` |
-| `server.py` | HTTP entrypoint | `app`, `chat_completions`, `get_job`, `health` |
+| Moduł | Odpowiedzialność |
+|-------|------------------|
+| `gateway_config.py` | `TENANTS_DIR`, `SKILLS_URL`, `SKILL_MODELS`, `OPENROUTER_API_KEY` |
+| `gateway_tenants.py` | `load_tenants`, `authenticate`, `audit` |
+| `gateway_prompt.py` | `parse_tool_intent`, `parse_prompt_context` |
+| `gateway_github_nlp.py` | `is_repo_list_command`, `is_github_token_save_command`, … |
+| `gateway_github.py` | `normalize_repo_url`, `create_github_pr`, `save_github_token` |
+| `gateway_render.py` | `render_chat_content`, `render_analyze_text` |
+| `gateway_skills.py` | `run_skills_tool`, `ask_openrouter_github_qa` |
+| `gateway_dispatch.py` | `dispatch_skill` (sync → skill) |
+| `dispatch_refactor.py` | commit / push / PR w refactor |
+| `server.py` | `app`, routes HTTP |
 
-## Kolejność migracji (bezpieczna)
+---
 
-### Etap 1 — bez zmiany zachowania (zrobione)
+## Historia migracji (zakończona)
 
-1. ✅ `mcp-skills/code_analysis.py` — wspólne metryki
-2. ✅ `gateway_skills._enrich_analysis_with_file_metrics` — analyze zawsze ma `largest_files`
-3. ✅ `gateway_config.py` — stałe env + `SKILL_MODELS`
-4. ✅ `gateway_render.py` — formatowanie Markdown chat (~500 L)
-5. ✅ **mcp-skills split:** `tools_registry.py`, `tool_run.py`, `http_models.py`, `redsl_runner.py`, `mcp_parse.py` — `server.py` ~1311→~690 L
-
-### Etap 2 — parsowanie i GitHub (zrobione)
-
-6. ✅ `gateway_prompt.py` — `parse_tool_intent`, `parse_prompt_context`, `message_content_to_text`
-7. ✅ `gateway_github.py` — NLP detekcja komend GitHub + `normalize_repo_url`, `github_repo_from_url`
-
-### Etap 3 — orkiestracja (zrobione)
-
-8. ✅ `gateway_skills.py` — klient HTTP mcp-skills (`expect_json`, `run_skills_analysis`, `run_skills_tool`, …)
-9. ✅ `gateway_jobs.py` — Redis/RQ job store, `execute_dispatch_job`
-10. ✅ `gateway_dispatch.py` — `dispatch_skill` (sync → analyze → commit/push/PR)
-11. ✅ `gateway_github.py` — rozszerzony o token/PR/URL helpers (`inject_github_token`, `create_github_pr`, …)
-
-### Etap 3 — następny
-
-12. ⬜ `gateway_chat.py` — logika `chat_completions` runner (opcjonalnie)
-13. ⬜ `gateway_gh2mcp.py` — gh2mcp HTTP helpers z `server.py`
-14. ⬜ `server.py` → routes only (**< 400 L**)
-
-## Kontrakt kompatybilności
-
-`server.py` na końcu etapu 3:
-
-```python
-from gateway_prompt import parse_tool_intent, parse_prompt_context  # noqa: F401
-from gateway_github import normalize_repo_url, github_repo_from_url  # noqa: F401
-from gateway_render import render_chat_content, render_analyze_text  # noqa: F401
-# ... pozostałe re-eksporty dla testów
-```
-
-Testy (`import server as gateway`) **nie wymagają zmian**.
-
-## Priorytet splitu po rozmiarze plików
-
-Na podstawie analyze `semcod/mcp`:
-
-| Plik | Linie | Akcja |
-|------|-------|-------|
-| `mcp-gateway/server.py` | ~1205 | routes + gh2mcp + chat (było ~2908) |
-| `mcp-gateway/gateway_dispatch.py` | ~248 | ✅ etap 3 |
-| `mcp-gateway/gateway_jobs.py` | ~175 | ✅ etap 3 |
-| `mcp-gateway/gateway_skills.py` | ~263 | ✅ etap 3 |
-| `mcp-gateway/gateway_github.py` | ~432 | ✅ etap 2b+3 |
-| `mcp-gateway/gateway_prompt.py` | ~271 | ✅ etap 2a |
-| `mcp-skills/server.py` | ~1482 | osobny etap: `tools_registry.py`, `analysis_http.py`, `mcp_stdio.py` |
-| `llm-agent/agent_git2mcp.py` | ~360 | użyć `code_analysis` zamiast duplikatu `CachedCodeAnalyzer` |
+1. ✅ `gateway_config.py`, `gateway_render.py`
+2. ✅ mcp-skills: `tools_registry`, `tool_run`, `code_analysis`
+3. ✅ `gateway_prompt.py`, `gateway_github.py`
+4. ✅ `gateway_skills`, `gateway_jobs`, `gateway_dispatch`
+5. ✅ `gateway_gh2mcp`, `gateway_chat`, `gateway_tenants`, `server.py` < 400 L
+6. ✅ `render_tools.py`, `render_system_actions.py`, `render_refactor_actions.py`
+7. ✅ `dispatch_refactor.py`, `gateway_github_nlp.py`, `chat_workflow_handlers.py`
+8. ✅ tool_run → `tool_materialize` + `tool_exec`; gh2mcp → `gh_repo_queries`
+9. ✅ Dockerfile + `semcod/.dockerignore` + compose bind-mounty
 
 ## Definition of Done
 
-- [ ] `server.py` < 400 linii
-- [x] `pytest mcp-gateway/` green bez zmian importów (90/90; `test_import` mcp_gateway — pre-existing)
-- [x] `make smoke` + analyze job zwraca `largest_files[0].path` konkretny — [`code_analysis.py`](../mcp-skills/code_analysis.py), gateway `_enrich_analysis_with_file_metrics`
+- [x] `server.py` < 400 linii (~228 L)
+- [x] `pytest mcp-gateway/` green (91+ testów)
+- [x] `make reload-gateway` + `make smoke` OK
 - [x] brak cyklicznych importów między modułami gateway
+- [x] `render_tool_text` wydzielony do `render_tools.py`
+- [x] code2llm HEALTH: główne hotspoty gateway/skills/gh2mcp zaadresowane
+
+## Kolejne kroki (opcjonalnie)
+
+- `mcp-webui/server.py`, `llm-agent/*` — osobne etapy
+- `env2mcp/config.save` (CC=20)
+- pełny `make test` (skrypty + ansible E2E)

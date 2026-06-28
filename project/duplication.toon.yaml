@@ -1,19 +1,19 @@
-# redup/duplication | 7 groups | 50f 10402L | 2026-06-18
+# redup/duplication | 7 groups | 59f 10680L | 2026-06-18
 
 SUMMARY:
-  files_scanned: 50
-  total_lines:   10402
+  files_scanned: 59
+  total_lines:   10680
   dup_groups:    7
   dup_fragments: 18
   saved_lines:   107
-  scan_ms:       4784
+  scan_ms:       4447
 
 HOTSPOTS[7] (files with most duplication):
   llm-agent/agent.py  dup=41L  groups=2  frags=2  (0.4%)
   llm-agent/agent_standalone.py  dup=41L  groups=2  frags=2  (0.4%)
   mcp-skills/server.py  dup=32L  groups=1  frags=4  (0.3%)
   mcp-git-proxy/server.py  dup=30L  groups=2  frags=6  (0.3%)
-  mcp-gateway/server.py  dup=26L  groups=1  frags=2  (0.2%)
+  mcp-gateway/gateway_jobs.py  dup=26L  groups=1  frags=2  (0.2%)
   semcod_mcp/deinit_cmd.py  dup=9L  groups=1  frags=1  (0.1%)
   semcod_mcp/init_cmd.py  dup=9L  groups=1  frags=1  (0.1%)
 
@@ -31,9 +31,9 @@ DUPLICATES[7] (ranked by impact):
       mcp-git-proxy/server.py:246-250  (stage)
       mcp-git-proxy/server.py:254-258  (stash_save)
       mcp-git-proxy/server.py:278-282  (checkpoint_create)
-  [bf41aa98652b1a64]   STRU  _get_state_redis_client  L=13 N=2 saved=13 sim=1.00
-      mcp-gateway/server.py:1560-1572  (_get_state_redis_client)
-      mcp-gateway/server.py:1575-1587  (_get_rq_redis_client)
+  [bf41aa98652b1a64]   STRU  get_state_redis_client  L=13 N=2 saved=13 sim=1.00
+      mcp-gateway/gateway_jobs.py:32-44  (get_state_redis_client)
+      mcp-gateway/gateway_jobs.py:47-59  (get_rq_redis_client)
   [5865906155183adc]   EXAC  _mock_llm_response_from_prompt  L=11 N=2 saved=11 sim=1.00
       llm-agent/agent.py:263-273  (_mock_llm_response_from_prompt)
       llm-agent/agent_standalone.py:436-446  (_mock_llm_response_from_prompt)
@@ -54,9 +54,9 @@ REFACTOR[7] (ranked by priority):
   [3] ○ extract_function   → mcp-git-proxy/utils/worktree_diff.py
       WHY: 4 occurrences of 5-line block across 1 files — saves 15 lines
       FILES: mcp-git-proxy/server.py
-  [4] ○ extract_function   → mcp-gateway/utils/_get_state_redis_client.py
+  [4] ○ extract_function   → mcp-gateway/utils/get_state_redis_client.py
       WHY: 2 occurrences of 13-line block across 1 files — saves 13 lines
-      FILES: mcp-gateway/server.py
+      FILES: mcp-gateway/gateway_jobs.py
   [5] ○ extract_class      → llm-agent/utils/_mock_llm_response_from_prompt.py
       WHY: 2 occurrences of 11-line block across 2 files — saves 11 lines
       FILES: llm-agent/agent.py, llm-agent/agent_standalone.py
@@ -74,8 +74,8 @@ QUICK_WINS[6] (low risk, high savings — do first):
       FILES: server.py
   [3] extract_function   saved=15L  → mcp-git-proxy/utils/worktree_diff.py
       FILES: server.py
-  [4] extract_function   saved=13L  → mcp-gateway/utils/_get_state_redis_client.py
-      FILES: server.py
+  [4] extract_function   saved=13L  → mcp-gateway/utils/get_state_redis_client.py
+      FILES: gateway_jobs.py
   [5] extract_class      saved=11L  → llm-agent/utils/_mock_llm_response_from_prompt.py
       FILES: agent.py, agent_standalone.py
   [6] extract_function   saved=9L  → semcod_mcp/utils/print_deinit_result.py
@@ -85,7 +85,7 @@ EFFORT_ESTIMATE (total ≈ 3.6h):
   medium _mock_llm_response                  saved=30L  ~60min
   medium analyze_code_structure              saved=24L  ~48min
   medium worktree_diff                       saved=15L  ~30min
-  easy   _get_state_redis_client             saved=13L  ~26min
+  easy   get_state_redis_client              saved=13L  ~26min
   easy   _mock_llm_response_from_prompt      saved=11L  ~22min
   easy   print_deinit_result                 saved=9L  ~18min
   easy   push                                saved=5L  ~10min

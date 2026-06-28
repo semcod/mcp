@@ -1,17 +1,11 @@
-# code2llm | 92f 16991L | python:47,yaml:9,yml:7,shell:7,txt:6,toml:4,json:2,ini:1 | 2026-06-18
+# code2llm | 101f 18254L | python:56,yaml:9,yml:7,shell:7,txt:6,toml:4,json:2,ini:1 | 2026-06-18
 # generated in 0.02s
-# CC̅=4.4 | critical:23/421 | dups:0 | cycles:0
+# CC̅=4.5 | critical:25/446 | dups:0 | cycles:0
 
 HEALTH[20]:
   🟡 CC    get_last_pushed_repo CC=23 (limit:15)
   🟡 CC    get_recent_repos CC=32 (limit:15)
   🟡 CC    sync_token CC=20 (limit:15)
-  🟡 CC    _is_last_pushed_repo_template CC=15 (limit:15)
-  🟡 CC    _is_github_token_save_command CC=15 (limit:15)
-  🟡 CC    _is_repo_list_command CC=23 (limit:15)
-  🟡 CC    parse_tool_intent CC=23 (limit:15)
-  🟡 CC    chat_completions CC=31 (limit:15)
-  🟡 CC    dispatch_skill CC=19 (limit:15)
   🟡 CC    render_system_text CC=27 (limit:15)
   🟡 CC    render_refactor_text CC=17 (limit:15)
   🟡 CC    render_tool_text CC=40 (limit:15)
@@ -23,11 +17,17 @@ HEALTH[20]:
   🟡 CC    build_maintainability_recommendations CC=24 (limit:15)
   🟡 CC    _sync_from_git_proxy CC=15 (limit:15)
   🟡 CC    save CC=20 (limit:15)
+  🟡 CC    _get_github_config CC=16 (limit:15)
+  🟡 CC    github_fetch_token_from_cli CC=16 (limit:15)
+  🟡 CC    run_deinit CC=15 (limit:15)
+  🟡 CC    is_github_token_save_command CC=15 (limit:15)
+  🟡 CC    is_repo_list_command CC=23 (limit:15)
+  🟡 CC    run_chat_workflow CC=43 (limit:15)
 
 REFACTOR[1]:
   1. split 20 high-CC methods  (CC>15)
 
-PIPELINES[221]:
+PIPELINES[225]:
   [1] Src [end_headers]: end_headers
       PURITY: 100% pure
   [2] Src [do_GET]: do_GET
@@ -130,10 +130,19 @@ PIPELINES[221]:
       PURITY: 100% pure
 
 LAYERS:
-  mcp-gateway/                    CC̄=6.9    ←in:0  →out:8  !! split
-  │ !! server                    2468L  2C   74m  CC=31     ←0
-  │ !! gateway_render             502L  0C   13m  CC=40     ←1
+  mcp-gateway/                    CC̄=6.8    ←in:0  →out:9  !! split
+  │ !! server                    1206L  2C   29m  CC=31     ←1
+  │ !! gateway_chat               563L  0C    2m  CC=43     ←0
+  │ !! gateway_render             502L  0C   13m  CC=40     ←3
+  │ !! gateway_github             432L  0C   18m  CC=23     ←3
+  │ gateway_gh2mcp             398L  0C   14m  CC=14     ←1
+  │ !! gateway_prompt             271L  0C   10m  CC=23     ←5
+  │ gateway_skills             263L  0C    7m  CC=13     ←3
+  │ !! gateway_dispatch           248L  0C    1m  CC=19     ←3
+  │ gateway_jobs               175L  0C    9m  CC=5      ←2
+  │ gateway_tenants            141L  0C    9m  CC=8      ←1
   │ gateway_config              56L  0C    0m  CC=0.0    ←0
+  │ gateway_models              34L  2C    0m  CC=0.0    ←0
   │ worker                      18L  0C    1m  CC=2      ←0
   │ default.yaml                16L  0C    0m  CC=0.0    ←0
   │ Dockerfile                  15L  0C    0m  CC=0.0    ←0
@@ -162,7 +171,7 @@ LAYERS:
   env2mcp/                        CC̄=5.1    ←in:0  →out:0
   │ github_cli                 330L  1C   11m  CC=14     ←1
   │ cli                        252L  0C    8m  CC=11     ←0
-  │ !! config                     158L  1C   13m  CC=20     ←8
+  │ !! config                     158L  1C   13m  CC=20     ←11
   │ pyproject.toml              68L  0C    0m  CC=0.0    ←0
   │ __init__                    13L  0C    0m  CC=0.0    ←0
   │
@@ -254,26 +263,26 @@ LAYERS:
   │
 
 COUPLING:
-                             scripts   env2mcp.env2mcp         llm-agent        mcp-skills        semcod_mcp         dashboard  git2mcp.examples       mcp-gateway     gh2mcp.gh2mcp
-           scripts                ──               ←34               ←10                                                    ←8                ←8                                  ←4  hub
-   env2mcp.env2mcp                34                ──                                  ←4                ←3                                                    ←8                ←1  hub
+                             scripts   env2mcp.env2mcp         llm-agent        mcp-skills       mcp-gateway        semcod_mcp         dashboard  git2mcp.examples     gh2mcp.gh2mcp
+           scripts                ──               ←34               ←10                                                                      ←8                ←8                ←4  hub
+   env2mcp.env2mcp                34                ──                                  ←4                ←9                ←3                                                    ←1  hub
          llm-agent                10                                  ──                                                                                                              !! fan-out
-        mcp-skills                                   4                                  ──                 6                                                                          !! fan-out
-        semcod_mcp                                   3                                  ←6                ──                                                                          hub
-         dashboard                 8                                                                                        ──                                                        !! fan-out
-  git2mcp.examples                 8                                                                                                          ──                                      !! fan-out
-       mcp-gateway                                   8                                                                                                          ──                    !! fan-out
+        mcp-skills                                   4                                  ──                                   6                                                        !! fan-out
+       mcp-gateway                                   9                                                    ──                                                                          !! fan-out
+        semcod_mcp                                   3                                  ←6                                  ──                                                        hub
+         dashboard                 8                                                                                                          ──                                      !! fan-out
+  git2mcp.examples                 8                                                                                                                            ──                    !! fan-out
      gh2mcp.gh2mcp                 4                 1                                                                                                                            ──
   CYCLES: none
-  HUB: env2mcp.env2mcp/ (fan-in=16)
-  HUB: scripts/ (fan-in=64)
   HUB: semcod_mcp/ (fan-in=6)
-  SMELL: env2mcp.env2mcp/ fan-out=34 → split needed
+  HUB: scripts/ (fan-in=64)
+  HUB: env2mcp.env2mcp/ (fan-in=17)
+  SMELL: mcp-gateway/ fan-out=9 → split needed
   SMELL: mcp-skills/ fan-out=10 → split needed
-  SMELL: git2mcp.examples/ fan-out=8 → split needed
-  SMELL: mcp-gateway/ fan-out=8 → split needed
-  SMELL: llm-agent/ fan-out=10 → split needed
   SMELL: dashboard/ fan-out=8 → split needed
+  SMELL: env2mcp.env2mcp/ fan-out=34 → split needed
+  SMELL: git2mcp.examples/ fan-out=8 → split needed
+  SMELL: llm-agent/ fan-out=10 → split needed
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon

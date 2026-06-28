@@ -71,6 +71,45 @@ class GitProxyManager:
             )
         return repos
 
+    def _import_from_source_path(self, source: Path, repo_path: Path, branch: str) -> Repo:
+        """Copy live working tree into repo_path (uncommitted files included)."""
+
+        def _ignore_sync(dirpath: str, names: list[str]) -> set[str]:
+            ignored: set[str] = set()
+            for name in names:
+                if name in {
+                    ".git",
+                    ".venv",
+                    "venv",
+                    "node_modules",
+                    "__pycache__",
+                    ".mypy_cache",
+                    ".pytest_cache",
+                    "skills-cache",
+                    ".code2llm_cache",
+                }:
+                    ignored.add(name)
+                    continue
+                full = Path(dirpath) / name
+                if full.is_symlink():
+                    ignored.add(name)
+            return ignored
+
+        if repo_path.exists():
+            shutil.rmtree(repo_path)
+        shutil.copytree(source, repo_path, ignore=_ignore_sync)
+        repo = Repo.init(repo_path)
+        repo.git.checkout("-b", branch)
+        repo.git.add(all=True)
+        if repo.is_dirty(untracked_files=True):
+            actor = Actor("git2mcp-bot", "git2mcp@local")
+            repo.index.commit(
+                "Import from source_path (working tree)",
+                author=actor,
+                committer=actor,
+            )
+        return repo
+
     def sync_repo(
         self,
         repo_id: str,
@@ -84,21 +123,7 @@ class GitProxyManager:
             if not source.exists():
                 raise FileNotFoundError(f"Source path does not exist: {source_path}")
             repo_path.parent.mkdir(parents=True, exist_ok=True)
-            if repo_path.exists():
-                shutil.rmtree(repo_path)
-            if (source / ".git").exists():
-                self._allow_local_repo_url(str(source.resolve()))
-                Repo.clone_from(str(source.resolve()), str(repo_path))
-                repo = Repo(repo_path)
-            else:
-                shutil.copytree(source, repo_path)
-                repo = Repo.init(repo_path)
-                repo.git.checkout("-b", branch)
-                repo.git.add(all=True)
-                if repo.is_dirty(untracked_files=True):
-                    actor = Actor("git2mcp-bot", "git2mcp@local")
-                    repo.index.commit("Initial import from source_path", author=actor, committer=actor)
-
+            repo = self._import_from_source_path(source, repo_path, branch)
             try:
                 repo.git.checkout(branch)
             except Exception:

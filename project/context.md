@@ -5,17 +5,17 @@
 
 - **Project**: /home/tom/github/semcod/mcp
 - **Primary Language**: python
-- **Languages**: python: 47, yaml: 9, yml: 7, shell: 7, txt: 6
+- **Languages**: python: 56, yaml: 9, yml: 7, shell: 7, txt: 6
 - **Analysis Mode**: static
-- **Total Functions**: 421
-- **Total Classes**: 57
-- **Modules**: 92
-- **Entry Points**: 275
+- **Total Functions**: 446
+- **Total Classes**: 59
+- **Modules**: 101
+- **Entry Points**: 279
 
 ## Architecture by Module
 
 ### mcp-gateway.server
-- **Functions**: 74
+- **Functions**: 29
 - **Classes**: 2
 - **File**: `server.py`
 
@@ -47,6 +47,10 @@
 - **Functions**: 19
 - **File**: `server.py`
 
+### mcp-gateway.gateway_github
+- **Functions**: 18
+- **File**: `gateway_github.py`
+
 ### scripts.test
 - **Functions**: 17
 - **Classes**: 1
@@ -56,6 +60,10 @@
 - **Functions**: 14
 - **Classes**: 3
 - **File**: `agent_standalone.py`
+
+### mcp-gateway.gateway_gh2mcp
+- **Functions**: 14
+- **File**: `gateway_gh2mcp.py`
 
 ### mcp-gateway.gateway_render
 - **Functions**: 13
@@ -99,20 +107,15 @@
 - **Classes**: 5
 - **File**: `server.py`
 
-### env2mcp.env2mcp.cli
-- **Functions**: 8
-- **File**: `cli.py`
-
-### semcod_mcp.templates
-- **Functions**: 8
-- **File**: `templates.py`
-
 ## Key Entry Points
 
 Main execution flows into the system:
 
 ### mcp-gateway.server.chat_completions
-- **Calls**: app.post, Depends, mcp-gateway.server._save_job, mcp-gateway.server.audit, next, mcp-gateway.server.parse_prompt_context, mcp-gateway.server._is_github_token_save_command, mcp-gateway.server._is_github_token_sync_command
+- **Calls**: app.post, Depends, _save_job, mcp-gateway.server.audit, next, mcp-gateway.gateway_prompt.parse_prompt_context, _is_github_token_save_command, _is_github_token_sync_command
+
+### mcp-gateway.gateway_chat.handle_chat_completions
+- **Calls**: mcp-gateway.gateway_jobs.save_job, mcp-gateway.server.audit, next, mcp-gateway.gateway_prompt.parse_prompt_context, mcp-gateway.gateway_github.is_github_token_save_command, mcp-gateway.gateway_github.is_github_token_sync_command, mcp-gateway.gateway_github.is_org_set_command, mcp-gateway.gateway_github.is_org_list_command
 
 ### mcp-skills.server.redsl_refactor
 > Uruchom redsl refactor na zsynchronizowanym repo z git-proxy.
@@ -218,9 +221,6 @@ Kroki:
 ### git2mcp.git2mcp.proxy.GitProxyManager.export_package
 - **Calls**: self._repo_path, Repo, repo.commit, io.BytesIO, None.decode, repo_path.exists, FileNotFoundError, tarfile.open
 
-### dashboard.server.DashboardHandler.do_GET
-- **Calls**: urlparse, path.startswith, self.send_json, self.send_json, path.replace, self.send_json, self.send_json, path.lstrip
-
 ## Process Flows
 
 Key execution flows identified:
@@ -228,44 +228,51 @@ Key execution flows identified:
 ### Flow 1: chat_completions
 ```
 chat_completions [mcp-gateway.server]
-  └─> _save_job
-      └─> _get_state_redis_client
-      └─> _job_storage_key
   └─> audit
 ```
 
-### Flow 2: redsl_refactor
+### Flow 2: handle_chat_completions
+```
+handle_chat_completions [mcp-gateway.gateway_chat]
+  └─ →> save_job
+      └─> get_state_redis_client
+      └─> job_storage_key
+  └─ →> audit
+  └─ →> parse_prompt_context
+```
+
+### Flow 3: redsl_refactor
 ```
 redsl_refactor [mcp-skills.server]
 ```
 
-### Flow 3: main
+### Flow 4: main
 ```
 main [git2mcp.examples.05_local_iterate]
 ```
 
-### Flow 4: _sync_from_git_proxy
+### Flow 5: _sync_from_git_proxy
 ```
 _sync_from_git_proxy [mcp-skills.server.MCPSkillsServer]
 ```
 
-### Flow 5: save
+### Flow 6: save
 ```
 save [env2mcp.env2mcp.config.EnvConfig]
 ```
 
-### Flow 6: get_recent_repos
+### Flow 7: get_recent_repos
 ```
 get_recent_repos [gh2mcp.gh2mcp.sync.GitHubTokenSyncService]
   └─ →> set
 ```
 
-### Flow 7: sync_repo
+### Flow 8: sync_repo
 ```
 sync_repo [git2mcp.git2mcp.proxy.GitProxyManager]
 ```
 
-### Flow 8: github_fetch_token_from_cli
+### Flow 9: github_fetch_token_from_cli
 ```
 github_fetch_token_from_cli [mcp-webui.server]
   └─> _get_github_config
@@ -273,14 +280,9 @@ github_fetch_token_from_cli [mcp-webui.server]
       └─> _read_gh2mcp_status
 ```
 
-### Flow 9: _analyze_code_structure
+### Flow 10: _analyze_code_structure
 ```
 _analyze_code_structure [mcp-skills.server.MCPSkillsServer]
-```
-
-### Flow 10: get_last_pushed_repo
-```
-get_last_pushed_repo [gh2mcp.gh2mcp.sync.GitHubTokenSyncService]
 ```
 
 ## Key Classes
@@ -381,18 +383,6 @@ Key functions that process and transform data:
 ### gh2mcp.gh2mcp.cli.build_parser
 - **Output to**: argparse.ArgumentParser, parser.add_argument, parser.add_subparsers, subparsers.add_parser, status.set_defaults
 
-### mcp-gateway.server.parse_prompt_context
-- **Output to**: user_msg.splitlines, PROMPT_FIELD_REGEX.items, user_msg.strip, REPO_TEMPLATE_REGEX.match, GITHUB_REPO_SLUG_REGEX.search
-
-### mcp-gateway.server.parse_bool
-- **Output to**: None.lower, value.strip
-
-### mcp-gateway.server.parse_tool_intent
-> Detect requests like 'wygeneruj sumd dla <URL>' / 'run code2llm on owner/repo'.
-
-Returns dict with k
-- **Output to**: user_msg.strip, mcp-gateway.server._normalize_command_text, normalized.split, enumerate, any
-
 ### scripts.refactor-last-repo.parse_args
 
 ### scripts.test.process
@@ -418,6 +408,16 @@ Only quote values that contain spaces, special shell characters or ar
 ### semcod_mcp.validate.run_validate
 - **Output to**: project_dir.resolve, ValidationReport, semcod_mcp.paths.detect_stack_path, semcod_mcp.templates.read_manifest, continue_cfg.is_file
 
+### mcp-gateway.gateway_prompt.parse_prompt_context
+- **Output to**: user_msg.splitlines, PROMPT_FIELD_REGEX.items, user_msg.strip, REPO_TEMPLATE_REGEX.match, GITHUB_REPO_SLUG_REGEX.search
+
+### mcp-gateway.gateway_prompt.parse_bool
+- **Output to**: None.lower, value.strip
+
+### mcp-gateway.gateway_prompt.parse_tool_intent
+> Detect requests like 'wygeneruj sumd dla <URL>' / 'run code2llm on owner/repo'.
+- **Output to**: user_msg.strip, mcp-gateway.gateway_prompt.normalize_command_text, normalized.split, enumerate, any
+
 ## Behavioral Patterns
 
 ### state_machine_RefactoringAgent
@@ -432,11 +432,13 @@ Functions exposed as public API (no underscore prefix):
 - `mcp-gateway.server.chat_completions` - 114 calls
 - `mcp-gateway.gateway_render.render_tool_text` - 80 calls
 - `mcp-skills.tool_run.run_tool_against_repo` - 80 calls
+- `mcp-gateway.gateway_chat.handle_chat_completions` - 69 calls
 - `mcp-gateway.gateway_render.render_refactor_text` - 51 calls
 - `mcp-gateway.gateway_render.render_system_text` - 45 calls
 - `mcp-skills.server.redsl_refactor` - 44 calls
+- `mcp-gateway.gateway_chat.run_chat_workflow` - 43 calls
 - `git2mcp.examples.05_local_iterate.main` - 42 calls
-- `mcp-gateway.server.dispatch_skill` - 41 calls
+- `mcp-gateway.gateway_dispatch.dispatch_skill` - 41 calls
 - `env2mcp.env2mcp.config.EnvConfig.save` - 39 calls
 - `gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos` - 38 calls
 - `semcod_mcp.doctor.run_doctor` - 38 calls
@@ -448,6 +450,7 @@ Functions exposed as public API (no underscore prefix):
 - `mcp-webui.server.github_fetch_token_from_cli` - 32 calls
 - `mcp-gateway.gateway_render.render_analyze_text` - 30 calls
 - `env2mcp.env2mcp.github_cli.configure_github` - 29 calls
+- `mcp-gateway.gateway_gh2mcp.resolve_repo_id_template` - 28 calls
 - `gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_last_pushed_repo` - 26 calls
 - `mcp-git-proxy.server.github_create_repo` - 25 calls
 - `llm-agent.agent_standalone.LocalCodeAnalyzer.detect_code_patterns` - 25 calls
@@ -464,11 +467,8 @@ Functions exposed as public API (no underscore prefix):
 - `llm-agent.agent_standalone.LocalCodeAnalyzer.analyze_code_structure` - 20 calls
 - `llm-agent.agent_standalone.LocalCodeAnalyzer.recommend_refactoring` - 20 calls
 - `llm-agent.agent_git2mcp.main` - 20 calls
-- `mcp-gateway.server.message_content_to_text` - 19 calls
 - `git2mcp.examples.03_agent_git2mcp.main` - 19 calls
-- `mcp-gateway.gateway_render.render_tools_list_text` - 18 calls
-- `mcp-skills.code_analysis.detect_repo_patterns` - 18 calls
-- `mcp-webui.server.github_create_repo` - 18 calls
+- `mcp-gateway.gateway_prompt.message_content_to_text` - 19 calls
 
 ## System Interactions
 
@@ -481,6 +481,11 @@ graph TD
     chat_completions --> _save_job
     chat_completions --> audit
     chat_completions --> next
+    handle_chat_completi --> save_job
+    handle_chat_completi --> audit
+    handle_chat_completi --> next
+    handle_chat_completi --> parse_prompt_context
+    handle_chat_completi --> is_github_token_save
     redsl_refactor --> post
     redsl_refactor --> Path
     redsl_refactor --> get_event_loop
@@ -501,11 +506,6 @@ graph TD
     get_recent_repos --> set
     sync_repo --> _repo_path
     sync_repo --> Path
-    sync_repo --> mkdir
-    sync_repo --> exists
-    main --> add_subparsers
-    main --> add_parser
-    github_fetch_token_f --> post
 ```
 
 ## Reverse Engineering Guidelines

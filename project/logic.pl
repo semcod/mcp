@@ -1,5 +1,5 @@
 % ── Project Metadata ─────────────────────────────────────
-project_metadata('mcp', '0.1.2', 'python').
+project_metadata('mcp', '0.1.4', 'python').
 
 % ── Project Files ────────────────────────────────────────
 project_file('app.doql.less', 262, 'less').
@@ -35,9 +35,18 @@ project_file('llm-agent/tests/test_llm_agent.py', 12, 'python').
 project_file('mcp-docs/server.py', 274, 'python').
 project_file('mcp-docs/tests/test_mcp_docs.py', 12, 'python').
 project_file('mcp-gateway/conftest.py', 5, 'python').
+project_file('mcp-gateway/gateway_chat.py', 570, 'python').
 project_file('mcp-gateway/gateway_config.py', 57, 'python').
+project_file('mcp-gateway/gateway_dispatch.py', 249, 'python').
+project_file('mcp-gateway/gateway_gh2mcp.py', 408, 'python').
+project_file('mcp-gateway/gateway_github.py', 433, 'python').
+project_file('mcp-gateway/gateway_jobs.py', 176, 'python').
+project_file('mcp-gateway/gateway_models.py', 35, 'python').
+project_file('mcp-gateway/gateway_prompt.py', 272, 'python').
 project_file('mcp-gateway/gateway_render.py', 503, 'python').
-project_file('mcp-gateway/server.py', 2469, 'python').
+project_file('mcp-gateway/gateway_skills.py', 264, 'python').
+project_file('mcp-gateway/gateway_tenants.py', 142, 'python').
+project_file('mcp-gateway/server.py', 229, 'python').
 project_file('mcp-gateway/test_gateway_token_command.py', 690, 'python').
 project_file('mcp-gateway/test_github_qa.py', 96, 'python').
 project_file('mcp-gateway/test_tool_intent.py', 189, 'python').
@@ -151,6 +160,62 @@ python_function('mcp-docs/server.py', 'index', 0, 4, 10).
 python_function('mcp-docs/server.py', 'render_doc', 1, 1, 6).
 python_function('mcp-docs/tests/test_mcp_docs.py', 'test_placeholder', 0, 2, 0).
 python_function('mcp-docs/tests/test_mcp_docs.py', 'test_import', 0, 1, 0).
+python_function('mcp-gateway/gateway_chat.py', '_audit', 1, 1, 1).
+python_function('mcp-gateway/gateway_chat.py', 'run_chat_workflow', 1, 43, 22).
+python_function('mcp-gateway/gateway_chat.py', 'handle_chat_completions', 2, 31, 28).
+python_function('mcp-gateway/gateway_dispatch.py', 'dispatch_skill', 19, 19, 21).
+python_function('mcp-gateway/gateway_gh2mcp.py', '_gateway_hooks', 0, 1, 0).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'is_github_configured', 0, 1, 2).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'get_default_github_repo', 0, 7, 4).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'sync_github_token_via_gh2mcp', 0, 3, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'set_default_org_via_gh2mcp', 1, 3, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'list_recent_repos_via_gh2mcp', 3, 2, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'list_orgs_via_gh2mcp', 1, 2, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'gh2mcp_status_via_gh2mcp', 0, 2, 5).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'last_pushed_repo_via_gh2mcp', 2, 2, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'is_github_auth_error', 1, 3, 2).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'github_auth_recovery_message', 1, 1, 1).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'resolve_repo_id_template', 1, 14, 12).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'save_github_token_via_env2mcp', 2, 4, 4).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'repo_owner', 1, 4, 2).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'run_github_qa', 3, 9, 12).
+python_function('mcp-gateway/gateway_github.py', 'normalize_repo_url', 1, 3, 2).
+python_function('mcp-gateway/gateway_github.py', 'github_repo_from_url', 1, 9, 9).
+python_function('mcp-gateway/gateway_github.py', 'is_github_token_save_command', 2, 15, 7).
+python_function('mcp-gateway/gateway_github.py', 'is_github_token_sync_command', 2, 11, 8).
+python_function('mcp-gateway/gateway_github.py', 'extract_org_from_text', 2, 9, 8).
+python_function('mcp-gateway/gateway_github.py', 'is_org_set_command', 1, 9, 5).
+python_function('mcp-gateway/gateway_github.py', 'is_org_list_command', 1, 13, 5).
+python_function('mcp-gateway/gateway_github.py', 'is_repo_list_command', 1, 23, 4).
+python_function('mcp-gateway/gateway_github.py', 'extract_repo_list_limit', 3, 3, 5).
+python_function('mcp-gateway/gateway_github.py', 'load_env_file_values', 1, 11, 8).
+python_function('mcp-gateway/gateway_github.py', 'runtime_github_token', 0, 4, 3).
+python_function('mcp-gateway/gateway_github.py', 'save_github_token', 1, 6, 9).
+python_function('mcp-gateway/gateway_github.py', 'inject_github_token', 1, 9, 5).
+python_function('mcp-gateway/gateway_github.py', 'redact_repo_url', 1, 6, 4).
+python_function('mcp-gateway/gateway_github.py', 'default_draft_name', 1, 2, 3).
+python_function('mcp-gateway/gateway_github.py', 'default_pr_title', 2, 4, 4).
+python_function('mcp-gateway/gateway_github.py', 'default_pr_body', 3, 1, 1).
+python_function('mcp-gateway/gateway_github.py', 'create_github_pr', 8, 3, 5).
+python_function('mcp-gateway/gateway_jobs.py', 'job_storage_key', 1, 1, 0).
+python_function('mcp-gateway/gateway_jobs.py', 'get_state_redis_client', 0, 4, 2).
+python_function('mcp-gateway/gateway_jobs.py', 'get_rq_redis_client', 0, 4, 2).
+python_function('mcp-gateway/gateway_jobs.py', 'get_queue', 0, 5, 2).
+python_function('mcp-gateway/gateway_jobs.py', 'save_job', 2, 3, 4).
+python_function('mcp-gateway/gateway_jobs.py', 'load_job', 1, 5, 5).
+python_function('mcp-gateway/gateway_jobs.py', 'update_job', 1, 2, 4).
+python_function('mcp-gateway/gateway_jobs.py', 'queue_workflow_job', 2, 2, 3).
+python_function('mcp-gateway/gateway_jobs.py', 'execute_dispatch_job', 2, 3, 6).
+python_function('mcp-gateway/gateway_prompt.py', 'message_content_to_text', 1, 14, 5).
+python_function('mcp-gateway/gateway_prompt.py', 'parse_prompt_context', 1, 8, 6).
+python_function('mcp-gateway/gateway_prompt.py', 'parse_bool', 2, 4, 2).
+python_function('mcp-gateway/gateway_prompt.py', 'normalize_command_text', 1, 1, 4).
+python_function('mcp-gateway/gateway_prompt.py', 'extract_github_token_from_text', 1, 2, 2).
+python_function('mcp-gateway/gateway_prompt.py', 'extract_repo_template_expression', 1, 3, 3).
+python_function('mcp-gateway/gateway_prompt.py', 'is_last_pushed_repo_template', 1, 15, 3).
+python_function('mcp-gateway/gateway_prompt.py', 'extract_owner_from_repo_template', 1, 4, 3).
+python_function('mcp-gateway/gateway_prompt.py', 'strip_url_suffix', 1, 1, 1).
+python_function('mcp-gateway/gateway_prompt.py', 'parse_tool_intent', 2, 23, 12).
 python_function('mcp-gateway/gateway_render.py', 'summary_text', 2, 9, 3).
 python_function('mcp-gateway/gateway_render.py', 'render_repo_selection_text', 1, 4, 2).
 python_function('mcp-gateway/gateway_render.py', 'render_system_text', 1, 27, 6).
@@ -164,80 +229,29 @@ python_function('mcp-gateway/gateway_render.py', 'render_github_qa_text', 1, 8, 
 python_function('mcp-gateway/gateway_render.py', 'render_chat_content', 1, 13, 11).
 python_function('mcp-gateway/gateway_render.py', 'build_commit_changes', 2, 1, 1).
 python_function('mcp-gateway/gateway_render.py', 'render_tools_list_text', 1, 11, 4).
-python_function('mcp-gateway/server.py', 'load_tenants', 0, 5, 5).
-python_function('mcp-gateway/server.py', '_get_redis_client', 0, 4, 1).
-python_function('mcp-gateway/server.py', '_track_repo_usage', 3, 3, 7).
-python_function('mcp-gateway/server.py', '_get_last_used_repo', 1, 8, 6).
-python_function('mcp-gateway/server.py', '_get_most_used_repo', 1, 8, 5).
-python_function('mcp-gateway/server.py', '_get_preferred_repo', 1, 2, 2).
-python_function('mcp-gateway/server.py', '_is_github_configured', 0, 1, 2).
-python_function('mcp-gateway/server.py', '_get_default_github_repo', 0, 7, 4).
-python_function('mcp-gateway/server.py', 'message_content_to_text', 1, 14, 5).
-python_function('mcp-gateway/server.py', 'parse_prompt_context', 1, 8, 6).
-python_function('mcp-gateway/server.py', 'parse_bool', 2, 4, 2).
-python_function('mcp-gateway/server.py', '_normalize_command_text', 1, 1, 4).
-python_function('mcp-gateway/server.py', '_extract_github_token_from_text', 1, 2, 2).
-python_function('mcp-gateway/server.py', '_extract_repo_template_expression', 1, 3, 3).
-python_function('mcp-gateway/server.py', '_is_last_pushed_repo_template', 1, 15, 3).
-python_function('mcp-gateway/server.py', '_extract_owner_from_repo_template', 1, 4, 3).
-python_function('mcp-gateway/server.py', '_is_github_token_save_command', 2, 15, 7).
-python_function('mcp-gateway/server.py', '_extract_org_from_text', 2, 9, 8).
-python_function('mcp-gateway/server.py', '_is_org_set_command', 1, 9, 5).
-python_function('mcp-gateway/server.py', '_is_org_list_command', 1, 13, 5).
-python_function('mcp-gateway/server.py', '_is_repo_list_command', 1, 23, 4).
-python_function('mcp-gateway/server.py', '_extract_repo_list_limit', 3, 3, 5).
-python_function('mcp-gateway/server.py', '_strip_url_suffix', 1, 1, 1).
-python_function('mcp-gateway/server.py', 'parse_tool_intent', 2, 23, 12).
-python_function('mcp-gateway/server.py', '_is_github_token_sync_command', 2, 11, 8).
-python_function('mcp-gateway/server.py', '_sync_github_token_via_gh2mcp', 0, 3, 6).
-python_function('mcp-gateway/server.py', '_set_default_org_via_gh2mcp', 1, 3, 6).
-python_function('mcp-gateway/server.py', '_list_recent_repos_via_gh2mcp', 3, 2, 6).
-python_function('mcp-gateway/server.py', '_list_orgs_via_gh2mcp', 1, 2, 6).
-python_function('mcp-gateway/server.py', '_gh2mcp_status_via_gh2mcp', 0, 2, 5).
-python_function('mcp-gateway/server.py', '_last_pushed_repo_via_gh2mcp', 2, 2, 6).
-python_function('mcp-gateway/server.py', '_is_github_auth_error', 1, 3, 2).
-python_function('mcp-gateway/server.py', '_github_auth_recovery_message', 1, 1, 1).
-python_function('mcp-gateway/server.py', '_resolve_repo_id_template', 1, 14, 11).
-python_function('mcp-gateway/server.py', '_save_github_token_via_env2mcp', 2, 4, 4).
-python_function('mcp-gateway/server.py', '_load_env_file_values', 1, 11, 8).
-python_function('mcp-gateway/server.py', '_runtime_github_token', 0, 4, 3).
-python_function('mcp-gateway/server.py', '_save_github_token', 1, 6, 9).
-python_function('mcp-gateway/server.py', '_normalize_repo_url', 1, 3, 2).
-python_function('mcp-gateway/server.py', '_inject_github_token', 1, 9, 5).
-python_function('mcp-gateway/server.py', '_redact_repo_url', 1, 6, 4).
-python_function('mcp-gateway/server.py', '_default_draft_name', 1, 2, 3).
-python_function('mcp-gateway/server.py', '_github_repo_from_url', 1, 9, 9).
-python_function('mcp-gateway/server.py', '_default_pr_title', 2, 4, 4).
-python_function('mcp-gateway/server.py', '_default_pr_body', 3, 1, 1).
-python_function('mcp-gateway/server.py', '_create_github_pr', 8, 3, 5).
-python_function('mcp-gateway/server.py', '_expect_json', 2, 3, 3).
-python_function('mcp-gateway/server.py', '_is_tools_list_command', 1, 6, 3).
-python_function('mcp-gateway/server.py', '_fetch_tools_list', 0, 2, 3).
-python_function('mcp-gateway/server.py', '_run_skills_tool', 6, 7, 5).
-python_function('mcp-gateway/server.py', '_ask_openrouter_github_qa', 2, 12, 8).
-python_function('mcp-gateway/server.py', '_repo_owner', 1, 4, 2).
-python_function('mcp-gateway/server.py', '_run_github_qa', 3, 9, 11).
-python_function('mcp-gateway/server.py', '_enrich_analysis_with_file_metrics', 3, 13, 5).
-python_function('mcp-gateway/server.py', '_run_skills_analysis', 5, 4, 5).
-python_function('mcp-gateway/server.py', 'find_tenant_by_key', 1, 3, 2).
-python_function('mcp-gateway/server.py', 'authenticate', 1, 4, 7).
-python_function('mcp-gateway/server.py', 'audit', 1, 1, 5).
-python_function('mcp-gateway/server.py', '_job_storage_key', 1, 1, 0).
-python_function('mcp-gateway/server.py', '_get_state_redis_client', 0, 4, 2).
-python_function('mcp-gateway/server.py', '_get_rq_redis_client', 0, 4, 2).
-python_function('mcp-gateway/server.py', '_get_queue', 0, 5, 2).
-python_function('mcp-gateway/server.py', '_save_job', 2, 3, 4).
-python_function('mcp-gateway/server.py', '_load_job', 1, 5, 5).
-python_function('mcp-gateway/server.py', '_update_job', 1, 2, 4).
-python_function('mcp-gateway/server.py', '_queue_workflow_job', 2, 2, 3).
-python_function('mcp-gateway/server.py', 'execute_dispatch_job', 2, 3, 6).
+python_function('mcp-gateway/gateway_skills.py', 'expect_json', 2, 3, 3).
+python_function('mcp-gateway/gateway_skills.py', 'is_tools_list_command', 1, 6, 3).
+python_function('mcp-gateway/gateway_skills.py', 'fetch_tools_list', 0, 2, 3).
+python_function('mcp-gateway/gateway_skills.py', 'run_skills_tool', 6, 7, 5).
+python_function('mcp-gateway/gateway_skills.py', 'ask_openrouter_github_qa', 2, 12, 8).
+python_function('mcp-gateway/gateway_skills.py', 'enrich_analysis_with_file_metrics', 3, 13, 5).
+python_function('mcp-gateway/gateway_skills.py', 'run_skills_analysis', 5, 4, 5).
+python_function('mcp-gateway/gateway_tenants.py', 'load_tenants', 0, 5, 5).
+python_function('mcp-gateway/gateway_tenants.py', 'get_redis_client', 0, 4, 1).
+python_function('mcp-gateway/gateway_tenants.py', 'track_repo_usage', 3, 3, 7).
+python_function('mcp-gateway/gateway_tenants.py', 'get_last_used_repo', 1, 8, 6).
+python_function('mcp-gateway/gateway_tenants.py', 'get_most_used_repo', 1, 8, 5).
+python_function('mcp-gateway/gateway_tenants.py', 'get_preferred_repo', 1, 2, 2).
+python_function('mcp-gateway/gateway_tenants.py', 'find_tenant_by_key', 1, 3, 2).
+python_function('mcp-gateway/gateway_tenants.py', 'authenticate', 1, 4, 7).
+python_function('mcp-gateway/gateway_tenants.py', 'audit', 1, 1, 5).
 python_function('mcp-gateway/server.py', 'health', 0, 1, 3).
 python_function('mcp-gateway/server.py', 'list_models', 1, 2, 3).
-python_function('mcp-gateway/server.py', 'chat_completions', 2, 31, 49).
-python_function('mcp-gateway/server.py', 'dispatch_skill', 19, 19, 21).
+python_function('mcp-gateway/server.py', 'chat_completions', 2, 1, 3).
 python_function('mcp-gateway/server.py', 'get_job', 2, 2, 4).
 python_function('mcp-gateway/server.py', 'stream_job', 2, 2, 8).
 python_function('mcp-gateway/server.py', 'audit_tail', 2, 4, 7).
+python_function('mcp-gateway/server.py', '_ask_openrouter_github_qa', 2, 1, 1).
 python_function('mcp-gateway/test_gateway_token_command.py', '_extract_sse_data', 1, 3, 4).
 python_function('mcp-gateway/test_gateway_token_command.py', '_authorized_client', 0, 1, 1).
 python_function('mcp-gateway/test_gateway_token_command.py', 'test_is_github_token_sync_command', 2, 2, 3).
@@ -590,8 +604,8 @@ python_method('RefactoringAgent', '_call_openai_sync', 1, 2, 5).
 python_method('RefactoringAgent', '_mock_llm_response', 1, 3, 4).
 python_method('RefactoringAgent', '_mock_llm_response_from_prompt', 1, 1, 1).
 python_method('RefactoringAgent', 'execute_refactoring_workflow', 3, 3, 4).
-python_class('mcp-gateway/server.py', 'ChatMessage').
-python_class('mcp-gateway/server.py', 'ChatCompletionRequest').
+python_class('mcp-gateway/gateway_models.py', 'ChatMessage').
+python_class('mcp-gateway/gateway_models.py', 'ChatCompletionRequest').
 python_class('mcp-gateway/test_gateway_token_command.py', '_FakeResponse').
 python_method('_FakeResponse', '__init__', 2, 1, 1).
 python_method('_FakeResponse', 'json', 0, 1, 0).

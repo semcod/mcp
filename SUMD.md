@@ -21,7 +21,7 @@ Initialize semcod MCP stack integration for Cursor, VS Code, Claude and other ID
 ## Metadata
 
 - **name**: `semcod-mcp`
-- **version**: `0.1.2`
+- **version**: `0.1.4`
 - **python_requires**: `>=3.10`
 - **license**: Apache-2.0
 - **ai_model**: `openrouter/qwen/qwen3-coder-next`
@@ -41,7 +41,7 @@ SUMD (description) → DOQL/source (code) → taskfile (automation) → testql (
 
 app {
   name: semcod-mcp;
-  version: 0.1.2;
+  version: 0.1.4;
 }
 
 dependencies {
@@ -313,7 +313,7 @@ environment[name="prod"] {
 ```yaml
 project:
   name: semcod-mcp
-  version: 0.1.2
+  version: 0.1.4
   env: local
 ```
 
@@ -443,13 +443,13 @@ pip install -e .[dev]
 ### `project/map.toon.yaml`
 
 ```toon markpact:analysis path=project/map.toon.yaml
-# mcp | 76f 14946L | python:67,shell:7,less:2 | 2026-06-18
-# stats: 355 func | 63 cls | 76 mod | CC̄=4.9 | critical:42 | cycles:0
-# alerts[5]: CC render_tool_text=40; CC run_tool_against_repo=37; CC chat_completions=31; CC render_system_text=27; CC build_maintainability_recommendations=24
-# hotspots[5]: chat_completions fan=49; run_tool_against_repo fan=30; run_init fan=23; dispatch_skill fan=21; run_doctor fan=19
+# mcp | 85f 15249L | python:76,shell:7,less:2 | 2026-06-18
+# stats: 359 func | 63 cls | 85 mod | CC̄=4.9 | critical:43 | cycles:0
+# alerts[5]: CC run_chat_workflow=43; CC render_tool_text=40; CC run_tool_against_repo=37; CC handle_chat_completions=31; CC render_system_text=27
+# hotspots[5]: run_tool_against_repo fan=30; handle_chat_completions fan=28; run_init fan=23; run_chat_workflow fan=21; dispatch_skill fan=21
 # evolution: baseline
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
-M[76]:
+M[85]:
   app.doql.less,262
   dashboard/server.py,190
   env2mcp/env2mcp/__init__.py,14
@@ -483,9 +483,18 @@ M[76]:
   mcp-docs/server.py,274
   mcp-docs/tests/test_mcp_docs.py,12
   mcp-gateway/conftest.py,5
+  mcp-gateway/gateway_chat.py,564
   mcp-gateway/gateway_config.py,57
+  mcp-gateway/gateway_dispatch.py,249
+  mcp-gateway/gateway_gh2mcp.py,408
+  mcp-gateway/gateway_github.py,433
+  mcp-gateway/gateway_jobs.py,176
+  mcp-gateway/gateway_models.py,35
+  mcp-gateway/gateway_prompt.py,272
   mcp-gateway/gateway_render.py,503
-  mcp-gateway/server.py,2469
+  mcp-gateway/gateway_skills.py,264
+  mcp-gateway/gateway_tenants.py,142
+  mcp-gateway/server.py,229
   mcp-gateway/test_gateway_token_command.py,690
   mcp-gateway/test_github_qa.py,96
   mcp-gateway/test_tool_intent.py,189
@@ -676,7 +685,78 @@ D:
     test_placeholder()
     test_import()
   mcp-gateway/conftest.py:
+  mcp-gateway/gateway_chat.py:
+    e: run_chat_workflow,handle_chat_completions
+    run_chat_workflow(tenant)
+    handle_chat_completions(req;tenant)
   mcp-gateway/gateway_config.py:
+  mcp-gateway/gateway_dispatch.py:
+    e: dispatch_skill
+    dispatch_skill(skill;tenant;repo_id;repo_url;github_token;source_path;branch;user_request;execute_commit;push_after_tests;create_draft_branch;draft_name;open_pull_request;pr_title;pr_body;pr_base;test_command;push_remote;job_id)
+  mcp-gateway/gateway_gh2mcp.py:
+    e: _gateway_hooks,is_github_configured,get_default_github_repo,sync_github_token_via_gh2mcp,set_default_org_via_gh2mcp,list_recent_repos_via_gh2mcp,list_orgs_via_gh2mcp,gh2mcp_status_via_gh2mcp,last_pushed_repo_via_gh2mcp,is_github_auth_error,github_auth_recovery_message,resolve_repo_id_template,save_github_token_via_env2mcp,repo_owner,run_github_qa
+    _gateway_hooks()
+    is_github_configured()
+    get_default_github_repo()
+    sync_github_token_via_gh2mcp()
+    set_default_org_via_gh2mcp(org)
+    list_recent_repos_via_gh2mcp(limit;owner;include_orgs)
+    list_orgs_via_gh2mcp(repos_limit)
+    gh2mcp_status_via_gh2mcp()
+    last_pushed_repo_via_gh2mcp(owner;limit)
+    is_github_auth_error(error_text)
+    github_auth_recovery_message(original_error)
+    resolve_repo_id_template(repo_value)
+    save_github_token_via_env2mcp(user_msg;prompt_ctx)
+    repo_owner(repo_id)
+    run_github_qa(user_request;repo_id;repo_url)
+  mcp-gateway/gateway_github.py:
+    e: normalize_repo_url,github_repo_from_url,is_github_token_save_command,is_github_token_sync_command,extract_org_from_text,is_org_set_command,is_org_list_command,is_repo_list_command,extract_repo_list_limit,load_env_file_values,runtime_github_token,save_github_token,inject_github_token,redact_repo_url,default_draft_name,default_pr_title,default_pr_body,create_github_pr
+    normalize_repo_url(repo_url)
+    github_repo_from_url(repo_url)
+    is_github_token_save_command(user_msg;prompt_ctx)
+    is_github_token_sync_command(user_msg;prompt_ctx)
+    extract_org_from_text(user_msg;prompt_ctx)
+    is_org_set_command(user_msg)
+    is_org_list_command(user_msg)
+    is_repo_list_command(user_msg)
+    extract_repo_list_limit(user_msg;default;max_limit)
+    load_env_file_values(env_path)
+    runtime_github_token()
+    save_github_token(token)
+    inject_github_token(repo_url)
+    redact_repo_url(repo_url)
+    default_draft_name(repo_id)
+    default_pr_title(repo_id;user_request)
+    default_pr_body(repo_id;user_request;base_branch)
+    create_github_pr(client;owner;repo;head_branch;base_branch;title;body;draft)
+  mcp-gateway/gateway_jobs.py:
+    e: job_storage_key,get_state_redis_client,get_rq_redis_client,get_queue,save_job,load_job,update_job,queue_workflow_job,execute_dispatch_job
+    job_storage_key(job_id)
+    get_state_redis_client()
+    get_rq_redis_client()
+    get_queue()
+    save_job(job_id;payload)
+    load_job(job_id)
+    update_job(job_id)
+    queue_workflow_job(job_id;payload)
+    execute_dispatch_job(job_id;payload)
+  mcp-gateway/gateway_models.py:
+    e: ChatMessage,ChatCompletionRequest
+    ChatMessage:
+    ChatCompletionRequest:
+  mcp-gateway/gateway_prompt.py:
+    e: message_content_to_text,parse_prompt_context,parse_bool,normalize_command_text,extract_github_token_from_text,extract_repo_template_expression,is_last_pushed_repo_template,extract_owner_from_repo_template,strip_url_suffix,parse_tool_intent
+    message_content_to_text(content)
+    parse_prompt_context(user_msg)
+    parse_bool(value;default)
+    normalize_command_text(text)
+    extract_github_token_from_text(user_msg)
+    extract_repo_template_expression(repo_value)
+    is_last_pushed_repo_template(expression)
+    extract_owner_from_repo_template(expression)
+    strip_url_suffix(url)
+    parse_tool_intent(user_msg;prompt_ctx)
   mcp-gateway/gateway_render.py:
     e: summary_text,render_repo_selection_text,render_system_text,render_analyze_text,render_queued_text,render_refactor_text,file_fence_lang,is_markdown_path,render_tool_text,render_github_qa_text,render_chat_content,build_commit_changes,render_tools_list_text
     summary_text(analysis;user_request)
@@ -692,84 +772,35 @@ D:
     render_chat_content(result)
     build_commit_changes(plan_payload;summary_md)
     render_tools_list_text(result)
-  mcp-gateway/server.py:
-    e: load_tenants,_get_redis_client,_track_repo_usage,_get_last_used_repo,_get_most_used_repo,_get_preferred_repo,_is_github_configured,_get_default_github_repo,message_content_to_text,parse_prompt_context,parse_bool,_normalize_command_text,_extract_github_token_from_text,_extract_repo_template_expression,_is_last_pushed_repo_template,_extract_owner_from_repo_template,_is_github_token_save_command,_extract_org_from_text,_is_org_set_command,_is_org_list_command,_is_repo_list_command,_extract_repo_list_limit,_strip_url_suffix,parse_tool_intent,_is_github_token_sync_command,_sync_github_token_via_gh2mcp,_set_default_org_via_gh2mcp,_list_recent_repos_via_gh2mcp,_list_orgs_via_gh2mcp,_gh2mcp_status_via_gh2mcp,_last_pushed_repo_via_gh2mcp,_is_github_auth_error,_github_auth_recovery_message,_resolve_repo_id_template,_save_github_token_via_env2mcp,_load_env_file_values,_runtime_github_token,_save_github_token,_normalize_repo_url,_inject_github_token,_redact_repo_url,_default_draft_name,_github_repo_from_url,_default_pr_title,_default_pr_body,_create_github_pr,_expect_json,_is_tools_list_command,_fetch_tools_list,_run_skills_tool,_ask_openrouter_github_qa,_repo_owner,_run_github_qa,_enrich_analysis_with_file_metrics,_run_skills_analysis,find_tenant_by_key,authenticate,audit,_job_storage_key,_get_state_redis_client,_get_rq_redis_client,_get_queue,_save_job,_load_job,_update_job,_queue_workflow_job,execute_dispatch_job,health,list_models,chat_completions,dispatch_skill,get_job,stream_job,audit_tail,ChatMessage,ChatCompletionRequest
-    ChatMessage:
-    ChatCompletionRequest:
+  mcp-gateway/gateway_skills.py:
+    e: expect_json,is_tools_list_command,fetch_tools_list,run_skills_tool,ask_openrouter_github_qa,enrich_analysis_with_file_metrics,run_skills_analysis
+    expect_json(response;action)
+    is_tools_list_command(msg)
+    fetch_tools_list()
+    run_skills_tool(tool;repo_id;repo_url;subcommand;args;timeout)
+    ask_openrouter_github_qa(user_request;github_context)
+    enrich_analysis_with_file_metrics(client;repo_id;analysis)
+    run_skills_analysis(client;repo_id;execute;user_request;max_actions)
+  mcp-gateway/gateway_tenants.py:
+    e: load_tenants,get_redis_client,track_repo_usage,get_last_used_repo,get_most_used_repo,get_preferred_repo,find_tenant_by_key,authenticate,audit
     load_tenants()
-    _get_redis_client()
-    _track_repo_usage(tenant_id;repo_id;platform)
-    _get_last_used_repo(tenant_id)
-    _get_most_used_repo(tenant_id)
-    _get_preferred_repo(tenant_id)
-    _is_github_configured()
-    _get_default_github_repo()
-    message_content_to_text(content)
-    parse_prompt_context(user_msg)
-    parse_bool(value;default)
-    _normalize_command_text(text)
-    _extract_github_token_from_text(user_msg)
-    _extract_repo_template_expression(repo_value)
-    _is_last_pushed_repo_template(expression)
-    _extract_owner_from_repo_template(expression)
-    _is_github_token_save_command(user_msg;prompt_ctx)
-    _extract_org_from_text(user_msg;prompt_ctx)
-    _is_org_set_command(user_msg)
-    _is_org_list_command(user_msg)
-    _is_repo_list_command(user_msg)
-    _extract_repo_list_limit(user_msg;default;max_limit)
-    _strip_url_suffix(url)
-    parse_tool_intent(user_msg;prompt_ctx)
-    _is_github_token_sync_command(user_msg;prompt_ctx)
-    _sync_github_token_via_gh2mcp()
-    _set_default_org_via_gh2mcp(org)
-    _list_recent_repos_via_gh2mcp(limit;owner;include_orgs)
-    _list_orgs_via_gh2mcp(repos_limit)
-    _gh2mcp_status_via_gh2mcp()
-    _last_pushed_repo_via_gh2mcp(owner;limit)
-    _is_github_auth_error(error_text)
-    _github_auth_recovery_message(original_error)
-    _resolve_repo_id_template(repo_value)
-    _save_github_token_via_env2mcp(user_msg;prompt_ctx)
-    _load_env_file_values(env_path)
-    _runtime_github_token()
-    _save_github_token(token)
-    _normalize_repo_url(repo_url)
-    _inject_github_token(repo_url)
-    _redact_repo_url(repo_url)
-    _default_draft_name(repo_id)
-    _github_repo_from_url(repo_url)
-    _default_pr_title(repo_id;user_request)
-    _default_pr_body(repo_id;user_request;base_branch)
-    _create_github_pr(client;owner;repo;head_branch;base_branch;title;body;draft)
-    _expect_json(response;action)
-    _is_tools_list_command(msg)
-    _fetch_tools_list()
-    _run_skills_tool(tool;repo_id;repo_url;subcommand;args;timeout)
-    _ask_openrouter_github_qa(user_request;github_context)
-    _repo_owner(repo_id)
-    _run_github_qa(user_request;repo_id;repo_url)
-    _enrich_analysis_with_file_metrics(client;repo_id;analysis)
-    _run_skills_analysis(client;repo_id;execute;user_request;max_actions)
+    get_redis_client()
+    track_repo_usage(tenant_id;repo_id;platform)
+    get_last_used_repo(tenant_id)
+    get_most_used_repo(tenant_id)
+    get_preferred_repo(tenant_id)
     find_tenant_by_key(api_key)
     authenticate(authorization)
     audit(event)
-    _job_storage_key(job_id)
-    _get_state_redis_client()
-    _get_rq_redis_client()
-    _get_queue()
-    _save_job(job_id;payload)
-    _load_job(job_id)
-    _update_job(job_id)
-    _queue_workflow_job(job_id;payload)
-    execute_dispatch_job(job_id;payload)
+  mcp-gateway/server.py:
+    e: health,list_models,chat_completions,get_job,stream_job,audit_tail,_ask_openrouter_github_qa
     health()
     list_models(_)
     chat_completions(req;tenant)
-    dispatch_skill(skill;tenant;repo_id;repo_url;github_token;source_path;branch;user_request;execute_commit;push_after_tests;create_draft_branch;draft_name;open_pull_request;pr_title;pr_body;pr_base;test_command;push_remote;job_id)
     get_job(job_id;_)
     stream_job(job_id;_)
     audit_tail(limit;_)
+    _ask_openrouter_github_qa(user_request;github_context)
   mcp-gateway/test_gateway_token_command.py:
     e: _extract_sse_data,_authorized_client,test_is_github_token_sync_command,test_is_github_token_sync_command_false_if_explicit_token_value,test_is_github_token_save_command,test_extract_github_token_from_text,test_is_org_set_command,test_is_org_list_command,test_is_repo_list_command,test_extract_repo_list_limit_defaults_and_bounds,test_extract_org_from_text,test_sync_github_token_via_gh2mcp_success_note,test_sync_github_token_via_gh2mcp_failure_note,test_extract_repo_template_expression,test_is_last_pushed_repo_template,test_resolve_repo_id_template_last_pushed,test_resolve_repo_id_template_last_pushed_repo_url_in_meta,test_resolve_repo_id_template_unsupported,test_is_github_auth_error,test_github_auth_recovery_message_has_three_options,test_resolve_repo_id_template_auto_recovers_on_auth_error,test_resolve_repo_id_template_auth_error_with_failed_recovery_raises_helpful_message,test_resolve_repo_id_template_non_auth_error_does_not_trigger_recovery,_compute_effective_repo_url,test_effective_repo_url_explicit_repo_url_wins,test_effective_repo_url_falls_back_to_resolved,test_effective_repo_url_both_none,test_effective_repo_url_no_template_resolution,test_render_chat_content_analyze_human_readable,test_render_chat_content_refactor_human_readable,test_render_chat_content_system_human_readable,test_render_chat_content_system_recent_repos_human_readable,test_render_chat_content_queued_human_readable,test_is_repo_list_command,test_extract_repo_list_limit,test_summary_text_redsl_engine,test_summary_text_mcp_skills_engine,test_stream_job_not_found_returns_404,test_stream_job_emits_status_updates_and_done,test_stream_job_emits_failure_with_error,_FakeResponse,_FakeAsyncClient
     _FakeResponse: __init__(2),json(0)
@@ -1073,7 +1104,7 @@ D:
 
 ```prolog markpact:analysis path=project/logic.pl
 % ── Project Metadata ─────────────────────────────────────
-project_metadata('mcp', '0.1.2', 'python').
+project_metadata('mcp', '0.1.4', 'python').
 
 % ── Project Files ────────────────────────────────────────
 project_file('app.doql.less', 262, 'less').
@@ -1109,9 +1140,18 @@ project_file('llm-agent/tests/test_llm_agent.py', 12, 'python').
 project_file('mcp-docs/server.py', 274, 'python').
 project_file('mcp-docs/tests/test_mcp_docs.py', 12, 'python').
 project_file('mcp-gateway/conftest.py', 5, 'python').
+project_file('mcp-gateway/gateway_chat.py', 571, 'python').
 project_file('mcp-gateway/gateway_config.py', 57, 'python').
+project_file('mcp-gateway/gateway_dispatch.py', 249, 'python').
+project_file('mcp-gateway/gateway_gh2mcp.py', 408, 'python').
+project_file('mcp-gateway/gateway_github.py', 433, 'python').
+project_file('mcp-gateway/gateway_jobs.py', 176, 'python').
+project_file('mcp-gateway/gateway_models.py', 35, 'python').
+project_file('mcp-gateway/gateway_prompt.py', 272, 'python').
 project_file('mcp-gateway/gateway_render.py', 503, 'python').
-project_file('mcp-gateway/server.py', 2469, 'python').
+project_file('mcp-gateway/gateway_skills.py', 264, 'python').
+project_file('mcp-gateway/gateway_tenants.py', 142, 'python').
+project_file('mcp-gateway/server.py', 229, 'python').
 project_file('mcp-gateway/test_gateway_token_command.py', 690, 'python').
 project_file('mcp-gateway/test_github_qa.py', 96, 'python').
 project_file('mcp-gateway/test_tool_intent.py', 189, 'python').
@@ -1225,6 +1265,62 @@ python_function('mcp-docs/server.py', 'index', 0, 4, 10).
 python_function('mcp-docs/server.py', 'render_doc', 1, 1, 6).
 python_function('mcp-docs/tests/test_mcp_docs.py', 'test_placeholder', 0, 2, 0).
 python_function('mcp-docs/tests/test_mcp_docs.py', 'test_import', 0, 1, 0).
+python_function('mcp-gateway/gateway_chat.py', '_audit', 1, 1, 1).
+python_function('mcp-gateway/gateway_chat.py', 'run_chat_workflow', 1, 43, 22).
+python_function('mcp-gateway/gateway_chat.py', 'handle_chat_completions', 2, 31, 28).
+python_function('mcp-gateway/gateway_dispatch.py', 'dispatch_skill', 19, 19, 21).
+python_function('mcp-gateway/gateway_gh2mcp.py', '_gateway_hooks', 0, 1, 0).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'is_github_configured', 0, 1, 2).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'get_default_github_repo', 0, 7, 4).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'sync_github_token_via_gh2mcp', 0, 3, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'set_default_org_via_gh2mcp', 1, 3, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'list_recent_repos_via_gh2mcp', 3, 2, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'list_orgs_via_gh2mcp', 1, 2, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'gh2mcp_status_via_gh2mcp', 0, 2, 5).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'last_pushed_repo_via_gh2mcp', 2, 2, 6).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'is_github_auth_error', 1, 3, 2).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'github_auth_recovery_message', 1, 1, 1).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'resolve_repo_id_template', 1, 14, 12).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'save_github_token_via_env2mcp', 2, 4, 4).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'repo_owner', 1, 4, 2).
+python_function('mcp-gateway/gateway_gh2mcp.py', 'run_github_qa', 3, 9, 12).
+python_function('mcp-gateway/gateway_github.py', 'normalize_repo_url', 1, 3, 2).
+python_function('mcp-gateway/gateway_github.py', 'github_repo_from_url', 1, 9, 9).
+python_function('mcp-gateway/gateway_github.py', 'is_github_token_save_command', 2, 15, 7).
+python_function('mcp-gateway/gateway_github.py', 'is_github_token_sync_command', 2, 11, 8).
+python_function('mcp-gateway/gateway_github.py', 'extract_org_from_text', 2, 9, 8).
+python_function('mcp-gateway/gateway_github.py', 'is_org_set_command', 1, 9, 5).
+python_function('mcp-gateway/gateway_github.py', 'is_org_list_command', 1, 13, 5).
+python_function('mcp-gateway/gateway_github.py', 'is_repo_list_command', 1, 23, 4).
+python_function('mcp-gateway/gateway_github.py', 'extract_repo_list_limit', 3, 3, 5).
+python_function('mcp-gateway/gateway_github.py', 'load_env_file_values', 1, 11, 8).
+python_function('mcp-gateway/gateway_github.py', 'runtime_github_token', 0, 4, 3).
+python_function('mcp-gateway/gateway_github.py', 'save_github_token', 1, 6, 9).
+python_function('mcp-gateway/gateway_github.py', 'inject_github_token', 1, 9, 5).
+python_function('mcp-gateway/gateway_github.py', 'redact_repo_url', 1, 6, 4).
+python_function('mcp-gateway/gateway_github.py', 'default_draft_name', 1, 2, 3).
+python_function('mcp-gateway/gateway_github.py', 'default_pr_title', 2, 4, 4).
+python_function('mcp-gateway/gateway_github.py', 'default_pr_body', 3, 1, 1).
+python_function('mcp-gateway/gateway_github.py', 'create_github_pr', 8, 3, 5).
+python_function('mcp-gateway/gateway_jobs.py', 'job_storage_key', 1, 1, 0).
+python_function('mcp-gateway/gateway_jobs.py', 'get_state_redis_client', 0, 4, 2).
+python_function('mcp-gateway/gateway_jobs.py', 'get_rq_redis_client', 0, 4, 2).
+python_function('mcp-gateway/gateway_jobs.py', 'get_queue', 0, 5, 2).
+python_function('mcp-gateway/gateway_jobs.py', 'save_job', 2, 3, 4).
+python_function('mcp-gateway/gateway_jobs.py', 'load_job', 1, 5, 5).
+python_function('mcp-gateway/gateway_jobs.py', 'update_job', 1, 2, 4).
+python_function('mcp-gateway/gateway_jobs.py', 'queue_workflow_job', 2, 2, 3).
+python_function('mcp-gateway/gateway_jobs.py', 'execute_dispatch_job', 2, 3, 6).
+python_function('mcp-gateway/gateway_prompt.py', 'message_content_to_text', 1, 14, 5).
+python_function('mcp-gateway/gateway_prompt.py', 'parse_prompt_context', 1, 8, 6).
+python_function('mcp-gateway/gateway_prompt.py', 'parse_bool', 2, 4, 2).
+python_function('mcp-gateway/gateway_prompt.py', 'normalize_command_text', 1, 1, 4).
+python_function('mcp-gateway/gateway_prompt.py', 'extract_github_token_from_text', 1, 2, 2).
+python_function('mcp-gateway/gateway_prompt.py', 'extract_repo_template_expression', 1, 3, 3).
+python_function('mcp-gateway/gateway_prompt.py', 'is_last_pushed_repo_template', 1, 15, 3).
+python_function('mcp-gateway/gateway_prompt.py', 'extract_owner_from_repo_template', 1, 4, 3).
+python_function('mcp-gateway/gateway_prompt.py', 'strip_url_suffix', 1, 1, 1).
+python_function('mcp-gateway/gateway_prompt.py', 'parse_tool_intent', 2, 23, 12).
 python_function('mcp-gateway/gateway_render.py', 'summary_text', 2, 9, 3).
 python_function('mcp-gateway/gateway_render.py', 'render_repo_selection_text', 1, 4, 2).
 python_function('mcp-gateway/gateway_render.py', 'render_system_text', 1, 27, 6).
@@ -1238,80 +1334,29 @@ python_function('mcp-gateway/gateway_render.py', 'render_github_qa_text', 1, 8, 
 python_function('mcp-gateway/gateway_render.py', 'render_chat_content', 1, 13, 11).
 python_function('mcp-gateway/gateway_render.py', 'build_commit_changes', 2, 1, 1).
 python_function('mcp-gateway/gateway_render.py', 'render_tools_list_text', 1, 11, 4).
-python_function('mcp-gateway/server.py', 'load_tenants', 0, 5, 5).
-python_function('mcp-gateway/server.py', '_get_redis_client', 0, 4, 1).
-python_function('mcp-gateway/server.py', '_track_repo_usage', 3, 3, 7).
-python_function('mcp-gateway/server.py', '_get_last_used_repo', 1, 8, 6).
-python_function('mcp-gateway/server.py', '_get_most_used_repo', 1, 8, 5).
-python_function('mcp-gateway/server.py', '_get_preferred_repo', 1, 2, 2).
-python_function('mcp-gateway/server.py', '_is_github_configured', 0, 1, 2).
-python_function('mcp-gateway/server.py', '_get_default_github_repo', 0, 7, 4).
-python_function('mcp-gateway/server.py', 'message_content_to_text', 1, 14, 5).
-python_function('mcp-gateway/server.py', 'parse_prompt_context', 1, 8, 6).
-python_function('mcp-gateway/server.py', 'parse_bool', 2, 4, 2).
-python_function('mcp-gateway/server.py', '_normalize_command_text', 1, 1, 4).
-python_function('mcp-gateway/server.py', '_extract_github_token_from_text', 1, 2, 2).
-python_function('mcp-gateway/server.py', '_extract_repo_template_expression', 1, 3, 3).
-python_function('mcp-gateway/server.py', '_is_last_pushed_repo_template', 1, 15, 3).
-python_function('mcp-gateway/server.py', '_extract_owner_from_repo_template', 1, 4, 3).
-python_function('mcp-gateway/server.py', '_is_github_token_save_command', 2, 15, 7).
-python_function('mcp-gateway/server.py', '_extract_org_from_text', 2, 9, 8).
-python_function('mcp-gateway/server.py', '_is_org_set_command', 1, 9, 5).
-python_function('mcp-gateway/server.py', '_is_org_list_command', 1, 13, 5).
-python_function('mcp-gateway/server.py', '_is_repo_list_command', 1, 23, 4).
-python_function('mcp-gateway/server.py', '_extract_repo_list_limit', 3, 3, 5).
-python_function('mcp-gateway/server.py', '_strip_url_suffix', 1, 1, 1).
-python_function('mcp-gateway/server.py', 'parse_tool_intent', 2, 23, 12).
-python_function('mcp-gateway/server.py', '_is_github_token_sync_command', 2, 11, 8).
-python_function('mcp-gateway/server.py', '_sync_github_token_via_gh2mcp', 0, 3, 6).
-python_function('mcp-gateway/server.py', '_set_default_org_via_gh2mcp', 1, 3, 6).
-python_function('mcp-gateway/server.py', '_list_recent_repos_via_gh2mcp', 3, 2, 6).
-python_function('mcp-gateway/server.py', '_list_orgs_via_gh2mcp', 1, 2, 6).
-python_function('mcp-gateway/server.py', '_gh2mcp_status_via_gh2mcp', 0, 2, 5).
-python_function('mcp-gateway/server.py', '_last_pushed_repo_via_gh2mcp', 2, 2, 6).
-python_function('mcp-gateway/server.py', '_is_github_auth_error', 1, 3, 2).
-python_function('mcp-gateway/server.py', '_github_auth_recovery_message', 1, 1, 1).
-python_function('mcp-gateway/server.py', '_resolve_repo_id_template', 1, 14, 11).
-python_function('mcp-gateway/server.py', '_save_github_token_via_env2mcp', 2, 4, 4).
-python_function('mcp-gateway/server.py', '_load_env_file_values', 1, 11, 8).
-python_function('mcp-gateway/server.py', '_runtime_github_token', 0, 4, 3).
-python_function('mcp-gateway/server.py', '_save_github_token', 1, 6, 9).
-python_function('mcp-gateway/server.py', '_normalize_repo_url', 1, 3, 2).
-python_function('mcp-gateway/server.py', '_inject_github_token', 1, 9, 5).
-python_function('mcp-gateway/server.py', '_redact_repo_url', 1, 6, 4).
-python_function('mcp-gateway/server.py', '_default_draft_name', 1, 2, 3).
-python_function('mcp-gateway/server.py', '_github_repo_from_url', 1, 9, 9).
-python_function('mcp-gateway/server.py', '_default_pr_title', 2, 4, 4).
-python_function('mcp-gateway/server.py', '_default_pr_body', 3, 1, 1).
-python_function('mcp-gateway/server.py', '_create_github_pr', 8, 3, 5).
-python_function('mcp-gateway/server.py', '_expect_json', 2, 3, 3).
-python_function('mcp-gateway/server.py', '_is_tools_list_command', 1, 6, 3).
-python_function('mcp-gateway/server.py', '_fetch_tools_list', 0, 2, 3).
-python_function('mcp-gateway/server.py', '_run_skills_tool', 6, 7, 5).
-python_function('mcp-gateway/server.py', '_ask_openrouter_github_qa', 2, 12, 8).
-python_function('mcp-gateway/server.py', '_repo_owner', 1, 4, 2).
-python_function('mcp-gateway/server.py', '_run_github_qa', 3, 9, 11).
-python_function('mcp-gateway/server.py', '_enrich_analysis_with_file_metrics', 3, 13, 5).
-python_function('mcp-gateway/server.py', '_run_skills_analysis', 5, 4, 5).
-python_function('mcp-gateway/server.py', 'find_tenant_by_key', 1, 3, 2).
-python_function('mcp-gateway/server.py', 'authenticate', 1, 4, 7).
-python_function('mcp-gateway/server.py', 'audit', 1, 1, 5).
-python_function('mcp-gateway/server.py', '_job_storage_key', 1, 1, 0).
-python_function('mcp-gateway/server.py', '_get_state_redis_client', 0, 4, 2).
-python_function('mcp-gateway/server.py', '_get_rq_redis_client', 0, 4, 2).
-python_function('mcp-gateway/server.py', '_get_queue', 0, 5, 2).
-python_function('mcp-gateway/server.py', '_save_job', 2, 3, 4).
-python_function('mcp-gateway/server.py', '_load_job', 1, 5, 5).
-python_function('mcp-gateway/server.py', '_update_job', 1, 2, 4).
-python_function('mcp-gateway/server.py', '_queue_workflow_job', 2, 2, 3).
-python_function('mcp-gateway/server.py', 'execute_dispatch_job', 2, 3, 6).
+python_function('mcp-gateway/gateway_skills.py', 'expect_json', 2, 3, 3).
+python_function('mcp-gateway/gateway_skills.py', 'is_tools_list_command', 1, 6, 3).
+python_function('mcp-gateway/gateway_skills.py', 'fetch_tools_list', 0, 2, 3).
+python_function('mcp-gateway/gateway_skills.py', 'run_skills_tool', 6, 7, 5).
+python_function('mcp-gateway/gateway_skills.py', 'ask_openrouter_github_qa', 2, 12, 8).
+python_function('mcp-gateway/gateway_skills.py', 'enrich_analysis_with_file_metrics', 3, 13, 5).
+python_function('mcp-gateway/gateway_skills.py', 'run_skills_analysis', 5, 4, 5).
+python_function('mcp-gateway/gateway_tenants.py', 'load_tenants', 0, 5, 5).
+python_function('mcp-gateway/gateway_tenants.py', 'get_redis_client', 0, 4, 1).
+python_function('mcp-gateway/gateway_tenants.py', 'track_repo_usage', 3, 3, 7).
+python_function('mcp-gateway/gateway_tenants.py', 'get_last_used_repo', 1, 8, 6).
+python_function('mcp-gateway/gateway_tenants.py', 'get_most_used_repo', 1, 8, 5).
+python_function('mcp-gateway/gateway_tenants.py', 'get_preferred_repo', 1, 2, 2).
+python_function('mcp-gateway/gateway_tenants.py', 'find_tenant_by_key', 1, 3, 2).
+python_function('mcp-gateway/gateway_tenants.py', 'authenticate', 1, 4, 7).
+python_function('mcp-gateway/gateway_tenants.py', 'audit', 1, 1, 5).
 python_function('mcp-gateway/server.py', 'health', 0, 1, 3).
 python_function('mcp-gateway/server.py', 'list_models', 1, 2, 3).
-python_function('mcp-gateway/server.py', 'chat_completions', 2, 31, 49).
-python_function('mcp-gateway/server.py', 'dispatch_skill', 19, 19, 21).
+python_function('mcp-gateway/server.py', 'chat_completions', 2, 1, 3).
 python_function('mcp-gateway/server.py', 'get_job', 2, 2, 4).
 python_function('mcp-gateway/server.py', 'stream_job', 2, 2, 8).
 python_function('mcp-gateway/server.py', 'audit_tail', 2, 4, 7).
+python_function('mcp-gateway/server.py', '_ask_openrouter_github_qa', 2, 1, 1).
 python_function('mcp-gateway/test_gateway_token_command.py', '_extract_sse_data', 1, 3, 4).
 python_function('mcp-gateway/test_gateway_token_command.py', '_authorized_client', 0, 1, 1).
 python_function('mcp-gateway/test_gateway_token_command.py', 'test_is_github_token_sync_command', 2, 2, 3).
@@ -1664,8 +1709,8 @@ python_method('RefactoringAgent', '_call_openai_sync', 1, 2, 5).
 python_method('RefactoringAgent', '_mock_llm_response', 1, 3, 4).
 python_method('RefactoringAgent', '_mock_llm_response_from_prompt', 1, 1, 1).
 python_method('RefactoringAgent', 'execute_refactoring_workflow', 3, 3, 4).
-python_class('mcp-gateway/server.py', 'ChatMessage').
-python_class('mcp-gateway/server.py', 'ChatCompletionRequest').
+python_class('mcp-gateway/gateway_models.py', 'ChatMessage').
+python_class('mcp-gateway/gateway_models.py', 'ChatCompletionRequest').
 python_class('mcp-gateway/test_gateway_token_command.py', '_FakeResponse').
 python_method('_FakeResponse', '__init__', 2, 1, 1).
 python_method('_FakeResponse', 'json', 0, 1, 0).
@@ -1913,7 +1958,7 @@ sumd_deploy_compose_file('docker-compose.yml').
 
 ## Call Graph
 
-*171 nodes · 189 edges · 30 modules · CC̄=4.4*
+*189 nodes · 214 edges · 38 modules · CC̄=4.5*
 
 ### Hubs (by degree)
 
@@ -1922,17 +1967,17 @@ sumd_deploy_compose_file('docker-compose.yml').
 | `chat_completions` *(in mcp-gateway.server)* | 31 ⚠ | 0 | 114 | **114** |
 | `run_tool_against_repo` *(in mcp-skills.tool_run)* | 37 ⚠ | 2 | 80 | **82** |
 | `render_tool_text` *(in mcp-gateway.gateway_render)* | 40 ⚠ | 1 | 80 | **81** |
+| `handle_chat_completions` *(in mcp-gateway.gateway_chat)* | 31 ⚠ | 0 | 69 | **69** |
 | `print` *(in scripts.test)* | 0 | 64 | 0 | **64** |
 | `render_refactor_text` *(in mcp-gateway.gateway_render)* | 17 ⚠ | 1 | 51 | **52** |
 | `render_system_text` *(in mcp-gateway.gateway_render)* | 27 ⚠ | 1 | 45 | **46** |
-| `redsl_refactor` *(in mcp-skills.server)* | 9 | 0 | 44 | **44** |
-| `dispatch_skill` *(in mcp-gateway.server)* | 19 ⚠ | 2 | 41 | **43** |
+| `run_chat_workflow` *(in mcp-gateway.gateway_chat)* | 43 ⚠ | 2 | 43 | **45** |
 
 ```toon markpact:analysis path=project/calls.toon.yaml
 # code2llm call graph | /home/tom/github/semcod/mcp
-# generated in 0.10s
-# nodes: 171 | edges: 189 | modules: 30
-# CC̄=4.4
+# generated in 0.09s
+# nodes: 189 | edges: 214 | modules: 38
+# CC̄=4.5
 
 HUBS[20]:
   mcp-gateway.server.chat_completions
@@ -1941,20 +1986,24 @@ HUBS[20]:
     CC=37  in:2  out:80  total:82
   mcp-gateway.gateway_render.render_tool_text
     CC=40  in:1  out:80  total:81
+  mcp-gateway.gateway_chat.handle_chat_completions
+    CC=31  in:0  out:69  total:69
   scripts.test.print
     CC=0  in:64  out:0  total:64
   mcp-gateway.gateway_render.render_refactor_text
     CC=17  in:1  out:51  total:52
   mcp-gateway.gateway_render.render_system_text
     CC=27  in:1  out:45  total:46
+  mcp-gateway.gateway_chat.run_chat_workflow
+    CC=43  in:2  out:43  total:45
+  mcp-gateway.gateway_dispatch.dispatch_skill
+    CC=19  in:3  out:41  total:44
   mcp-skills.server.redsl_refactor
     CC=9  in:0  out:44  total:44
-  mcp-gateway.server.dispatch_skill
-    CC=19  in:2  out:41  total:43
-  semcod_mcp.doctor.run_doctor
-    CC=11  in:1  out:38  total:39
   mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
     CC=15  in:0  out:39  total:39
+  semcod_mcp.doctor.run_doctor
+    CC=11  in:1  out:38  total:39
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
     CC=32  in:0  out:38  total:38
   semcod_mcp.init_cmd.run_init
@@ -1971,10 +2020,6 @@ HUBS[20]:
     CC=14  in:1  out:29  total:30
   mcp-gateway.server._resolve_repo_id_template
     CC=14  in:1  out:28  total:29
-  semcod_mcp.validate.run_validate
-    CC=13  in:1  out:24  total:25
-  mcp-skills.code_analysis.compute_repo_file_metrics
-    CC=15  in:2  out:23  total:25
 
 MODULES:
   dashboard.server  [1 funcs]
@@ -2018,6 +2063,52 @@ MODULES:
     _safe_doc_path  CC=4  out:9
     index  CC=4  out:11
     render_doc  CC=1  out:6
+  mcp-gateway.gateway_chat  [2 funcs]
+    handle_chat_completions  CC=31  out:69
+    run_chat_workflow  CC=43  out:43
+  mcp-gateway.gateway_dispatch  [1 funcs]
+    dispatch_skill  CC=19  out:41
+  mcp-gateway.gateway_gh2mcp  [13 funcs]
+    get_default_github_repo  CC=7  out:7
+    gh2mcp_status_via_gh2mcp  CC=2  out:11
+    is_github_auth_error  CC=3  out:2
+    is_github_configured  CC=1  out:2
+    last_pushed_repo_via_gh2mcp  CC=2  out:12
+    list_orgs_via_gh2mcp  CC=2  out:10
+    list_recent_repos_via_gh2mcp  CC=2  out:11
+    repo_owner  CC=4  out:2
+    resolve_repo_id_template  CC=14  out:28
+    run_github_qa  CC=9  out:16
+  mcp-gateway.gateway_github  [15 funcs]
+    create_github_pr  CC=3  out:14
+    extract_org_from_text  CC=9  out:9
+    extract_repo_list_limit  CC=3  out:5
+    github_repo_from_url  CC=9  out:10
+    inject_github_token  CC=9  out:6
+    is_github_token_save_command  CC=15  out:7
+    is_github_token_sync_command  CC=11  out:9
+    is_org_list_command  CC=13  out:7
+    is_org_set_command  CC=9  out:6
+    is_repo_list_command  CC=23  out:4
+  mcp-gateway.gateway_jobs  [9 funcs]
+    execute_dispatch_job  CC=3  out:15
+    get_queue  CC=5  out:2
+    get_rq_redis_client  CC=4  out:2
+    get_state_redis_client  CC=4  out:2
+    job_storage_key  CC=1  out:0
+    load_job  CC=5  out:6
+    queue_workflow_job  CC=2  out:3
+    save_job  CC=3  out:4
+    update_job  CC=2  out:4
+  mcp-gateway.gateway_prompt  [8 funcs]
+    extract_github_token_from_text  CC=2  out:2
+    extract_owner_from_repo_template  CC=4  out:3
+    extract_repo_template_expression  CC=3  out:3
+    is_last_pushed_repo_template  CC=15  out:3
+    normalize_command_text  CC=1  out:5
+    parse_prompt_context  CC=8  out:10
+    parse_tool_intent  CC=23  out:17
+    strip_url_suffix  CC=1  out:1
   mcp-gateway.gateway_render  [7 funcs]
     render_analyze_text  CC=14  out:30
     render_chat_content  CC=13  out:16
@@ -2026,17 +2117,31 @@ MODULES:
     render_system_text  CC=27  out:45
     render_tool_text  CC=40  out:80
     summary_text  CC=9  out:24
-  mcp-gateway.server  [60 funcs]
-    _ask_openrouter_github_qa  CC=12  out:15
-    _create_github_pr  CC=3  out:14
-    _enrich_analysis_with_file_metrics  CC=13  out:12
-    _expect_json  CC=3  out:4
-    _extract_github_token_from_text  CC=2  out:2
-    _extract_org_from_text  CC=9  out:9
-    _extract_owner_from_repo_template  CC=4  out:3
-    _extract_repo_template_expression  CC=3  out:3
+  mcp-gateway.gateway_skills  [5 funcs]
+    ask_openrouter_github_qa  CC=12  out:15
+    enrich_analysis_with_file_metrics  CC=13  out:12
+    expect_json  CC=3  out:4
+    is_tools_list_command  CC=6  out:8
+    run_skills_analysis  CC=4  out:16
+  mcp-gateway.gateway_tenants  [7 funcs]
+    authenticate  CC=4  out:8
+    find_tenant_by_key  CC=3  out:2
+    get_last_used_repo  CC=8  out:6
+    get_most_used_repo  CC=8  out:5
+    get_preferred_repo  CC=2  out:2
+    get_redis_client  CC=4  out:1
+    track_repo_usage  CC=3  out:8
+  mcp-gateway.server  [18 funcs]
     _get_default_github_repo  CC=7  out:7
     _get_last_used_repo  CC=8  out:6
+    _get_most_used_repo  CC=8  out:5
+    _get_preferred_repo  CC=2  out:2
+    _get_redis_client  CC=4  out:1
+    _gh2mcp_status_via_gh2mcp  CC=2  out:11
+    _is_github_auth_error  CC=3  out:2
+    _is_github_configured  CC=1  out:2
+    _last_pushed_repo_via_gh2mcp  CC=2  out:12
+    _list_recent_repos_via_gh2mcp  CC=2  out:11
   mcp-skills.code_analysis  [6 funcs]
     _should_skip_path  CC=2  out:1
     build_maintainability_recommendations  CC=24  out:34
@@ -2137,45 +2242,45 @@ EDGES:
   gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
   gh2mcp.gh2mcp.server.on_startup → gh2mcp.gh2mcp.server._periodic_sync
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._track_repo_usage → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_last_used_repo → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_most_used_repo → mcp-gateway.server._get_redis_client
-  mcp-gateway.server._get_preferred_repo → mcp-gateway.server._get_last_used_repo
-  mcp-gateway.server._get_preferred_repo → mcp-gateway.server._get_most_used_repo
-  mcp-gateway.server._is_github_configured → mcp-gateway.server._runtime_github_token
-  mcp-gateway.server._get_default_github_repo → mcp-gateway.server._is_github_configured
-  mcp-gateway.server._get_default_github_repo → mcp-gateway.server._last_pushed_repo_via_gh2mcp
-  mcp-gateway.server._is_last_pushed_repo_template → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_last_pushed_repo_template → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_github_token_save_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_github_token_save_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_github_token_save_command → mcp-gateway.server._extract_github_token_from_text
-  mcp-gateway.server._extract_org_from_text → mcp-gateway.server._normalize_repo_url
-  mcp-gateway.server._extract_org_from_text → mcp-gateway.server._github_repo_from_url
-  mcp-gateway.server._is_org_set_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_org_set_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_org_list_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_org_list_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._is_repo_list_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_repo_list_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server.parse_tool_intent → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server.parse_tool_intent → mcp-gateway.server._strip_url_suffix
-  mcp-gateway.server._is_github_token_sync_command → mcp-gateway.server._normalize_command_text
-  mcp-gateway.server._is_github_token_sync_command → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.server._sync_github_token_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._set_default_org_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._list_recent_repos_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._list_orgs_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._gh2mcp_status_via_gh2mcp → mcp-gateway.server._expect_json
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._extract_repo_template_expression
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._is_last_pushed_repo_template
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._extract_owner_from_repo_template
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._last_pushed_repo_via_gh2mcp
-  mcp-gateway.server._resolve_repo_id_template → mcp-gateway.server._is_github_auth_error
-  mcp-gateway.server._save_github_token_via_env2mcp → mcp-gateway.server._extract_github_token_from_text
-  mcp-gateway.server._save_github_token_via_env2mcp → mcp-gateway.server._save_github_token
-  mcp-gateway.server._runtime_github_token → mcp-gateway.server._load_env_file_values
-  mcp-gateway.server._inject_github_token → mcp-gateway.server._runtime_github_token
+  mcp-gateway.gateway_render.render_tool_text → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_system_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_queued_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_analyze_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_refactor_text
+  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_tool_text
+  llm-agent.agent_standalone.main → scripts.test.print
+  llm-agent.agent.main → scripts.test.print
+  mcp-skills.tool_run._ensure_tool_installed → mcp-skills.tool_run._truncate_text
+  mcp-skills.tool_run._git_clone_or_update → mcp-skills.tool_run._inject_github_token
+  mcp-skills.tool_run._git_clone_or_update → mcp-skills.tool_run._truncate_text
+  mcp-skills.tool_run.collect_output_files → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.tool_run.run_tool_against_repo → mcp-skills.tool_run._ensure_tool_installed
+  mcp-skills.tool_run.run_tool_against_repo → mcp-skills.tool_run.collect_output_files
+  mcp-skills.code_analysis.compute_repo_file_metrics → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.detect_repo_patterns → mcp-skills.code_analysis._should_skip_path
+  mcp-skills.code_analysis.build_maintainability_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.code_analysis.build_maintainability_recommendations → semcod_mcp.doctor.DoctorReport.add
+  mcp-skills.code_analysis.merge_recommendations → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo → mcp-skills.code_analysis.compute_repo_file_metrics
+  mcp-skills.server.MCPSkillsServer._detect_code_patterns → mcp-skills.code_analysis.detect_repo_patterns
+  mcp-skills.server.MCPSkillsServer._recommend_refactoring → mcp-skills.code_analysis.build_maintainability_recommendations
+  mcp-skills.server.MCPSkillsServer._recommend_refactoring → mcp-skills.code_analysis.recommendations_payload
+  mcp-skills.server.analyze_code_structure → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.compute_metrics → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.detect_patterns → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.recommend_refactoring → mcp-skills.mcp_parse.parse_tool_result
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.compute_repo_file_metrics
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.build_maintainability_recommendations
+  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.merge_recommendations
+  mcp-skills.server.run_tool_endpoint → mcp-skills.tool_run.run_tool_against_repo
+  mcp-skills.server._run_tool_against_repo → mcp-skills.tool_run.run_tool_against_repo
+  env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
+  env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
 ```
 
 ## Intent

@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-import json
 import os
-import subprocess
 from pathlib import Path
 
 from env2mcp import EnvConfig, GitHubCLI
+
+from gh2mcp.gh_repo_queries import (
+    clamp_limit,
+    collect_repos_for_owners,
+    dedupe_repos_by_slug,
+    fetch_user_org_logins,
+    gh_repo_list,
+    newest_repo_with_slug,
+    resolve_github_token,
+    resolve_owner,
+)
 
 
 class GitHubTokenSyncService:
@@ -89,19 +98,7 @@ class GitHubTokenSyncService:
             }
         )
 
-        try:
-            proc = subprocess.run(
-                ["gh", "api", "user/orgs"],
-                capture_output=True,
-                text=True,
-                timeout=20,
-            )
-            gh_orgs = json.loads(proc.stdout) if proc.returncode == 0 and proc.stdout.strip() else []
-        except Exception:
-            gh_orgs = []
-
-        for item in gh_orgs:
-            org_name = item.get("login")
+        for org_name in fetch_user_org_logins():
             if not org_name:
                 continue
             repos = gh.list_repos(owner=org_name, limit=repos_limit)
@@ -131,66 +128,23 @@ class GitHubTokenSyncService:
                 "repo": None,
             }
 
-        cfg = EnvConfig(self.env_path)
-        resolved_owner = (owner or "").strip()
-        if not resolved_owner:
-            resolved_owner = (cfg.get("GITHUB_ORG") or "").strip()
-        if not resolved_owner:
-            resolved_owner = (cfg.get("GITHUB_USER") or "").strip()
-        if not resolved_owner:
-            resolved_owner = (gh.get_user() or "").strip()
+        resolved_owner, error = resolve_owner(self.env_path, gh, owner)
+        if error:
+            return error
 
-        if not resolved_owner:
+        safe_limit = clamp_limit(limit, default=100, minimum=1, maximum=500)
+        repos, list_error = gh_repo_list(
+            resolved_owner,
+            safe_limit,
+            fields="nameWithOwner,pushedAt,url",
+        )
+        if list_error:
             return {
                 "success": False,
-                "error": "Unable to resolve GitHub owner (set GITHUB_ORG or pass owner)",
-                "owner": None,
-                "repo": None,
-            }
-
-        try:
-            safe_limit = int(limit)
-        except Exception:
-            safe_limit = 100
-        safe_limit = max(1, min(safe_limit, 500))
-
-        try:
-            proc = subprocess.run(
-                [
-                    "gh",
-                    "repo",
-                    "list",
-                    resolved_owner,
-                    "-L",
-                    str(safe_limit),
-                    "--json",
-                    "nameWithOwner,pushedAt,url",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-        except Exception as exc:
-            return {
-                "success": False,
-                "error": f"gh repo list failed: {exc}",
+                "error": list_error,
                 "owner": resolved_owner,
                 "repo": None,
             }
-
-        if proc.returncode != 0:
-            error_text = (proc.stderr or proc.stdout or "gh repo list failed").strip()
-            return {
-                "success": False,
-                "error": error_text,
-                "owner": resolved_owner,
-                "repo": None,
-            }
-
-        try:
-            repos = json.loads(proc.stdout) if proc.stdout.strip() else []
-        except Exception:
-            repos = []
 
         if not repos:
             return {
@@ -200,14 +154,8 @@ class GitHubTokenSyncService:
                 "repo": None,
             }
 
-        valid_repos = [
-            item
-            for item in repos
-            if isinstance(item, dict) and item.get("nameWithOwner")
-        ]
-        valid_repos.sort(key=lambda item: item.get("pushedAt") or "", reverse=True)
-
-        if not valid_repos:
+        top = newest_repo_with_slug(repos)
+        if not top:
             return {
                 "success": False,
                 "error": "No repositories with usable metadata",
@@ -215,14 +163,14 @@ class GitHubTokenSyncService:
                 "repo": None,
             }
 
-        top = valid_repos[0]
+        valid_count = len([item for item in repos if isinstance(item, dict) and item.get("nameWithOwner")])
         return {
             "success": True,
             "owner": resolved_owner,
             "repo": top.get("nameWithOwner"),
             "repo_url": top.get("url"),
             "pushed_at": top.get("pushedAt"),
-            "candidate_count": len(valid_repos),
+            "candidate_count": valid_count,
             "source": "gh_cli",
         }
 
@@ -243,81 +191,24 @@ class GitHubTokenSyncService:
                 "repos": [],
             }
 
-        try:
-            safe_limit = int(limit)
-        except Exception:
-            safe_limit = 10
-        safe_limit = max(1, min(safe_limit, 100))
-
+        safe_limit = clamp_limit(limit, default=10, minimum=1, maximum=100)
         owners: list[str] = []
         if owner and owner.strip():
             owners.append(owner.strip())
         else:
             owners.append(user)
             if include_orgs:
-                try:
-                    proc = subprocess.run(
-                        ["gh", "api", "user/orgs"],
-                        capture_output=True,
-                        text=True,
-                        timeout=20,
-                    )
-                    orgs = json.loads(proc.stdout) if proc.returncode == 0 and proc.stdout.strip() else []
-                except Exception:
-                    orgs = []
-                for item in orgs:
-                    org_name = (item or {}).get("login")
-                    if org_name and org_name not in owners:
+                for org_name in fetch_user_org_logins():
+                    if org_name not in owners:
                         owners.append(org_name)
 
-        candidates: list[dict] = []
-        errors: list[str] = []
-
-        for owner_name in owners:
-            try:
-                proc = subprocess.run(
-                    [
-                        "gh",
-                        "repo",
-                        "list",
-                        owner_name,
-                        "-L",
-                        str(safe_limit),
-                        "--json",
-                        "nameWithOwner,pushedAt,url,isPrivate",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                )
-            except Exception as exc:
-                errors.append(f"{owner_name}: {exc}")
-                continue
-
-            if proc.returncode != 0:
-                errors.append(f"{owner_name}: {(proc.stderr or proc.stdout or 'gh repo list failed').strip()}")
-                continue
-
-            try:
-                repos = json.loads(proc.stdout) if proc.stdout.strip() else []
-            except Exception:
-                repos = []
-
-            for item in repos:
-                if not isinstance(item, dict):
-                    continue
-                name_with_owner = item.get("nameWithOwner")
-                if not name_with_owner:
-                    continue
-                candidates.append(
-                    {
-                        "nameWithOwner": name_with_owner,
-                        "pushedAt": item.get("pushedAt"),
-                        "url": item.get("url"),
-                        "owner": owner_name,
-                        "isPrivate": bool(item.get("isPrivate")),
-                    }
-                )
+        candidates, errors = collect_repos_for_owners(
+            owners,
+            safe_limit,
+            fields="nameWithOwner,pushedAt,url,isPrivate",
+        )
+        for item in candidates:
+            item["isPrivate"] = bool(item.get("isPrivate"))
 
         if not candidates:
             return {
@@ -328,19 +219,7 @@ class GitHubTokenSyncService:
                 "source": "gh_cli",
             }
 
-        candidates.sort(key=lambda item: item.get("pushedAt") or "", reverse=True)
-
-        deduped: list[dict] = []
-        seen: set[str] = set()
-        for item in candidates:
-            slug = str(item.get("nameWithOwner") or "")
-            if not slug or slug in seen:
-                continue
-            seen.add(slug)
-            deduped.append(item)
-            if len(deduped) >= safe_limit:
-                break
-
+        deduped = dedupe_repos_by_slug(candidates, safe_limit)
         return {
             "success": True,
             "user": user,
@@ -354,54 +233,13 @@ class GitHubTokenSyncService:
 
     def sync_token(self, force_gh_cli: bool = False, include_token: bool = False) -> dict:
         cfg = EnvConfig(self.env_path)
-
-        token = None
-        source = None
-
         gh = GitHubCLI()
 
-        if force_gh_cli:
-            if not gh.is_available():
-                return {
-                    "success": False,
-                    "configured": False,
-                    "error": "gh CLI not available",
-                    "source": None,
-                }
-
-            token = gh.get_token()
-            if token:
-                source = "gh_cli"
-            else:
-                return {
-                    "success": False,
-                    "configured": False,
-                    "error": "gh CLI has no token (run: gh auth login)",
-                    "source": None,
-                }
-
-        if not token:
-            token = os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
-            if token:
-                source = "env"
-
-        if not token and gh.is_available():
-            token = gh.get_token()
-            if token:
-                source = "gh_cli"
-
-        if not token:
-            token = cfg.get("GITHUB_PAT") or cfg.get("GITHUB_TOKEN")
-            if token:
-                source = "env_file"
-
-        if not token:
-            return {
-                "success": False,
-                "configured": False,
-                "error": "Brak tokenu GitHub (env, gh CLI, .env)",
-                "source": None,
-            }
+        token, source, error = resolve_github_token(
+            self.env_path, gh, force_gh_cli=force_gh_cli
+        )
+        if error:
+            return error
 
         cfg["GITHUB_PAT"] = token
         user = None
