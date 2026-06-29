@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "semcod-mcp"
-version = "0.1.4"
+version = "0.1.5"
 description = "Initialize semcod MCP stack integration for Cursor, VS Code, Claude and other IDEs — init, doctor, validate, analyze."
 readme = "README.md"
 license = "Apache-2.0"

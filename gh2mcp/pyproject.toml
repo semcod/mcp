@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gh2mcp"
-version = "0.1.4"
+version = "0.1.5"
 description = "GitHub CLI token sync agent for MCP stacks"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -13,12 +13,11 @@ dependencies = [
   "uvicorn[standard]>=0.30.0,<1.0.0",
   "env2mcp>=0.1.0",
 ]
+license = "Apache-2.0"
 
 [project.scripts]
 gh2mcp = "gh2mcp.cli:main"
 
-[project.license]
-text = "Apache-2.0"
 [tool.setuptools]
 packages = ["gh2mcp"]
 
