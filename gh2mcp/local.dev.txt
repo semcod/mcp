@@ -1,0 +1,9 @@
+# local.dev.txt — locally developed dependencies of this project (generated 2026-07-04)
+# by ~/github/local.dev.sh — DO NOT EDIT; see ~/github/local.dev.md
+# project: gh2mcp 0.1.5 (python) at /home/tom/github/semcod/mcp/gh2mcp
+# deps declared: 3 | with local source: 1
+
+## LOCAL DEPS  (dep | required | local source (version) | installed | status)
+env2mcp | >=0.1.0 | /home/tom/github/semcod/mcp/env2mcp (0.1.5) | 0.1.4 non-editable | STALE-INSTALL (local 0.1.5) -> fix: pip install -e /home/tom/github/semcod/mcp/env2mcp  [pyproject.toml]
+
+## EXTERNAL DEPS (no local source, 2): fastapi, uvicorn
