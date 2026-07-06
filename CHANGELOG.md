@@ -164,6 +164,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-07-06
+
+### Docs
+- Update README.md
+
+### Other
+- Update gh2mcp/local.dev.txt
+- Update git2mcp/local.dev.txt
+- Update local.dev.txt
+
 ## [0.1.5] - 2026-06-29
 
 ### Docs
