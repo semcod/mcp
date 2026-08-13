@@ -150,7 +150,7 @@ services:
       - ./.env:/app/.env
       - audit-storage:/audit
     ports:
-      - "${PORT_GATEWAY:-9000}:9000"
+      - "${MCP_GATEWAY_BIND_HOST:-127.0.0.1}:${PORT_GATEWAY:-9000}:9000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/health', timeout=3)"]
       interval: 20s
@@ -261,7 +261,11 @@ services:
     environment:
       - OPENAI_API_BASE_URL=http://mcp-gateway:9000/v1
       - OPENAI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
-      - WEBUI_AUTH=${OPENWEBUI_AUTH:-False}
+      - WEBUI_AUTH=${OPENWEBUI_AUTH:-True}
+      - ENABLE_SIGNUP=${OPENWEBUI_ENABLE_SIGNUP:-False}
+      - ENABLE_FORWARD_USER_INFO_HEADERS=True
+      - FORWARD_USER_INFO_HEADER_JWT=X-OpenWebUI-User-Jwt
+      - FORWARD_USER_INFO_HEADER_JWT_EXPIRES_SECONDS=300
       # Renderowanie Markdown / artefaktów
       - ENABLE_MERMAID=${ENABLE_MERMAID:-true}
       - ENABLE_LATEX=${ENABLE_LATEX:-true}
@@ -273,8 +277,15 @@ services:
       - SHOW_ADMIN_DETAILS=${SHOW_ADMIN_DETAILS:-false}
     volumes:
       - openwebui-data:/app/backend/data
+      - ${OPENWEBUI_MCP_JWT_SECRET_FILE:-./.secrets/openwebui-mcp-jwt.secret}:/run/secrets/openwebui-mcp-jwt:ro
+      - ${OPENWEBUI_MCP_BEARER_SECRET_FILE:-./.secrets/openwebui-mcp-bearer.secret}:/run/secrets/openwebui-mcp-bearer:ro
+      - ${OPENWEBUI_SESSION_SECRET_FILE:-./.secrets/openwebui-session.secret}:/run/secrets/openwebui-session:ro
+    command:
+      - bash
+      - -lc
+      - export WEBUI_SECRET_KEY="$$(tr -d '\r\n' < /run/secrets/openwebui-session)"; export FORWARD_USER_INFO_HEADER_JWT_SECRET="$$(tr -d '\r\n' < /run/secrets/openwebui-mcp-jwt)"; exec bash start.sh
     ports:
-      - "${PORT_OPENWEBUI:-3000}:8080"
+      - "${OPENWEBUI_BIND_HOST:-127.0.0.1}:${PORT_OPENWEBUI:-3000}:8080"
     depends_on:
       mcp-gateway:
         condition: service_healthy

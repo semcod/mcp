@@ -321,6 +321,39 @@ Oficjalny frontend (docker image) podłączony do MCP Gateway:
 - Chat z modelami `mcp-skills/refactor` i `mcp-skills/analyze`
 - **URL**: http://localhost:3000
 
+Domyślnie OpenWebUI wymaga logowania, nie pozwala na samodzielną rejestrację i
+nasłuchuje tylko na `127.0.0.1`. Gateway również jest związany z loopbackiem.
+Przed uruchomieniem profilu utwórz trzy pliki o prawach `0600`:
+
+```bash
+install -d -m 700 .secrets
+umask 077
+test -s .secrets/openwebui-session.secret || openssl rand -hex 32 > .secrets/openwebui-session.secret
+test -s .secrets/openwebui-mcp-jwt.secret || openssl rand -hex 32 > .secrets/openwebui-mcp-jwt.secret
+test -s .secrets/openwebui-mcp-bearer.secret || openssl rand -hex 32 > .secrets/openwebui-mcp-bearer.secret
+docker compose --profile openwebui up -d
+```
+
+Pliki można trzymać poza repozytorium, ustawiając
+`OPENWEBUI_SESSION_SECRET_FILE`, `OPENWEBUI_MCP_JWT_SECRET_FILE` i
+`OPENWEBUI_MCP_BEARER_SECRET_FILE`. Port można zmienić przez `PORT_OPENWEBUI`,
+ale publiczny bind powinien być wystawiany wyłącznie przez uwierzytelnione TLS
+proxy; surowy MCP i Control nie powinny być publikowane do Internetu.
+
+Po uruchomieniu można idempotentnie predefiniować zawężone połączenie Subactor:
+
+```bash
+SUBACTOR_ACCOUNT_ID=softreck \
+SUBACTOR_PROVIDER=chatgpt \
+SUBACTOR_TOOL_ID=codex \
+SUBACTOR_CONTROL_URL=http://172.17.0.1:8088 \
+./scripts/configure-openwebui-subactor.sh
+```
+
+Skrypt nie drukuje tokenu. Konfiguruje wyłącznie `cli.status`, `cli.plan` i
+`cli.execute`; wykonanie nadal wymaga osobnego grantu oraz aktywnej intencji po
+stronie Subactor.
+
 ### MCP Skills - HTTP API
 Serwer FastAPI z endpointami (poza MCP STDIO):
 - `POST /sync` - Synchronizacja repo z git-proxy

@@ -1,4 +1,5 @@
 .env.example
+.secrets/
 .idea
 repos
 output

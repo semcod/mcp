@@ -1,0 +1,54 @@
+name: verify
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install test dependencies
+        run: python -m pip install --disable-pip-version-check -e '.[dev]'
+      - name: Run unit tests
+        run: python -m pytest -q
+      - name: Validate secure OpenWebUI boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/configure-openwebui-subactor.sh
+          docker compose --profile openwebui config -q
+          docker compose --profile openwebui config --format json | jq -e '
+            .services["mcp-gateway"].ports == [{
+              "mode": "ingress",
+              "host_ip": "127.0.0.1",
+              "target": 9000,
+              "published": "9000",
+              "protocol": "tcp"
+            }] and
+            .services.openwebui.ports == [{
+              "mode": "ingress",
+              "host_ip": "127.0.0.1",
+              "target": 8080,
+              "published": "3000",
+              "protocol": "tcp"
+            }] and
+            .services.openwebui.environment.WEBUI_AUTH == "True" and
+            .services.openwebui.environment.ENABLE_SIGNUP == "False" and
+            any(
+              .services.openwebui.volumes[];
+              .target == "/run/secrets/openwebui-mcp-bearer" and
+              .read_only == true
+            )
+          '
