@@ -323,6 +323,9 @@ Oficjalny frontend (docker image) podłączony do MCP Gateway:
 
 Domyślnie OpenWebUI wymaga logowania, nie pozwala na samodzielną rejestrację i
 nasłuchuje tylko na `127.0.0.1`. Gateway również jest związany z loopbackiem.
+Obraz OpenWebUI jest domyślnie przypięty do wieloarchitekturowego digestu
+wydania `v0.11.0`; kontrolowane podniesienie wersji jest możliwe przez
+`OPENWEBUI_IMAGE`.
 Przed uruchomieniem profilu utwórz trzy pliki o prawach `0600`:
 
 ```bash
@@ -340,13 +343,24 @@ Pliki można trzymać poza repozytorium, ustawiając
 ale publiczny bind powinien być wystawiany wyłącznie przez uwierzytelnione TLS
 proxy; surowy MCP i Control nie powinny być publikowane do Internetu.
 
-Po uruchomieniu można idempotentnie predefiniować zawężone połączenie Subactor:
+Gotowy profil Subactor uruchamia stos, czeka na health OpenWebUI i idempotentnie
+zapisuje zawężone połączenie MCP:
+
+```bash
+make subactor-up
+```
+
+Konfigurator sam wykrywa nie-loopbackowy listener Control na porcie `8088`,
+sprawdza `/healthz`, uwierzytelnia `tools/list` dedykowanym sekretem MCP i
+odmawia zapisu, jeżeli serwer wystawia coś innego niż `cli.status`, `cli.plan`
+i `cli.execute`. Adres można jawnie nadpisać, jeśli autodetekcja nie jest
+dostępna:
 
 ```bash
 SUBACTOR_ACCOUNT_ID=softreck \
 SUBACTOR_PROVIDER=chatgpt \
 SUBACTOR_TOOL_ID=codex \
-SUBACTOR_CONTROL_URL=http://172.17.0.1:8088 \
+SUBACTOR_CONTROL_URL=http://10.240.0.1:8088 \
 ./scripts/configure-openwebui-subactor.sh
 ```
 

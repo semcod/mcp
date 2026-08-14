@@ -24,11 +24,12 @@ COMPOSE := docker-compose
 COMPOSE_PROD := docker-compose -f docker-compose.yml -f docker-compose.prod.yml
 PROFILES := --profile openwebui
 
-.PHONY: help start stop restart kill-ports up down logs ps build rebuild test pytest smoke ansible-e2e ansible-gh2mcp ansible-github-qa ansible-github-test ansible-tools-e2e gh2mcp-status reload-gateway reload-skills clean prod-up prod-down setup-github install-env2mcp generate-demo-repos generate-demo-repos-github
+.PHONY: help start stop restart kill-ports up subactor-up subactor-configure down logs ps build rebuild test pytest smoke ansible-e2e ansible-gh2mcp ansible-github-qa ansible-github-test ansible-tools-e2e gh2mcp-status reload-gateway reload-skills clean prod-up prod-down setup-github install-env2mcp generate-demo-repos generate-demo-repos-github
 
 help:
 	@echo "MCP Skills - Makefile targets"
 	@echo "  make start         - kill host ports, build and start full stack (with OpenWebUI)"
+	@echo "  make subactor-up   - start OpenWebUI and preconfigure the scoped Subactor MCP"
 	@echo "  make stop          - stop all containers"
 	@echo "  make restart       - stop + start"
 	@echo "  make kill-ports    - free host ports: $(PORTS)"
@@ -102,6 +103,20 @@ restart: stop start
 
 up:
 	$(COMPOSE) $(PROFILES) up -d
+
+subactor-up: up
+	@for attempt in {1..60}; do \
+		if $(COMPOSE) $(PROFILES) exec -T openwebui python -c \
+			"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)" >/dev/null 2>&1; then \
+			break; \
+		fi; \
+		if [ "$$attempt" = 60 ]; then echo "OpenWebUI did not become healthy" >&2; exit 1; fi; \
+		sleep 2; \
+	done
+	@$(MAKE) subactor-configure
+
+subactor-configure:
+	@./scripts/configure-openwebui-subactor.sh
 
 down: stop
 

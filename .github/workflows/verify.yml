@@ -46,6 +46,7 @@ jobs:
             }] and
             .services.openwebui.environment.WEBUI_AUTH == "True" and
             .services.openwebui.environment.ENABLE_SIGNUP == "False" and
+            .services.openwebui.image == "ghcr.io/open-webui/open-webui:v0.11.0@sha256:72c0ba641ba75e7aa52655cb242570906ececd09b1140fb736483038a22b3228" and
             any(
               .services.openwebui.volumes[];
               .target == "/run/secrets/openwebui-mcp-bearer" and

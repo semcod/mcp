@@ -256,7 +256,7 @@ services:
 
   # OpenWebUI - frontend dla użytkowników końcowych (OpenAI-compat klient)
   openwebui:
-    image: ${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:main}
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:v0.11.0@sha256:72c0ba641ba75e7aa52655cb242570906ececd09b1140fb736483038a22b3228}
     container_name: openwebui
     environment:
       - OPENAI_API_BASE_URL=http://mcp-gateway:9000/v1
