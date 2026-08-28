@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import base64
+import io
 import importlib.util
 import os
+import tarfile
 from pathlib import Path
 from uuid import uuid4
 
@@ -16,6 +19,9 @@ PROXY_SERVER_PATH = ROOT / "mcp-git-proxy" / "server.py"
 def _load_proxy_app(repo_root: Path, cache_root: Path):
     os.environ["GIT_PROXY_REPO_ROOT"] = str(repo_root)
     os.environ["GIT_PROXY_CACHE_ROOT"] = str(cache_root)
+    os.environ["GIT_PROXY_ALLOW_MUTATION"] = "1"
+    os.environ["GIT_PROXY_ALLOW_EXECUTE"] = "1"
+    os.environ["GIT_PROXY_ALLOW_REMOTE_WRITE"] = "1"
 
     module_name = f"mcp_git_proxy_server_{uuid4().hex}"
     spec = importlib.util.spec_from_file_location(module_name, PROXY_SERVER_PATH)
@@ -35,6 +41,58 @@ def _create_sample_repo_source(source: Path) -> None:
     pkg = source / "pkg"
     pkg.mkdir(parents=True, exist_ok=True)
     (pkg / "util.py").write_text("VALUE = 42\n", encoding="utf-8")
+
+
+def test_git_proxy_capabilities_are_disabled_by_default(tmp_path, monkeypatch):
+    app = _load_proxy_app(tmp_path / "git-repos", tmp_path / "git-cache")
+    client = TestClient(app)
+    monkeypatch.delenv("GIT_PROXY_ALLOW_MUTATION", raising=False)
+    monkeypatch.delenv("GIT_PROXY_ALLOW_EXECUTE", raising=False)
+    monkeypatch.delenv("GIT_PROXY_ALLOW_REMOTE_WRITE", raising=False)
+
+    sync = client.post("/repos/sync", json={"repo_id": "team/repo", "source_path": "/tmp"})
+    assert sync.status_code == 403
+    assert "GIT_PROXY_ALLOW_MUTATION" in sync.json()["detail"]
+
+    tests = client.post("/repos/team/repo/run-tests", json={"command": "true"})
+    assert tests.status_code == 403
+    assert "GIT_PROXY_ALLOW_EXECUTE" in tests.json()["detail"]
+
+    push = client.post("/repos/team/repo/push", json={})
+    assert push.status_code == 403
+    assert "GIT_PROXY_ALLOW_REMOTE_WRITE" in push.json()["detail"]
+
+
+def test_git_proxy_rejects_repo_and_archive_traversal(tmp_path):
+    repo_root = tmp_path / "git-repos"
+    app = _load_proxy_app(repo_root, tmp_path / "git-cache")
+    client = TestClient(app)
+    source_repo = tmp_path / "source"
+    _create_sample_repo_source(source_repo)
+
+    escaped_repo = client.post(
+        "/repos/sync",
+        json={"repo_id": "../escaped", "source_path": str(source_repo)},
+    )
+    assert escaped_repo.status_code == 400
+    assert not (tmp_path / "escaped").exists()
+
+    payload = io.BytesIO()
+    with tarfile.open(fileobj=payload, mode="w:gz") as archive:
+        member = tarfile.TarInfo("../../archive-escape.txt")
+        content = b"unsafe"
+        member.size = len(content)
+        archive.addfile(member, io.BytesIO(content))
+
+    imported = client.post(
+        "/packages/import",
+        json={
+            "repo_id": "team/imported",
+            "archive_b64": base64.b64encode(payload.getvalue()).decode("ascii"),
+        },
+    )
+    assert imported.status_code == 400
+    assert not (tmp_path / "archive-escape.txt").exists()
 
 
 def test_git_proxy_e2e_sync_export_commit_and_tests(tmp_path):
@@ -139,9 +197,25 @@ def test_git_proxy_local_operations(tmp_path):
     # path traversal must be blocked
     bad = client.post(
         f"/repos/{repo_id}/worktree/write",
-        json={"path": "../escape.txt", "content": "x"},
+        json={"path": "../local-ops-evil/escape.txt", "content": "x"},
     )
     assert bad.status_code == 400
+    assert not (repo_root / "team" / "local-ops-evil" / "escape.txt").exists()
+
+    bad_commit = client.post(
+        f"/repos/{repo_id}/commit",
+        json={
+            "message": "unsafe",
+            "changes": [{"path": "../local-ops-evil/commit.txt", "content": "x"}],
+        },
+    )
+    assert bad_commit.status_code == 400
+
+    bad_checkpoint = client.post(
+        f"/repos/{repo_id}/checkpoint",
+        json={"label": "../../checkpoint-escape"},
+    )
+    assert bad_checkpoint.status_code == 400
 
     # checkpoint create -> modify -> restore
     ckpt = client.post(f"/repos/{repo_id}/checkpoint", json={"label": "before"})

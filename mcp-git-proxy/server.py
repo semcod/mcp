@@ -3,18 +3,31 @@ from __future__ import annotations
 import base64
 import os
 import subprocess
-import tarfile
-from io import BytesIO
-from pathlib import Path
 
 import urllib.request
 import urllib.error
 import json as _json
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from git2mcp.proxy import GitProxyManager
+
+_MUTATION_ENV = "GIT_PROXY_ALLOW_MUTATION"
+_EXECUTE_ENV = "GIT_PROXY_ALLOW_EXECUTE"
+_REMOTE_WRITE_ENV = "GIT_PROXY_ALLOW_REMOTE_WRITE"
+
+
+def _env_enabled(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _require_capability(env_name: str, action: str) -> None:
+    if not _env_enabled(env_name):
+        raise PermissionError(
+            f"Git proxy action '{action}' is disabled; start the service with {env_name}=1"
+        )
 
 
 class SyncRepoRequest(BaseModel):
@@ -49,6 +62,7 @@ class PushRequest(BaseModel):
 
 class RunTestsRequest(BaseModel):
     command: str = "python3 -m compileall -q ."
+    timeout_seconds: int = Field(default=600, ge=1, le=3600)
 
 
 class ResetRequest(BaseModel):
@@ -123,6 +137,14 @@ manager = GitProxyManager(
 )
 
 
+@app.exception_handler(PermissionError)
+async def permission_error_handler(
+    _request: Request,
+    exc: PermissionError,
+) -> JSONResponse:
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
+
+
 @app.get("/health")
 def health():
     return {"status": "ok", "service": "mcp-git-proxy"}
@@ -135,6 +157,7 @@ def list_repos():
 
 @app.post("/repos/sync")
 def sync_repo(request: SyncRepoRequest):
+    _require_capability(_MUTATION_ENV, "sync_repo")
     try:
         return manager.sync_repo(
             repo_id=request.repo_id,
@@ -143,7 +166,11 @@ def sync_repo(request: SyncRepoRequest):
             branch=request.branch,
         )
     except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        detail = str(exc)
+        if request.repo_url:
+            safe_url = manager.redact_url_credentials(request.repo_url) or "<redacted-url>"
+            detail = detail.replace(request.repo_url, safe_url)
+        raise HTTPException(status_code=400, detail=detail) from exc
 
 
 @app.post("/packages/export-fragments")
@@ -168,18 +195,17 @@ def export_package(request: ExportPackageRequest):
 
 @app.post("/packages/import")
 def import_package(request: ImportPackageRequest):
-    repo_path = Path(os.getenv("GIT_PROXY_REPO_ROOT", "/git-repos")) / request.repo_id
-    repo_path.mkdir(parents=True, exist_ok=True)
-
-    archive = base64.b64decode(request.archive_b64)
-    with tarfile.open(fileobj=BytesIO(archive), mode="r:gz") as tar:
-        tar.extractall(repo_path)
-
-    return {"repo_id": request.repo_id, "imported_to": str(repo_path)}
+    _require_capability(_MUTATION_ENV, "import_package")
+    try:
+        archive = base64.b64decode(request.archive_b64, validate=True)
+        return manager.import_package(request.repo_id, archive)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/repos/{repo_id:path}/commit")
 def commit(repo_id: str, request: CommitRequest):
+    _require_capability(_MUTATION_ENV, "commit")
     try:
         return manager.commit_changes(
             repo_id=repo_id,
@@ -194,6 +220,7 @@ def commit(repo_id: str, request: CommitRequest):
 
 @app.post("/repos/{repo_id:path}/push")
 def push(repo_id: str, request: PushRequest):
+    _require_capability(_REMOTE_WRITE_ENV, "push")
     try:
         return manager.push(repo_id, remote=request.remote, branch=request.branch)
     except Exception as exc:
@@ -202,6 +229,7 @@ def push(repo_id: str, request: PushRequest):
 
 @app.post("/repos/{repo_id:path}/reset")
 def reset(repo_id: str, request: ResetRequest):
+    _require_capability(_MUTATION_ENV, "reset")
     try:
         return manager.reset(repo_id=repo_id, ref=request.ref, mode=request.mode)
     except Exception as exc:
@@ -210,6 +238,7 @@ def reset(repo_id: str, request: ResetRequest):
 
 @app.post("/repos/{repo_id:path}/worktree/write")
 def worktree_write(repo_id: str, request: WorktreeWriteRequest):
+    _require_capability(_MUTATION_ENV, "worktree_write")
     try:
         return manager.worktree_write(repo_id, request.path, request.content, request.encoding)
     except Exception as exc:
@@ -236,6 +265,8 @@ def worktree_diff(repo_id: str, request: WorktreeDiffRequest):
 
 @app.post("/repos/{repo_id:path}/patch/apply")
 def patch_apply(repo_id: str, request: PatchApplyRequest):
+    if not request.check_only:
+        _require_capability(_MUTATION_ENV, "patch_apply")
     try:
         return manager.patch_apply(repo_id, request.patch, check_only=request.check_only)
     except Exception as exc:
@@ -244,6 +275,7 @@ def patch_apply(repo_id: str, request: PatchApplyRequest):
 
 @app.post("/repos/{repo_id:path}/stage")
 def stage(repo_id: str, request: StageRequest):
+    _require_capability(_MUTATION_ENV, "stage")
     try:
         return manager.stage(repo_id, paths=request.paths)
     except Exception as exc:
@@ -252,6 +284,7 @@ def stage(repo_id: str, request: StageRequest):
 
 @app.post("/repos/{repo_id:path}/stash/save")
 def stash_save(repo_id: str, request: StashSaveRequest):
+    _require_capability(_MUTATION_ENV, "stash_save")
     try:
         return manager.stash_save(repo_id, message=request.message)
     except Exception as exc:
@@ -260,6 +293,7 @@ def stash_save(repo_id: str, request: StashSaveRequest):
 
 @app.post("/repos/{repo_id:path}/stash/pop")
 def stash_pop(repo_id: str):
+    _require_capability(_MUTATION_ENV, "stash_pop")
     try:
         return manager.stash_pop(repo_id)
     except Exception as exc:
@@ -268,6 +302,7 @@ def stash_pop(repo_id: str):
 
 @app.post("/repos/{repo_id:path}/branch/draft")
 def branch_draft(repo_id: str, request: BranchDraftRequest):
+    _require_capability(_MUTATION_ENV, "branch_draft")
     try:
         return manager.branch_draft(repo_id, name=request.name, base=request.base)
     except Exception as exc:
@@ -276,6 +311,7 @@ def branch_draft(repo_id: str, request: BranchDraftRequest):
 
 @app.post("/repos/{repo_id:path}/checkpoint")
 def checkpoint_create(repo_id: str, request: CheckpointCreateRequest):
+    _require_capability(_MUTATION_ENV, "checkpoint_create")
     try:
         return manager.checkpoint_create(repo_id, label=request.label)
     except Exception as exc:
@@ -284,6 +320,7 @@ def checkpoint_create(repo_id: str, request: CheckpointCreateRequest):
 
 @app.post("/repos/{repo_id:path}/checkpoint/restore")
 def checkpoint_restore(repo_id: str, request: CheckpointRestoreRequest):
+    _require_capability(_MUTATION_ENV, "checkpoint_restore")
     try:
         return manager.checkpoint_restore(repo_id, checkpoint_id=request.checkpoint_id)
     except FileNotFoundError as exc:
@@ -294,23 +331,38 @@ def checkpoint_restore(repo_id: str, request: CheckpointRestoreRequest):
 
 @app.post("/repos/{repo_id:path}/run-tests")
 def run_tests(repo_id: str, request: RunTestsRequest):
-    repo_path = Path(os.getenv("GIT_PROXY_REPO_ROOT", "/git-repos")) / repo_id
+    _require_capability(_EXECUTE_ENV, "run_tests")
+    try:
+        repo_path = manager._repo_path(repo_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     if not repo_path.exists():
         raise HTTPException(status_code=404, detail=f"Repo not found: {repo_id}")
 
-    process = subprocess.run(
-        request.command,
-        shell=True,
-        cwd=repo_path,
-        capture_output=True,
-        text=True,
-    )
+    try:
+        process = subprocess.run(
+            request.command,
+            shell=True,
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            timeout=request.timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as exc:
+        return {
+            "repo_id": repo_id,
+            "command": request.command,
+            "returncode": None,
+            "stdout": (exc.stdout or "")[-65_536:] if isinstance(exc.stdout, str) else "",
+            "stderr": f"timeout after {request.timeout_seconds}s",
+            "ok": False,
+        }
     return {
         "repo_id": repo_id,
         "command": request.command,
         "returncode": process.returncode,
-        "stdout": process.stdout,
-        "stderr": process.stderr,
+        "stdout": process.stdout[-65_536:],
+        "stderr": process.stderr[-65_536:],
         "ok": process.returncode == 0,
     }
 
@@ -318,6 +370,7 @@ def run_tests(repo_id: str, request: RunTestsRequest):
 @app.post("/github/create-repo")
 def github_create_repo(request: CreateGithubRepoRequest):
     """Create a new repository on GitHub via REST API, then optionally clone it locally."""
+    _require_capability(_REMOTE_WRITE_ENV, "github_create_repo")
     token = request.github_token or os.getenv("GITHUB_PAT") or os.getenv("GITHUB_TOKEN")
     if not token:
         raise HTTPException(status_code=400, detail="No GitHub token available. Set GITHUB_PAT or pass github_token.")
@@ -361,15 +414,28 @@ def github_create_repo(request: CreateGithubRepoRequest):
 
     if request.auto_clone:
         clone_url = repo_data.get("clone_url", "")
+        authenticated_clone_url = clone_url
         if clone_url.startswith("https://"):
-            clone_url = clone_url.replace("https://", f"https://{token}@")
+            authenticated_clone_url = clone_url.replace("https://", f"https://{token}@")
         repo_id = request.name
         try:
-            manager.sync_repo(repo_id=repo_id, repo_url=clone_url, branch=request.branch)
+            manager.sync_repo(
+                repo_id=repo_id,
+                repo_url=authenticated_clone_url,
+                branch=request.branch,
+            )
+            repo = manager._repo_path(repo_id)
+            subprocess.run(
+                ["git", "-C", str(repo), "remote", "set-url", "origin", clone_url],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
             result["cloned_locally"] = True
             result["repo_id"] = repo_id
         except Exception as exc:
-            result["clone_error"] = str(exc)
+            result["clone_error"] = str(exc).replace(token, "***")
 
     return result
 
@@ -377,7 +443,12 @@ def github_create_repo(request: CreateGithubRepoRequest):
 @app.post("/repos/{repo_id:path}/sync-pull")
 def sync_pull(repo_id: str, request: SyncPullRequest):
     """Pull updates from remote for an existing repository."""
-    repo_path = Path(os.getenv("GIT_PROXY_REPO_ROOT", "/git-repos")) / repo_id
+    _require_capability(_MUTATION_ENV, "sync_pull")
+    try:
+        repo_path = manager._repo_path(repo_id)
+        branch = manager._validate_git_arg(request.branch, label="branch")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     if not repo_path.exists():
         raise HTTPException(status_code=404, detail=f"Repo not found: {repo_id}")
@@ -403,15 +474,20 @@ def sync_pull(repo_id: str, request: SyncPullRequest):
 
         # Checkout and pull the requested branch
         checkout_result = subprocess.run(
-            ["git", "checkout", request.branch],
+            ["git", "checkout", branch],
             cwd=repo_path,
             capture_output=True,
             text=True,
             timeout=30
         )
+        if checkout_result.returncode != 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Checkout failed: {checkout_result.stderr}",
+            )
 
         pull_result = subprocess.run(
-            ["git", "pull", "origin", request.branch],
+            ["git", "pull", "origin", branch],
             cwd=repo_path,
             capture_output=True,
             text=True,
@@ -429,9 +505,9 @@ def sync_pull(repo_id: str, request: SyncPullRequest):
 
         return {
             "repo_id": repo_id,
-            "branch": request.branch,
+            "branch": branch,
             "commit": commit,
-            "message": f"Pulled latest changes from origin/{request.branch}",
+            "message": f"Pulled latest changes from origin/{branch}",
             "pull_output": pull_result.stdout,
             "pull_stderr": pull_result.stderr,
             "success": pull_result.returncode == 0

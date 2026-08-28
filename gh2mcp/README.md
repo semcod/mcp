@@ -29,6 +29,11 @@ Kontener uruchamia API:
 - `POST /sync/token`
 - `POST /repo/last-pushed`
 
+API nigdy nie zwraca pełnego tokenu. Zapis tokenu i organizacji jest domyślnie
+wyłączony i wymaga `GH2MCP_ALLOW_MUTATION=1`; automatyczna synchronizacja przy
+starcie wymaga dodatkowo `GH2MCP_SYNC_ON_START=true`. Port kontenera jest
+domyślnie związany z `127.0.0.1`.
+
 
 ## License
 

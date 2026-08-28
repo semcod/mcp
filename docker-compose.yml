@@ -21,13 +21,16 @@ services:
     environment:
       - GIT_PROXY_REPO_ROOT=/git-repos
       - GIT_PROXY_CACHE_ROOT=/git-cache
+      - GIT_PROXY_ALLOW_MUTATION=${GIT_PROXY_ALLOW_MUTATION:-false}
+      - GIT_PROXY_ALLOW_EXECUTE=${GIT_PROXY_ALLOW_EXECUTE:-false}
+      - GIT_PROXY_ALLOW_REMOTE_WRITE=${GIT_PROXY_ALLOW_REMOTE_WRITE:-false}
     volumes:
       - git-repo-storage:/git-repos
       - git-cache-storage:/git-cache
       - ./repos:/host-repos:ro
       - ..:/host-semcod:ro
     ports:
-      - "${PORT_GIT_PROXY:-8081}:8080"
+      - "${GIT_PROXY_BIND_HOST:-127.0.0.1}:${PORT_GIT_PROXY:-8081}:8080"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
       interval: 20s
@@ -45,7 +48,8 @@ services:
     container_name: gh2mcp-agent
     environment:
       - GH2MCP_ENV_FILE=/app/.env
-      - GH2MCP_SYNC_ON_START=${GH2MCP_SYNC_ON_START:-true}
+      - GH2MCP_ALLOW_MUTATION=${GH2MCP_ALLOW_MUTATION:-false}
+      - GH2MCP_SYNC_ON_START=${GH2MCP_SYNC_ON_START:-false}
       - GH2MCP_SYNC_INTERVAL=${GH2MCP_SYNC_INTERVAL:-0}
       - GH_TOKEN=${GH_TOKEN:-}
       - GITHUB_PAT=${GITHUB_PAT:-}
@@ -54,7 +58,7 @@ services:
       - ./.env:/app/.env
       - ${HOME}/.config/gh:/root/.config/gh:ro
     ports:
-      - "${PORT_GH2MCP:-8079}:8079"
+      - "${GH2MCP_BIND_HOST:-127.0.0.1}:${PORT_GH2MCP:-8079}:8079"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8079/health', timeout=3)"]
       interval: 20s
@@ -81,6 +85,8 @@ services:
       - MCP_SKILLS_TRANSPORT=http
       - MCP_SKILLS_HTTP_HOST=0.0.0.0
       - MCP_SKILLS_HTTP_PORT=8080
+      - MCP_SKILLS_ALLOW_SYNC=${MCP_SKILLS_ALLOW_SYNC:-false}
+      - MCP_SKILLS_ALLOW_EXECUTE=${MCP_SKILLS_ALLOW_EXECUTE:-false}
       - GITHUB_PAT=${GITHUB_PAT:-}
       - GH_TOKEN=${GH_TOKEN:-}
     volumes:
@@ -218,10 +224,13 @@ services:
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
       - WEBUI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
       - GH2MCP_URL=http://gh2mcp-agent:8079
+      - MCP_WEBUI_ALLOW_SECRET_WRITE=${MCP_WEBUI_ALLOW_SECRET_WRITE:-false}
+      - MCP_WEBUI_ALLOW_MUTATION=${MCP_WEBUI_ALLOW_MUTATION:-false}
+      - MCP_WEBUI_ALLOW_EXECUTE=${MCP_WEBUI_ALLOW_EXECUTE:-false}
     volumes:
       - ./.env:/app/.env
     ports:
-      - "${PORT_WEBUI:-8092}:8090"
+      - "${MCP_WEBUI_BIND_HOST:-127.0.0.1}:${PORT_WEBUI:-8092}:8090"
     depends_on:
       mcp-gateway:
         condition: service_healthy

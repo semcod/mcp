@@ -426,6 +426,20 @@ Najważniejsze endpointy `mcp-git-proxy`:
 - `POST /repos/{repo_id}/run-tests` - test commitu przed pushem
 - `POST /repos/{repo_id}/push` - push po pozytywnych testach
 
+Proxy uruchamia się w trybie tylko do odczytu. Lokalne zmiany i synchronizacja
+wymagają `GIT_PROXY_ALLOW_MUTATION=1`, dowolne polecenia testowe wymagają
+`GIT_PROXY_ALLOW_EXECUTE=1`, a push i tworzenie repozytoriów na GitHubie są
+osobno chronione przez `GIT_PROXY_ALLOW_REMOTE_WRITE=1`. Identyfikatory repo,
+ścieżki zmian, checkpointy i importowane archiwa pozostają wewnątrz
+skonfigurowanych katalogów proxy. Port proxy jest domyślnie publikowany tylko
+na `127.0.0.1`; jawna zmiana `GIT_PROXY_BIND_HOST` rozszerza tę granicę sieciową.
+
+`gh2mcp` nie udostępnia pełnego PAT przez HTTP. Zapis `.env` wymaga
+`GH2MCP_ALLOW_MUTATION=1`, a formularze sekretów w testowym WebUI wymagają
+`MCP_WEBUI_ALLOW_SECRET_WRITE=1`. Synchronizacja repo i wywołania modeli w
+WebUI mają osobne bramki `MCP_WEBUI_ALLOW_MUTATION=1` i
+`MCP_WEBUI_ALLOW_EXECUTE=1`; oba porty są domyślnie tylko na loopbacku.
+
 ## Przykłady Użycia
 
 ### Analiza lokalnego repozytorium

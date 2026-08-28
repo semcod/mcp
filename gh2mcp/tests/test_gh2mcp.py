@@ -1,15 +1,31 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
+import stat
 import sys
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.modules.pop("env2mcp", None)
 sys.path.insert(0, str(ROOT / "env2mcp"))
 
-import gh2mcp.sync as sync_module
-from gh2mcp.sync import GitHubTokenSyncService
+import gh2mcp.sync as sync_module  # noqa: E402
+from gh2mcp.sync import GitHubTokenSyncService  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def restore_github_environment():
+    keys = ("GITHUB_PAT", "GITHUB_TOKEN", "GITHUB_USER", "GITHUB_ORG")
+    original = {key: os.environ.get(key) for key in keys}
+    yield
+    for key, value in original.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
 
 
 class _GhUnavailable:
@@ -84,7 +100,70 @@ def test_sync_token_saves_from_env_and_reads_back(monkeypatch, tmp_path: Path):
     assert status["token"] == "ghp_env_token_123456"
     assert status["token_hint"].startswith("ghp_env_")
     assert env_path.exists()
-    assert 'GITHUB_PAT="ghp_env_token_123456"' in env_path.read_text(encoding="utf-8")
+    assert stat.S_IMODE(env_path.stat().st_mode) == 0o600
+    assert "GITHUB_PAT=ghp_env_token_123456" in env_path.read_text(encoding="utf-8")
+
+
+def test_http_api_never_returns_raw_token(monkeypatch, tmp_path: Path):
+    import gh2mcp.server as server_module
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("GITHUB_PAT", "ghp_http_secret_123456")
+    monkeypatch.setenv("GH2MCP_ALLOW_MUTATION", "1")
+    monkeypatch.setattr(sync_module, "GitHubCLI", _GhUnavailable)
+    monkeypatch.setattr(
+        server_module,
+        "service",
+        GitHubTokenSyncService(tmp_path / ".env"),
+    )
+    client = TestClient(server_module.app)
+
+    status = client.get("/status?include_token=true")
+    assert status.status_code == 200
+    assert "token" not in status.json()
+
+    synced = client.post(
+        "/sync/token",
+        json={"force_gh_cli": False, "include_token": True},
+    )
+    assert synced.status_code == 200
+    assert synced.json()["success"] is True
+    assert "token" not in synced.json()
+
+
+def test_http_mutations_require_operator_capability(monkeypatch, tmp_path: Path):
+    import gh2mcp.server as server_module
+    from fastapi.testclient import TestClient
+
+    monkeypatch.delenv("GH2MCP_ALLOW_MUTATION", raising=False)
+    monkeypatch.setattr(
+        server_module,
+        "service",
+        GitHubTokenSyncService(tmp_path / ".env"),
+    )
+    client = TestClient(server_module.app)
+
+    synced = client.post("/sync/token", json={"force_gh_cli": False})
+    assert synced.status_code == 403
+    assert "GH2MCP_ALLOW_MUTATION" in synced.json()["detail"]
+
+    org = client.post("/org/set", json={"org": "semcod"})
+    assert org.status_code == 403
+    assert not (tmp_path / ".env").exists()
+
+
+def test_env_config_rejects_secret_symlink(tmp_path: Path):
+    target = tmp_path / "target.env"
+    target.write_text("SAFE=1\n", encoding="utf-8")
+    env_path = tmp_path / ".env"
+    env_path.symlink_to(target)
+
+    cfg = sync_module.EnvConfig(env_path)
+    cfg["GITHUB_PAT"] = "ghp_should_not_write"
+
+    with pytest.raises(ValueError, match="symlink"):
+        cfg.save()
+    assert target.read_text(encoding="utf-8") == "SAFE=1\n"
 
 
 def test_sync_token_reads_from_env_file_when_env_missing(monkeypatch, tmp_path: Path):
@@ -128,7 +207,7 @@ def test_set_org_defaults_to_gh_username(monkeypatch, tmp_path: Path):
     result = service.set_org(org=None)
     assert result["success"] is True
     assert result["org"] == "alice"
-    assert 'GITHUB_ORG="alice"' in env_path.read_text(encoding="utf-8")
+    assert "GITHUB_ORG=alice" in env_path.read_text(encoding="utf-8")
 
 
 def test_list_orgs_and_repos(monkeypatch, tmp_path: Path):
