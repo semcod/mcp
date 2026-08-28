@@ -14,27 +14,87 @@ import sys
 import tarfile
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from mcp.server import Server
 from mcp.server import NotificationOptions
 from mcp.server.models import InitializationOptions
 from mcp.types import (
-    CallToolRequestParams,
     ListToolsResult,
     TextContent,
     Tool,
-    INVALID_PARAMS,
-    INTERNAL_ERROR,
 )
 from pydantic import BaseModel, Field
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+_SYNC_ENV = "MCP_SKILLS_ALLOW_SYNC"
+_EXECUTE_ENV = "MCP_SKILLS_ALLOW_EXECUTE"
+
+
+def _env_enabled(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _require_sync(action: str) -> None:
+    if not _env_enabled(_SYNC_ENV):
+        raise PermissionError(
+            f"Repository sync '{action}' is disabled; start the server with {_SYNC_ENV}=1"
+        )
+
+
+def _require_execute(action: str) -> None:
+    if not _env_enabled(_EXECUTE_ENV):
+        raise PermissionError(
+            f"Tool execution '{action}' is disabled; start the server with {_EXECUTE_ENV}=1"
+        )
+
+
+def _resolve_descendant(root: Path, relative: str, *, label: str) -> Path:
+    root = root.expanduser().resolve()
+    if not isinstance(relative, str) or not relative.strip():
+        raise ValueError(f"Invalid {label}: {relative!r}")
+    rel_path = Path(relative)
+    if rel_path.is_absolute():
+        raise ValueError(f"Invalid {label}: {relative!r}")
+    candidate = (root / rel_path).resolve()
+    try:
+        candidate.relative_to(root)
+    except ValueError as exc:
+        raise ValueError(f"{label} escapes configured repository root: {relative!r}") from exc
+    return candidate
+
+
+def _resolve_repo_path(
+    configured_base: Path,
+    repo_id: str,
+    requested_base: str | None = None,
+) -> Path:
+    if not isinstance(repo_id, str) or not repo_id.strip():
+        raise ValueError("repo_id is required")
+    configured_root = configured_base.expanduser().resolve()
+    base = Path(requested_base).expanduser().resolve() if requested_base else configured_root
+    try:
+        base.relative_to(configured_root)
+    except ValueError as exc:
+        raise ValueError("base_path must be inside the configured SKILLS_REPO_BASE") from exc
+    return _resolve_descendant(base, repo_id, label="repo_id")
+
+
+def _extract_archive_safely(archive_bytes: bytes, target_repo: Path) -> None:
+    with tarfile.open(fileobj=BytesIO(archive_bytes), mode="r:gz") as tar:
+        members = tar.getmembers()
+        for member in members:
+            if member.issym() or member.islnk() or member.isdev() or member.isfifo():
+                raise ValueError(f"Unsupported archive member: {member.name!r}")
+            _resolve_descendant(target_repo, member.name, label="archive member")
+        tar.extractall(target_repo, members=members)
 
 
 class MCPSkillsServer:
@@ -49,7 +109,8 @@ class MCPSkillsServer:
         self._setup_handlers()
 
     async def _sync_from_git_proxy(self, repo_id: str, ref: str = "HEAD") -> Dict[str, Any]:
-        target_repo = self.repo_base / repo_id
+        _require_sync("sync_repo_from_git_proxy")
+        target_repo = _resolve_repo_path(self.repo_base, repo_id)
         target_repo.mkdir(parents=True, exist_ok=True)
 
         existing_files = {
@@ -86,7 +147,11 @@ class MCPSkillsServer:
                         if not rel_path or content_b64 is None:
                             continue
                         incoming_paths.add(rel_path)
-                        file_path = target_repo / rel_path
+                        file_path = _resolve_descendant(
+                            target_repo,
+                            rel_path,
+                            label="fragment path",
+                        )
                         file_path.parent.mkdir(parents=True, exist_ok=True)
                         incoming_bytes = base64.b64decode(content_b64)
 
@@ -127,8 +192,7 @@ class MCPSkillsServer:
                     raise ValueError("Missing archive_b64 in git proxy response")
 
                 archive_bytes = base64.b64decode(archive_b64)
-                with tarfile.open(fileobj=BytesIO(archive_bytes), mode="r:gz") as tar:
-                    tar.extractall(target_repo)
+                _extract_archive_safely(archive_bytes, target_repo)
 
                 return {
                     "repo_id": repo_id,
@@ -300,11 +364,11 @@ class MCPSkillsServer:
         if not repo_id or not paths:
             raise ValueError("repo_id and paths are required")
 
-        repo_path = Path(base_path) / repo_id
+        repo_path = _resolve_repo_path(self.repo_base, repo_id, base_path)
         results = []
 
         for rel_path in paths:
-            full_path = repo_path / rel_path
+            full_path = _resolve_descendant(repo_path, rel_path, label="analysis path")
             if not full_path.exists():
                 results.append({
                     "path": rel_path,
@@ -364,7 +428,7 @@ class MCPSkillsServer:
         if not repo_id:
             raise ValueError("repo_id is required")
 
-        repo_path = Path(base_path) / repo_id
+        repo_path = _resolve_repo_path(self.repo_base, repo_id, base_path)
 
         if not repo_path.exists():
             return [TextContent(type="text", text=json.dumps({
@@ -380,8 +444,17 @@ class MCPSkillsServer:
         file_metrics = []
 
         for ext in extensions:
-            for file_path in repo_path.rglob(f"*{ext}"):
-                if ".git" in str(file_path):
+            for discovered_path in repo_path.rglob(f"*{ext}"):
+                if ".git" in str(discovered_path):
+                    continue
+                try:
+                    rel_path = discovered_path.relative_to(repo_path)
+                    file_path = _resolve_descendant(
+                        repo_path,
+                        str(rel_path),
+                        label="metrics path",
+                    )
+                except ValueError:
                     continue
 
                 total_files += 1
@@ -407,7 +480,6 @@ class MCPSkillsServer:
                     total_classes += classes
 
                     # Relatywna ścieżka
-                    rel_path = file_path.relative_to(repo_path)
                     file_metrics.append({
                         "path": str(rel_path),
                         "lines": line_count,
@@ -439,9 +511,8 @@ class MCPSkillsServer:
         """Wykrywanie wzorców kodu i antywzorców"""
         repo_id = arguments.get("repo_id")
         base_path = arguments.get("base_path", str(self.repo_base))
-        pattern_types = arguments.get("pattern_types", ["complexity", "imports"])
 
-        repo_path = Path(base_path) / repo_id
+        repo_path = _resolve_repo_path(self.repo_base, repo_id, base_path)
 
         if not repo_path.exists():
             return [TextContent(type="text", text=json.dumps({
@@ -458,8 +529,17 @@ class MCPSkillsServer:
 
         all_imports = {}
 
-        for file_path in repo_path.rglob("*.py"):
-            if ".git" in str(file_path):
+        for discovered_path in repo_path.rglob("*.py"):
+            if ".git" in str(discovered_path):
+                continue
+            try:
+                rel_path = discovered_path.relative_to(repo_path)
+                file_path = _resolve_descendant(
+                    repo_path,
+                    str(rel_path),
+                    label="pattern path",
+                )
+            except ValueError:
                 continue
 
             try:
@@ -533,11 +613,10 @@ class MCPSkillsServer:
     async def _recommend_refactoring(self, arguments: dict) -> list:
         """Generowanie rekomendacji refaktoryzacji"""
         repo_id = arguments.get("repo_id")
-        target_paths = arguments.get("target_paths", [])
         goal = arguments.get("goal", "maintainability")
         base_path = arguments.get("base_path", str(self.repo_base))
 
-        repo_path = Path(base_path) / repo_id
+        repo_path = _resolve_repo_path(self.repo_base, repo_id, base_path)
 
         if not repo_path.exists():
             return [TextContent(type="text", text=json.dumps({
@@ -1040,12 +1119,13 @@ async def _run_tool_against_repo(request: ToolRunRequest) -> dict[str, Any]:
     if not repo_id:
         raise HTTPException(status_code=400, detail="repo_id or repo_url is required")
 
-    base = Path(request.base_path or str(skills_server.repo_base))
-    repo_path = base / repo_id
+    _require_execute("tools_run")
+    repo_path = _resolve_repo_path(skills_server.repo_base, repo_id, request.base_path)
 
     # 1. Materialize the repo locally.
     sync_info: dict[str, Any] = {"strategy": None, "ok": False}
     if request.repo_url:
+        _require_sync("tools_run_clone")
         sync_info = _git_clone_or_update(request.repo_url, repo_path, request.ref)
         sync_info["strategy"] = "git_clone"
     elif request.use_git_proxy:
@@ -1286,6 +1366,14 @@ skills_server = MCPSkillsServer()
 app = FastAPI(title="mcp-skills", version="0.1.0")
 
 
+@app.exception_handler(PermissionError)
+async def permission_error_handler(
+    _request: Request,
+    exc: PermissionError,
+) -> JSONResponse:
+    return JSONResponse(status_code=403, content={"detail": str(exc)})
+
+
 @app.get("/health")
 async def health() -> dict[str, Any]:
     return {
@@ -1357,12 +1445,18 @@ async def redsl_refactor(request: RedslRefactorRequest) -> Any:
     2. Uruchom `redsl refactor --dry-run` (lub z --execute jeśli execute=True)
     3. Sparsuj i zwróć wynik z metrykami, decyzjami i rekomendacjami
     """
-    base = Path(request.base_path or str(skills_server.repo_base))
-    repo_path = base / request.repo_id
+    _require_execute("redsl_refactor")
+    repo_path = _resolve_repo_path(
+        skills_server.repo_base,
+        request.repo_id,
+        request.base_path,
+    )
 
     # 1. Synchronizacja z git-proxy
     try:
         sync_result = await skills_server._sync_from_git_proxy(request.repo_id)
+    except PermissionError:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"git-proxy sync failed: {exc}") from exc
 

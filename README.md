@@ -377,6 +377,12 @@ Serwer FastAPI z endpointami (poza MCP STDIO):
 - `POST /refactor/recommend` - Rekomendacje refaktoryzacji
 - `GET /health` - Healthcheck
 
+Synchronizacja i zapis cache repozytoriów wymagają ustawienia
+`MCP_SKILLS_ALLOW_SYNC=1`. Uruchamianie narzędzi oraz reDSL (także przez HTTP)
+wymaga osobnego `MCP_SKILLS_ALLOW_EXECUTE=1`. Obie możliwości są domyślnie
+wyłączone, a wszystkie `repo_id`, ścieżki fragmentów i archiwa są ograniczone
+do `SKILLS_REPO_BASE`.
+
 ## MCP Skills - Narzędzia
 
 ### analyze_code_structure
