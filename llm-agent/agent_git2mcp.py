@@ -222,18 +222,7 @@ class Git2MCPRefactoringAgent:
             try:
                 from openai import OpenAI
 
-                client = OpenAI(
-                    base_url="https://openrouter.ai/api/v1",
-                    api_key=self.openrouter_api_key,
-                    default_headers={
-                        "HTTP-Referer": os.getenv(
-                            "OPENROUTER_APP_URL", "https://github.com/semcod/mcp"
-                        ),
-                        "X-OpenRouter-Title": os.getenv(
-                            "OPENROUTER_APP_NAME", "mcp-llm-agent"
-                        ),
-                    },
-                )
+                client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=self.openrouter_api_key)
                 prompt = (
                     "Przygotuj JSON planu refaktoryzacji. "
                     f"Repo: {analysis.repo_id}. "

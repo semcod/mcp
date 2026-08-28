@@ -3,11 +3,8 @@
 Ten dokument pokazuje 10 konkretnych przepływów end-to-end. Wszystkie używają OpenRouter (`LLM_MODEL=openrouter/x-ai/grok-code-fast-1`), bez Ollama.
 
 Powiązane dokumenty:
-- **[docs/README.md](docs/README.md)** — spis całej dokumentacji z linkami
 - `docs/PRODUCT.md` — architektura i deployment
 - `docs/IDE_AND_AGENT_INTEGRATION.md` — **Cursor, VS Code, Devin, A2A, jakość kodu**
-- `docs/SEMCOD_MCP_CLI.md` — pakiet CLI `semcod-mcp` (`init`, `doctor`, `validate`, `analyze`)
-- `docs/GATEWAY_MODULE_SPLIT.md` — plan podziału `mcp-gateway/server.py`
 - `docs/USE_CASES.md` — gotowe use-case (refactor/migration/integration)
 - `docs/CHAT_PLAYBOOKS.md` — szczegółowe dialogi chat-playbook (multi-project/migration/integration/modularization)
 - `git2mcp/examples/README.md` — przykłady CLI
@@ -49,16 +46,6 @@ Po starcie:
 
 Wewnętrzne usługi (`mcp-skills`, `llm-agent`) nie są publiczne.
 
-### Architektura modułowa (2026-06)
-
-Gateway i skills zostały podzielone na mniejsze pliki (`gateway_*`, `tool_materialize`, `gh_repo_queries`, …). **Korzyści:** niższa złożoność, szybsze testy, łatwiejsze PR-y, `make reload-gateway` bez dotykania całego monolitu.
-
-**Developer:** zobacz [GATEWAY_MODULE_SPLIT.md](GATEWAY_MODULE_SPLIT.md) — mapa plików, `make pytest` / `make smoke`.
-
-**semcod-mcp + paczki:** [SEMCOD_ECOSYSTEM.md](SEMCOD_ECOSYSTEM.md) — analyze na working tree (`Source: /host-semcod/...`), code2llm, koru, planfile.
-
-**Użytkownik stacku:** bez zmian w API — te same modele i prompty.
-
 ---
 
 ## Scenariusz 1 — użytkownik końcowy w OpenWebUI
@@ -77,8 +64,6 @@ OpenWebUI w naszym compose jest już skonfigurowany przez env (`OPENAI_API_BASE_
 3. **Workspace → Models** — pojawią się:
    - `mcp-skills/refactor`
    - `mcp-skills/analyze`
-   - `mcp-skills/tool`
-   - `mcp-skills/github-qa` (pytania o GitHub z kontekstem `gh` + OpenRouter; wymaga `OPENROUTER_API_KEY`)
 
 ### 1.2 Wysłanie zadania
 
@@ -521,7 +506,7 @@ W praktyce Docker:
 
 Gateway zwraca **czytelny Markdown** zamiast surowego JSON w treści wiadomości czatu:
 
-- `analyze` → nagłówek `# Analiza repo`, sekcje `## Największe pliki`, `## Proponowane etapy` (konkretne ścieżki w `` `target` ``).
+- `analyze` → nagłówek `# Analiza repo`, sekcje `## Metryki`, `## Proponowane etapy`.
 - `refactor` → nagłówek `# Plan refaktoryzacji`, sekcje `## Status wykonania`, `## Push/PR`.
 - komendy systemowe (token, org) → krótki status inline.
 
@@ -529,30 +514,6 @@ Gateway zwraca **czytelny Markdown** zamiast surowego JSON w treści wiadomości
 ```bash
 curl http://localhost:9000/jobs/{job_id}
 ```
-
-Przykładowe pola w `result.analysis`:
-
-```json
-{
-  "metrics": {
-    "largest_files": [
-      {"path": "mcp-gateway/server.py", "lines": 2908, "functions": 80}
-    ]
-  },
-  "recommendations": {
-    "recommendations": [
-      {
-        "type": "split_module",
-        "priority": "high",
-        "target": "mcp-gateway/server.py",
-        "suggested_action": "split_module"
-      }
-    ]
-  }
-}
-```
-
-Logika metryk: [`mcp-skills/code_analysis.py`](../mcp-skills/code_analysis.py). Silnik może być `redsl` lub `mcp-skills` — gateway uzupełnia puste `largest_files` automatycznie.
 
 ### Tryb asynchroniczny (Redis/RQ)
 

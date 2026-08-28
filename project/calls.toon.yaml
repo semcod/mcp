@@ -1,49 +1,48 @@
 # code2llm call graph | /home/tom/github/semcod/mcp
-# generated in 0.09s
-# nodes: 189 | edges: 214 | modules: 38
-# CC̄=4.5
+# nodes: 119 | edges: 129 | modules: 17
+# CC̄=3.7
 
 HUBS[20]:
   mcp-gateway.server.chat_completions
     CC=31  in:0  out:114  total:114
-  mcp-skills.tool_run.run_tool_against_repo
-    CC=37  in:2  out:80  total:82
-  mcp-gateway.gateway_render.render_tool_text
+  mcp-gateway.server._render_tool_text
     CC=40  in:1  out:80  total:81
-  mcp-gateway.gateway_chat.handle_chat_completions
-    CC=31  in:0  out:69  total:69
+  mcp-skills.server._run_tool_against_repo
+    CC=37  in:1  out:80  total:81
   scripts.test.print
     CC=0  in:64  out:0  total:64
-  mcp-gateway.gateway_render.render_refactor_text
+  mcp-gateway.server._render_refactor_text
     CC=17  in:1  out:51  total:52
-  mcp-gateway.gateway_render.render_system_text
+  mcp-gateway.server._render_system_text
     CC=27  in:1  out:45  total:46
-  mcp-gateway.gateway_chat.run_chat_workflow
-    CC=43  in:2  out:43  total:45
-  mcp-gateway.gateway_dispatch.dispatch_skill
-    CC=19  in:3  out:41  total:44
-  mcp-skills.server.redsl_refactor
-    CC=9  in:0  out:44  total:44
+  mcp-gateway.server.dispatch_skill
+    CC=19  in:2  out:41  total:43
   mcp-skills.server.MCPSkillsServer._sync_from_git_proxy
     CC=15  in:0  out:39  total:39
-  semcod_mcp.doctor.run_doctor
-    CC=11  in:1  out:38  total:39
   gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos
     CC=32  in:0  out:38  total:38
-  semcod_mcp.init_cmd.run_init
-    CC=14  in:1  out:37  total:38
-  mcp-skills.code_analysis.build_maintainability_recommendations
-    CC=24  in:2  out:34  total:36
-  semcod_mcp.deinit_cmd.run_deinit
-    CC=15  in:1  out:33  total:34
   mcp-webui.server.github_fetch_token_from_cli
     CC=16  in:0  out:32  total:32
-  mcp-gateway.gateway_render.render_analyze_text
-    CC=14  in:1  out:30  total:31
   env2mcp.env2mcp.github_cli.configure_github
     CC=14  in:1  out:29  total:30
   mcp-gateway.server._resolve_repo_id_template
     CC=14  in:1  out:28  total:29
+  mcp-gateway.server._summary_text
+    CC=9  in:1  out:24  total:25
+  mcp-gateway.server._render_analyze_text
+    CC=10  in:1  out:23  total:24
+  env2mcp.env2mcp.cli.cmd_github_status
+    CC=11  in:0  out:22  total:22
+  mcp-webui.server._get_github_config
+    CC=16  in:7  out:15  total:22
+  mcp-gateway.server._expect_json
+    CC=3  in:18  out:4  total:22
+  llm-agent.agent_standalone.main
+    CC=2  in:0  out:21  total:21
+  mcp-gateway.server._render_chat_content
+    CC=13  in:4  out:16  total:20
+  git2mcp.examples.03_agent_git2mcp.main
+    CC=4  in:0  out:19  total:19
 
 MODULES:
   dashboard.server  [1 funcs]
@@ -87,112 +86,28 @@ MODULES:
     _safe_doc_path  CC=4  out:9
     index  CC=4  out:11
     render_doc  CC=1  out:6
-  mcp-gateway.gateway_chat  [2 funcs]
-    handle_chat_completions  CC=31  out:69
-    run_chat_workflow  CC=43  out:43
-  mcp-gateway.gateway_dispatch  [1 funcs]
-    dispatch_skill  CC=19  out:41
-  mcp-gateway.gateway_gh2mcp  [13 funcs]
-    get_default_github_repo  CC=7  out:7
-    gh2mcp_status_via_gh2mcp  CC=2  out:11
-    is_github_auth_error  CC=3  out:2
-    is_github_configured  CC=1  out:2
-    last_pushed_repo_via_gh2mcp  CC=2  out:12
-    list_orgs_via_gh2mcp  CC=2  out:10
-    list_recent_repos_via_gh2mcp  CC=2  out:11
-    repo_owner  CC=4  out:2
-    resolve_repo_id_template  CC=14  out:28
-    run_github_qa  CC=9  out:16
-  mcp-gateway.gateway_github  [15 funcs]
-    create_github_pr  CC=3  out:14
-    extract_org_from_text  CC=9  out:9
-    extract_repo_list_limit  CC=3  out:5
-    github_repo_from_url  CC=9  out:10
-    inject_github_token  CC=9  out:6
-    is_github_token_save_command  CC=15  out:7
-    is_github_token_sync_command  CC=11  out:9
-    is_org_list_command  CC=13  out:7
-    is_org_set_command  CC=9  out:6
-    is_repo_list_command  CC=23  out:4
-  mcp-gateway.gateway_jobs  [9 funcs]
-    execute_dispatch_job  CC=3  out:15
-    get_queue  CC=5  out:2
-    get_rq_redis_client  CC=4  out:2
-    get_state_redis_client  CC=4  out:2
-    job_storage_key  CC=1  out:0
-    load_job  CC=5  out:6
-    queue_workflow_job  CC=2  out:3
-    save_job  CC=3  out:4
-    update_job  CC=2  out:4
-  mcp-gateway.gateway_prompt  [8 funcs]
-    extract_github_token_from_text  CC=2  out:2
-    extract_owner_from_repo_template  CC=4  out:3
-    extract_repo_template_expression  CC=3  out:3
-    is_last_pushed_repo_template  CC=15  out:3
-    normalize_command_text  CC=1  out:5
-    parse_prompt_context  CC=8  out:10
-    parse_tool_intent  CC=23  out:17
-    strip_url_suffix  CC=1  out:1
-  mcp-gateway.gateway_render  [7 funcs]
-    render_analyze_text  CC=14  out:30
-    render_chat_content  CC=13  out:16
-    render_queued_text  CC=6  out:7
-    render_refactor_text  CC=17  out:51
-    render_system_text  CC=27  out:45
-    render_tool_text  CC=40  out:80
-    summary_text  CC=9  out:24
-  mcp-gateway.gateway_skills  [5 funcs]
-    ask_openrouter_github_qa  CC=12  out:15
-    enrich_analysis_with_file_metrics  CC=13  out:12
-    expect_json  CC=3  out:4
-    is_tools_list_command  CC=6  out:8
-    run_skills_analysis  CC=4  out:16
-  mcp-gateway.gateway_tenants  [7 funcs]
-    authenticate  CC=4  out:8
-    find_tenant_by_key  CC=3  out:2
-    get_last_used_repo  CC=8  out:6
-    get_most_used_repo  CC=8  out:5
-    get_preferred_repo  CC=2  out:2
-    get_redis_client  CC=4  out:1
-    track_repo_usage  CC=3  out:8
-  mcp-gateway.server  [18 funcs]
+  mcp-gateway.server  [66 funcs]
+    _ask_openrouter_github_qa  CC=12  out:15
+    _create_github_pr  CC=3  out:14
+    _expect_json  CC=3  out:4
+    _extract_github_token_from_text  CC=2  out:2
+    _extract_org_from_text  CC=9  out:9
+    _extract_owner_from_repo_template  CC=4  out:3
+    _extract_repo_template_expression  CC=3  out:3
     _get_default_github_repo  CC=7  out:7
     _get_last_used_repo  CC=8  out:6
     _get_most_used_repo  CC=8  out:5
-    _get_preferred_repo  CC=2  out:2
-    _get_redis_client  CC=4  out:1
-    _gh2mcp_status_via_gh2mcp  CC=2  out:11
-    _is_github_auth_error  CC=3  out:2
-    _is_github_configured  CC=1  out:2
-    _last_pushed_repo_via_gh2mcp  CC=2  out:12
-    _list_recent_repos_via_gh2mcp  CC=2  out:11
-  mcp-skills.code_analysis  [6 funcs]
-    _should_skip_path  CC=2  out:1
-    build_maintainability_recommendations  CC=24  out:34
-    compute_repo_file_metrics  CC=15  out:23
-    detect_repo_patterns  CC=10  out:18
-    merge_recommendations  CC=9  out:13
-    recommendations_payload  CC=5  out:9
-  mcp-skills.mcp_parse  [1 funcs]
-    parse_tool_result  CC=3  out:1
-  mcp-skills.server  [11 funcs]
-    _compute_metrics_for_repo  CC=3  out:12
-    _detect_code_patterns  CC=2  out:10
-    _recommend_refactoring  CC=2  out:15
+  mcp-skills.server  [12 funcs]
     _sync_from_git_proxy  CC=15  out:39
-    _run_tool_against_repo  CC=1  out:1
+    _collect_output_files  CC=9  out:17
+    _ensure_tool_installed  CC=10  out:11
+    _git_clone_or_update  CC=10  out:16
+    _parse_tool_result  CC=3  out:1
+    _run_tool_against_repo  CC=37  out:80
+    _truncate_text  CC=3  out:4
     analyze_code_structure  CC=2  out:6
     compute_metrics  CC=2  out:6
     detect_patterns  CC=2  out:6
-    recommend_refactoring  CC=2  out:6
-    redsl_refactor  CC=9  out:44
-  mcp-skills.tool_run  [6 funcs]
-    _ensure_tool_installed  CC=10  out:11
-    _git_clone_or_update  CC=10  out:19
-    _inject_github_token  CC=5  out:3
-    _truncate_text  CC=3  out:4
-    collect_output_files  CC=9  out:17
-    run_tool_against_repo  CC=37  out:80
   mcp-webui.server  [12 funcs]
     _get_github_config  CC=16  out:15
     _github_page_ctx  CC=2  out:4
@@ -206,102 +121,55 @@ MODULES:
     github_page  CC=2  out:6
   scripts.test  [1 funcs]
     print  CC=0  out:0
-  semcod_mcp.analyze  [1 funcs]
-    run_analyze  CC=12  out:22
-  semcod_mcp.cli  [5 funcs]
-    analyze_cmd  CC=4  out:10
-    deinit_cmd  CC=2  out:9
-    doctor_cmd  CC=6  out:12
-    init_cmd  CC=4  out:14
-    validate_cmd  CC=4  out:8
-  semcod_mcp.deinit_cmd  [3 funcs]
-    _deinit_mcp_json  CC=8  out:7
-    print_deinit_result  CC=5  out:4
-    run_deinit  CC=15  out:33
-  semcod_mcp.doctor  [3 funcs]
-    add  CC=1  out:2
-    _http_ok  CC=4  out:2
-    run_doctor  CC=11  out:38
-  semcod_mcp.init_cmd  [3 funcs]
-    _init_mcp_json  CC=5  out:8
-    print_init_result  CC=5  out:4
-    run_init  CC=14  out:37
-  semcod_mcp.merge  [11 funcs]
-    _continue_json_is_empty  CC=3  out:3
-    _mcp_json_is_empty  CC=3  out:3
-    delete_file  CC=3  out:2
-    load_json  CC=4  out:6
-    merge_mcp_servers  CC=5  out:8
-    merge_vscode_settings  CC=4  out:5
-    remove_continue_models  CC=8  out:9
-    remove_mcp_server  CC=4  out:6
-    remove_vscode_settings  CC=4  out:3
-    save_json  CC=2  out:3
-  semcod_mcp.paths  [5 funcs]
-    default_api_key  CC=1  out:2
-    detect_stack_path  CC=10  out:10
-    expand  CC=1  out:3
-    gateway_url  CC=1  out:2
-    infer_repo_id  CC=5  out:6
-  semcod_mcp.templates  [6 funcs]
-    _manifest_compare_keys  CC=2  out:6
-    manifest_data  CC=2  out:10
-    mcp_server_block  CC=1  out:1
-    read_manifest  CC=3  out:3
-    vscode_settings_snippet  CC=1  out:2
-    write_manifest  CC=8  out:10
-  semcod_mcp.validate  [2 funcs]
-    _validate_mcp_json  CC=13  out:23
-    run_validate  CC=13  out:24
 
 EDGES:
   dashboard.server.main → scripts.test.print
+  llm-agent.agent_standalone.main → scripts.test.print
+  llm-agent.agent.main → scripts.test.print
+  git2mcp.examples.03_agent_git2mcp.main → scripts.test.print
+  git2mcp.examples.02_fragment_sync_to_skills.main → scripts.test.print
+  git2mcp.examples.01_sync_and_commit.main → scripts.test.print
+  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
   mcp-docs.server.index → mcp-docs.server._page
   mcp-docs.server.render_doc → mcp-docs.server._safe_doc_path
   mcp-docs.server.render_doc → mcp-docs.server._markdown_to_html
   mcp-docs.server.render_doc → mcp-docs.server._page
-  gh2mcp.gh2mcp.cli._cmd_status → scripts.test.print
-  gh2mcp.gh2mcp.cli._cmd_sync → scripts.test.print
-  gh2mcp.gh2mcp.cli._cmd_agent → scripts.test.print
-  gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
-  gh2mcp.gh2mcp.server.on_startup → gh2mcp.gh2mcp.server._periodic_sync
-  gh2mcp.gh2mcp.sync.GitHubTokenSyncService.get_recent_repos → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.gateway_render.render_tool_text → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_system_text
-  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_queued_text
-  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_analyze_text
-  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_refactor_text
-  mcp-gateway.gateway_render.render_chat_content → mcp-gateway.gateway_render.render_tool_text
-  llm-agent.agent_standalone.main → scripts.test.print
-  llm-agent.agent.main → scripts.test.print
-  mcp-skills.tool_run._ensure_tool_installed → mcp-skills.tool_run._truncate_text
-  mcp-skills.tool_run._git_clone_or_update → mcp-skills.tool_run._inject_github_token
-  mcp-skills.tool_run._git_clone_or_update → mcp-skills.tool_run._truncate_text
-  mcp-skills.tool_run.collect_output_files → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-skills.tool_run.run_tool_against_repo → mcp-skills.tool_run._ensure_tool_installed
-  mcp-skills.tool_run.run_tool_against_repo → mcp-skills.tool_run.collect_output_files
-  mcp-skills.code_analysis.compute_repo_file_metrics → mcp-skills.code_analysis._should_skip_path
-  mcp-skills.code_analysis.detect_repo_patterns → mcp-skills.code_analysis._should_skip_path
-  mcp-skills.code_analysis.build_maintainability_recommendations → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-skills.code_analysis.build_maintainability_recommendations → semcod_mcp.doctor.DoctorReport.add
-  mcp-skills.code_analysis.merge_recommendations → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy → env2mcp.env2mcp.config.EnvConfig.set
-  mcp-skills.server.MCPSkillsServer._compute_metrics_for_repo → mcp-skills.code_analysis.compute_repo_file_metrics
-  mcp-skills.server.MCPSkillsServer._detect_code_patterns → mcp-skills.code_analysis.detect_repo_patterns
-  mcp-skills.server.MCPSkillsServer._recommend_refactoring → mcp-skills.code_analysis.build_maintainability_recommendations
-  mcp-skills.server.MCPSkillsServer._recommend_refactoring → mcp-skills.code_analysis.recommendations_payload
-  mcp-skills.server.analyze_code_structure → mcp-skills.mcp_parse.parse_tool_result
-  mcp-skills.server.compute_metrics → mcp-skills.mcp_parse.parse_tool_result
-  mcp-skills.server.detect_patterns → mcp-skills.mcp_parse.parse_tool_result
-  mcp-skills.server.recommend_refactoring → mcp-skills.mcp_parse.parse_tool_result
-  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.compute_repo_file_metrics
-  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.build_maintainability_recommendations
-  mcp-skills.server.redsl_refactor → mcp-skills.code_analysis.merge_recommendations
-  mcp-skills.server.run_tool_endpoint → mcp-skills.tool_run.run_tool_against_repo
-  mcp-skills.server._run_tool_against_repo → mcp-skills.tool_run.run_tool_against_repo
+  env2mcp.env2mcp.github_cli.configure_github → scripts.test.print
   env2mcp.env2mcp.cli.cmd_github_login → env2mcp.env2mcp.github_cli.configure_github
   env2mcp.env2mcp.cli.cmd_github_login → scripts.test.print
   env2mcp.env2mcp.cli.cmd_github_status → scripts.test.print
   env2mcp.env2mcp.cli.cmd_github_logout → scripts.test.print
   env2mcp.env2mcp.cli.cmd_github_repos → scripts.test.print
   env2mcp.env2mcp.cli.cmd_env_show → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_set → scripts.test.print
+  env2mcp.env2mcp.cli.cmd_env_get → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_status → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_sync → scripts.test.print
+  gh2mcp.gh2mcp.cli._cmd_agent → scripts.test.print
+  gh2mcp.gh2mcp.cli.main → gh2mcp.gh2mcp.cli.build_parser
+  mcp-webui.server.index → mcp-webui.server.gateway_headers
+  mcp-webui.server._get_github_config → mcp-webui.server._resolve_github_token
+  mcp-webui.server._get_github_config → mcp-webui.server._read_gh2mcp_status
+  mcp-webui.server.github_page → mcp-webui.server._get_github_config
+  mcp-webui.server.github_fetch_token_from_cli → mcp-webui.server._get_github_config
+  mcp-webui.server._github_page_ctx → mcp-webui.server._get_github_config
+  mcp-webui.server.github_clone → mcp-webui.server._normalize_github_url
+  mcp-webui.server.github_clone → mcp-webui.server._resolve_github_token
+  mcp-webui.server.github_clone → mcp-webui.server._get_github_config
+  mcp-webui.server.github_create_repo → mcp-webui.server._resolve_github_token
+  mcp-webui.server.github_create_repo → mcp-webui.server._get_github_config
+  mcp-webui.server.github_sync → mcp-webui.server._get_github_config
+  gh2mcp.gh2mcp.server.on_startup → gh2mcp.gh2mcp.server._periodic_sync
+  mcp-skills.server.MCPSkillsServer._sync_from_git_proxy → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server._ensure_tool_installed → mcp-skills.server._truncate_text
+  mcp-skills.server._git_clone_or_update → mcp-skills.server._truncate_text
+  mcp-skills.server._collect_output_files → env2mcp.env2mcp.config.EnvConfig.set
+  mcp-skills.server._run_tool_against_repo → mcp-skills.server._ensure_tool_installed
+  mcp-skills.server._run_tool_against_repo → mcp-skills.server._collect_output_files
+  mcp-skills.server.analyze_code_structure → mcp-skills.server._parse_tool_result
+  mcp-skills.server.compute_metrics → mcp-skills.server._parse_tool_result
+  mcp-skills.server.detect_patterns → mcp-skills.server._parse_tool_result
+  mcp-skills.server.recommend_refactoring → mcp-skills.server._parse_tool_result
+  mcp-skills.server.run_tool_endpoint → mcp-skills.server._run_tool_against_repo
+  mcp-gateway.server._track_repo_usage → mcp-gateway.server._get_redis_client
+  mcp-gateway.server._get_last_used_repo → mcp-gateway.server._get_redis_client

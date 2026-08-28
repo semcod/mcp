@@ -11,7 +11,6 @@ from rich.table import Table
 from semcod_mcp import __version__
 from semcod_mcp.analyze import run_analyze
 from semcod_mcp.doctor import run_doctor
-from semcod_mcp.deinit_cmd import print_deinit_result, run_deinit
 from semcod_mcp.init_cmd import print_init_result, run_init
 from semcod_mcp.paths import detect_stack_path
 from semcod_mcp.validate import run_validate
@@ -22,7 +21,7 @@ console = Console()
 @click.group()
 @click.version_option(__version__, prog_name="semcod-mcp")
 def main() -> None:
-    """semcod MCP — init/deinit IDE configs, doctor, validate, analyze."""
+    """semcod MCP — init IDE configs, doctor, validate, analyze."""
 
 
 @main.command("init")
@@ -54,29 +53,6 @@ def init_cmd(
         skip_continue=skip_continue,
     )
     print_init_result(result)
-    if dry_run:
-        console.print("[yellow]Dry run — no files written.[/yellow]")
-
-
-@main.command("deinit")
-@click.argument("path", type=click.Path(path_type=Path), default=".")
-@click.option("--global", "global_config", is_flag=True, help="Also remove from ~/.cursor and Claude Desktop")
-@click.option("--dry-run", is_flag=True, help="Show actions without writing files")
-@click.option("--skip-continue", is_flag=True, help="Skip .continue/config.json")
-def deinit_cmd(
-    path: Path,
-    global_config: bool,
-    dry_run: bool,
-    skip_continue: bool,
-) -> None:
-    """Remove semcod-mcp IDE integration from PATH (preserves other MCP servers)."""
-    result = run_deinit(
-        path,
-        global_config=global_config,
-        dry_run=dry_run,
-        skip_continue=skip_continue,
-    )
-    print_deinit_result(result)
     if dry_run:
         console.print("[yellow]Dry run — no files written.[/yellow]")
 
@@ -117,43 +93,9 @@ def validate_cmd(path: Path) -> None:
 @click.argument("path", type=click.Path(path_type=Path), default=".")
 @click.option("--task", default="Szybka analiza struktury i rekomendacje refaktoryzacji.")
 @click.option("--execute", is_flag=True, help="Pass Execute: true to gateway")
-@click.option(
-    "--local",
-    "local_tool",
-    flag_value="code2llm",
-    help="Analiza code2llm na working tree (bez gateway, bez commita)",
-)
-@click.option(
-    "--no-source",
-    is_flag=True,
-    help="Nie przekazuj Source: /host-semcod/... (użyj tylko zsynchronizowanego repo)",
-)
-@click.option(
-    "--async",
-    "async_mode",
-    is_flag=True,
-    help="Kolejka Redis/RQ zamiast synchronicznego analyze",
-)
-@click.option("--timeout", default=120.0, show_default=True, help="Timeout HTTP / poll job (s)")
-def analyze_cmd(
-    path: Path,
-    task: str,
-    execute: bool,
-    local_tool: str | None,
-    no_source: bool,
-    async_mode: bool,
-    timeout: float,
-) -> None:
-    """Run gateway analysis for repo (live source_path) or local code2llm."""
-    report = run_analyze(
-        path,
-        task=task,
-        execute=execute,
-        timeout=timeout,
-        use_local_source=not no_source,
-        sync_mode=not async_mode,
-        local_tool=local_tool,
-    )
+def analyze_cmd(path: Path, task: str, execute: bool) -> None:
+    """Run gateway analysis for repo (or local fallback summary)."""
+    report = run_analyze(path, task=task, execute=execute)
     console.print(f"[bold]Repo:[/bold] {report.repo_id or '—'}  [bold]Mode:[/bold] {report.mode}")
     console.print(report.summary)
     for note in report.notes:
