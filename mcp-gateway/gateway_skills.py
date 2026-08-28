@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from typing import Any
 
@@ -105,7 +106,9 @@ async def ask_openrouter_github_qa(user_request: str, github_context: dict[str, 
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://mcp-gateway.local",
-        "X-Title": "mcp-gateway-github-qa",
+        "X-OpenRouter-Title": os.getenv(
+            "OPENROUTER_APP_NAME", "mcp-gateway-github-qa"
+        ),
     }
     payload = {
         "model": LLM_MODEL,
