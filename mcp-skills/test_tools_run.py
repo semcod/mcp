@@ -37,6 +37,12 @@ def server_module(tmp_path_factory):
     return server
 
 
+@pytest.fixture(autouse=True)
+def allow_test_capabilities(monkeypatch):
+    monkeypatch.setenv("MCP_SKILLS_ALLOW_SYNC", "1")
+    monkeypatch.setenv("MCP_SKILLS_ALLOW_EXECUTE", "1")
+
+
 def test_derive_repo_id_from_url(server_module):
     derive = server_module._derive_repo_id_from_url
     assert derive("https://github.com/owner/repo") == "owner/repo"
@@ -63,6 +69,42 @@ def test_collect_output_files_reads_small_text(server_module, tmp_path):
     assert result[0]["binary"] is False
 
 
+def test_operator_capabilities_are_disabled_by_default(server_module, monkeypatch):
+    monkeypatch.delenv("MCP_SKILLS_ALLOW_SYNC", raising=False)
+    monkeypatch.delenv("MCP_SKILLS_ALLOW_EXECUTE", raising=False)
+
+    with pytest.raises(PermissionError, match="MCP_SKILLS_ALLOW_SYNC"):
+        server_module._require_sync("sync")
+    with pytest.raises(PermissionError, match="MCP_SKILLS_ALLOW_EXECUTE"):
+        server_module._require_execute("run")
+
+
+def test_repo_paths_are_confined_to_configured_base(server_module, tmp_path):
+    base = server_module.skills_server.repo_base
+    assert server_module._resolve_repo_path(base, "owner/repo") == (base / "owner/repo").resolve()
+
+    with pytest.raises(ValueError, match="escapes"):
+        server_module._resolve_repo_path(base, "../../outside")
+    with pytest.raises(ValueError, match="base_path"):
+        server_module._resolve_repo_path(base, "owner/repo", str(tmp_path))
+
+
+def test_archive_rejects_path_traversal(server_module, tmp_path):
+    import io
+    import tarfile
+
+    payload = io.BytesIO()
+    with tarfile.open(fileobj=payload, mode="w:gz") as archive:
+        member = tarfile.TarInfo("../escaped.txt")
+        content = b"unsafe"
+        member.size = len(content)
+        archive.addfile(member, io.BytesIO(content))
+
+    with pytest.raises(ValueError, match="escapes"):
+        server_module._extract_archive_safely(payload.getvalue(), tmp_path / "repo")
+    assert not (tmp_path / "escaped.txt").exists()
+
+
 @pytest.mark.asyncio
 async def test_run_tool_against_repo_unsupported(server_module):
     from fastapi import HTTPException
@@ -77,7 +119,7 @@ async def test_run_tool_against_repo_unsupported(server_module):
 @pytest.mark.asyncio
 async def test_run_tool_against_repo_happy_path(server_module, tmp_path, monkeypatch):
     """Simulate: repo already materialized + tool already installed + stubbed run."""
-    base = tmp_path / "base"
+    base = server_module.skills_server.repo_base / "happy"
     base.mkdir()
     repo_path = base / "owner/repo"
     repo_path.mkdir(parents=True)
@@ -121,7 +163,7 @@ async def test_run_tool_against_repo_happy_path(server_module, tmp_path, monkeyp
 
 @pytest.mark.asyncio
 async def test_run_tool_against_repo_install_fails(server_module, tmp_path, monkeypatch):
-    base = tmp_path / "base"
+    base = server_module.skills_server.repo_base / "install-fails"
     base.mkdir()
     repo_path = base / "owner/repo"
     repo_path.mkdir(parents=True)

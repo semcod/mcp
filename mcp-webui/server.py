@@ -13,10 +13,9 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from urllib.parse import urlparse
 
 import httpx
-from fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -34,11 +33,23 @@ GATEWAY_URL = os.getenv("GATEWAY_URL", "http://mcp-gateway:9000")
 GIT_PROXY_URL = os.getenv("GIT_PROXY_URL", "http://mcp-git-proxy:8080")
 WEBUI_API_KEY = os.getenv("WEBUI_API_KEY", "sk-mcp-default-dev-key")
 GH2MCP_URL = os.getenv("GH2MCP_URL", "http://gh2mcp-agent:8079")
+_SECRET_WRITE_ENV = "MCP_WEBUI_ALLOW_SECRET_WRITE"
+_MUTATION_ENV = "MCP_WEBUI_ALLOW_MUTATION"
+_EXECUTE_ENV = "MCP_WEBUI_ALLOW_EXECUTE"
 
 TEMPLATES_DIR = Path(__file__).parent / "templates"
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 app = FastAPI(title="mcp-webui", version="0.1.0")
+
+
+def _require_capability(env_name: str, action: str) -> None:
+    enabled = os.getenv(env_name, "").strip().lower() in {"1", "true", "yes", "on"}
+    if not enabled:
+        raise HTTPException(
+            status_code=403,
+            detail=f"WebUI action '{action}' is disabled; set {env_name}=1",
+        )
 
 
 def gateway_headers() -> dict[str, str]:
@@ -66,13 +77,14 @@ async def repos_page(request: Request):
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
             repos = (await client.get(f"{GIT_PROXY_URL}/repos")).json()
-        except Exception as exc:
+        except Exception:
             repos = []
     return templates.TemplateResponse("repos.html", {"request": request, "repos": repos})
 
 
 @app.post("/repos/sync")
 async def repos_sync(repo_id: str = Form(...), source_path: str = Form(...), branch: str = Form("main")):
+    _require_capability(_MUTATION_ENV, "repos_sync")
     async with httpx.AsyncClient(timeout=120.0) as client:
         await client.post(
             f"{GIT_PROXY_URL}/repos/sync",
@@ -112,6 +124,7 @@ async def skills_run(
     repo_id: str = Form(""),
     source_path: str = Form(""),
 ):
+    _require_capability(_EXECUTE_ENV, "skills_run")
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
@@ -256,6 +269,7 @@ async def github_page(request: Request):
 @app.post("/github/configure")
 async def github_configure(request: Request, token: str = Form(""), action: str = Form("")):
     """Configure or clear GitHub token."""
+    _require_capability(_SECRET_WRITE_ENV, "github_configure")
     env_path = Path(__file__).parent.parent / ".env"
 
     if action == "clear":
@@ -298,15 +312,16 @@ async def github_configure(request: Request, token: str = Form(""), action: str 
 @app.post("/github/fetch-token-from-cli")
 async def github_fetch_token_from_cli(request: Request):
     """Read GitHub token from gh CLI (via env2mcp) and save to .env."""
+    _require_capability(_SECRET_WRITE_ENV, "github_fetch_token_from_cli")
     env_path = Path(__file__).parent.parent / ".env"
-    result = {"success": False, "error": None, "user": None, "token_hint": None, "token": None}
+    result = {"success": False, "error": None, "user": None, "token_hint": None}
 
     if GH2MCP_URL:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(
                     f"{GH2MCP_URL}/sync/token",
-                    json={"force_gh_cli": True, "include_token": True},
+                    json={"force_gh_cli": True},
                 )
             if response.status_code == 200:
                 data = response.json()
@@ -314,7 +329,6 @@ async def github_fetch_token_from_cli(request: Request):
                     result["success"] = True
                     result["user"] = data.get("user")
                     result["token_hint"] = data.get("token_hint")
-                    result["token"] = data.get("token")
                 else:
                     result["error"] = data.get("error") or "gh2mcp sync failed"
             else:
@@ -344,7 +358,7 @@ async def github_fetch_token_from_cli(request: Request):
                     "sync_result": None,
                     "create_result": None,
                     "cli_fetch_result": result,
-                    "prefill_token": result.get("token") or "",
+                    "prefill_token": "",
                 }
             )
 
@@ -373,7 +387,6 @@ async def github_fetch_token_from_cli(request: Request):
                 result["success"] = True
                 result["user"] = user
                 result["token_hint"] = token[:8] + "..."
-                result["token"] = token
     except Exception as exc:
         result["error"] = str(exc)
 
@@ -398,7 +411,7 @@ async def github_fetch_token_from_cli(request: Request):
             "sync_result": None,
             "create_result": None,
             "cli_fetch_result": result,
-            "prefill_token": result.get("token") or "",
+            "prefill_token": "",
         }
     )
 
@@ -452,6 +465,7 @@ async def github_clone(
     branch: str = Form("main")
 ):
     """Clone a repository from GitHub."""
+    _require_capability(_MUTATION_ENV, "github_clone")
     clone_url = _normalize_github_url(repo_url)
 
     # Add token to URL if available
@@ -517,6 +531,7 @@ async def github_create_repo(
     auto_clone: bool = Form(True),
 ):
     """Create a new repository on GitHub."""
+    _require_capability(_MUTATION_ENV, "github_create_repo")
     token = _resolve_github_token()
 
     result = {"success": False, "error": None, "html_url": None, "repo_id": None}
@@ -577,6 +592,7 @@ async def github_sync(
     branch: str = Form("main")
 ):
     """Sync/pull updates for an existing repository."""
+    _require_capability(_MUTATION_ENV, "github_sync")
     result = {"success": False, "error": None, "message": ""}
 
     try:
