@@ -1,0 +1,30 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-009",
+  "summary": "Adopt published documentation placement and validation",
+  "workstream": "integration",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P1",
+    "origin": "requested"
+  },
+  "allowedPaths": [
+    "AGENTS.md",
+    "README.md",
+    "TODO.md",
+    "docs/README.md",
+    ".governance/docs.json",
+    ".github/workflows/verify.yml",
+    "project/ticket-009/**"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md",
+    ".env"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null
+}

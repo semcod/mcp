@@ -15,10 +15,29 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
           cache: pip
+      - name: Check out immutable documentation standard
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: wellmanifest/docs
+          ref: fdb0fcaa7c606dc2503cabb71eff64d5f86ee659 # v0.1.0
+          path: .docs-standard
+          token: ${{ secrets.ORG_SYNC_PAT }}
+          persist-credentials: false
+      - name: Validate documentation placement
+        shell: bash
+        env:
+          DOCS_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          args=(--root . --standard-revision fdb0fcaa7c606dc2503cabb71eff64d5f86ee659)
+          if [[ -n "$DOCS_BASE" ]]; then args+=(--base "$DOCS_BASE"); fi
+          python .docs-standard/docs/standard/check.py "${args[@]}"
       - name: Install test dependencies
         run: python -m pip install --disable-pip-version-check -e '.[dev]'
       - name: Run unit tests
