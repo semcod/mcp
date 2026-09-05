@@ -660,3 +660,7 @@ Zobacz plik LICENSE.
 ## License
 
 Licensed under Apache-2.0.
+
+## Documentation ownership
+
+Follow [repository documentation instructions](AGENTS.md) and use the [documentation index](docs/README.md). The immutable adoption pin is `.governance/docs.json`; the existing `verify` job checks documentation placement and structure.
