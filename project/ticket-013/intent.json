@@ -1,0 +1,14 @@
+{
+  "ticket": "ticket-013",
+  "summary": "Fix CI verify workflow token fallback for public standard and Dependabot PRs",
+  "allowedPaths": [
+    ".github/workflows/verify.yml",
+    "project/ticket-013/**"
+  ],
+  "forbiddenPaths": [
+    ".env",
+    "src/**"
+  ],
+  "authorization": "SESSION_EXECUTION_AUTHORIZATION",
+  "outcome": "Dependabot and PR verify workflows can checkout wellmanifest/docs using github.token when ORG_SYNC_PAT is absent."
+}
