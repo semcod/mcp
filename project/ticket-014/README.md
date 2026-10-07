@@ -1,0 +1,23 @@
+# ticket-014: Complete MCP native governance adoption
+
+- **Status**: IN_PROGRESS
+- **Workflow state**: PUBLICATION
+- **Owner**: agent:codex
+
+## Authorization and preparation boundary
+
+SESSION_EXECUTION_AUTHORIZATION: preserve and complete the handed MCP ticket-013 scope. Native allocator reserved ticket-014. The preparatory coordination lease was cancelled and released. The real controller granted a final integration lease bound to the complete delivery intent before native package and product changes. The missing checkout was reconstructed from the allocator receipt and exact preserved intent; no new identity, historical approval or completion is inferred.
+
+## Acceptance criteria
+
+- [x] AC-01: Adopt the immutable published standard in the canonical worktree.
+- [x] AC-02: Preserve product validation, pin Compose images and verify the OpenWebUI security boundary.
+- [ ] AC-03: Require exact-head independent approval before protected merge.
+
+Canonical result: [native governance adoption](../../docs/information/native-governance-adoption.md).
+
+Local validation: native gate passes with zero findings; all 12 MCP tests pass, including two failing-before/fixed-after mutable-image regressions. Required protected profile migration and exact-head independent publication remain pending.
+
+Discovered prerequisite: Docs 0.1.0 rejects native managed manuals. The accepted final scope adds the Docs adoption and retained verify workflow pins, using independently merged Docs 0.5.0; class L stays within the unchanged policy cap.
+
+Validation receipt: `receipt:mcp014-complete-local-checks-oct7`. Native governance and documentation pass with zero findings; all twelve tests and the retained Compose security script pass. Deliberately mismatched managed-copy digest is rejected. Protected Validator registry coverage and independent exact-head merge remain pending.

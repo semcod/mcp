@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
 import os
+import shutil
 import subprocess
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -96,3 +100,32 @@ def test_explicit_control_url_skips_discovery(tmp_path: Path) -> None:
     arguments = capture.read_text(encoding="utf-8").splitlines()
     assert "SUBACTOR_CONTROL_URL=https://control.subactor.internal" in arguments
     assert "SUBACTOR_CONTROL_DISCOVERED=false" in arguments
+
+
+@pytest.mark.parametrize("override", ["untrusted:latest", "redis:7-alpine"])
+def test_image_override_preserves_authenticated_boundary(override: str) -> None:
+    if shutil.which("docker") is None:
+        pytest.skip("Docker Compose is required to render the security boundary")
+    env = os.environ.copy()
+    env["OPENWEBUI_IMAGE"] = override
+    result = subprocess.run(
+        ["docker", "compose", "--profile", "openwebui", "config", "--format", "json"],
+        cwd=ROOT, env=env, capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    services = json.loads(result.stdout)["services"]
+    webui = services["openwebui"]
+    assert webui["image"] == (
+        "ghcr.io/open-webui/open-webui:v0.11.0@sha256:"
+        "72c0ba641ba75e7aa52655cb242570906ececd09b1140fb736483038a22b3228"
+    )
+    assert webui["environment"]["WEBUI_AUTH"] == "True"
+    assert webui["environment"]["ENABLE_SIGNUP"] == "False"
+    assert webui["ports"][0]["host_ip"] == "127.0.0.1"
+    assert services["mcp-gateway"]["ports"][0]["host_ip"] == "127.0.0.1"
+    assert any(
+        volume["target"] == "/run/secrets/openwebui-mcp-bearer"
+        and volume.get("read_only") is True
+        for volume in webui["volumes"]
+    )
+    assert "@sha256:" in services["redis"]["image"]

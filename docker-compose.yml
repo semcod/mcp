@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499
     container_name: mcp-redis
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     healthcheck:
@@ -222,7 +222,7 @@ services:
     environment:
       - GATEWAY_URL=http://mcp-gateway:9000
       - GIT_PROXY_URL=http://mcp-git-proxy:8080
-      - WEBUI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
+      - WEBUI_API_KEY=${WEBUI_API_KEY:-}
       - GH2MCP_URL=http://gh2mcp-agent:8079
       - MCP_WEBUI_ALLOW_SECRET_WRITE=${MCP_WEBUI_ALLOW_SECRET_WRITE:-false}
       - MCP_WEBUI_ALLOW_MUTATION=${MCP_WEBUI_ALLOW_MUTATION:-false}
@@ -265,11 +265,11 @@ services:
 
   # OpenWebUI - frontend dla użytkowników końcowych (OpenAI-compat klient)
   openwebui:
-    image: ${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:v0.11.0@sha256:72c0ba641ba75e7aa52655cb242570906ececd09b1140fb736483038a22b3228}
+    image: ghcr.io/open-webui/open-webui:v0.11.0@sha256:72c0ba641ba75e7aa52655cb242570906ececd09b1140fb736483038a22b3228
     container_name: openwebui
     environment:
       - OPENAI_API_BASE_URL=http://mcp-gateway:9000/v1
-      - OPENAI_API_KEY=${WEBUI_API_KEY:-sk-mcp-default-dev-key}
+      - OPENAI_API_KEY=${WEBUI_API_KEY:-}
       - WEBUI_AUTH=${OPENWEBUI_AUTH:-True}
       - ENABLE_SIGNUP=${OPENWEBUI_ENABLE_SIGNUP:-False}
       - ENABLE_FORWARD_USER_INFO_HEADERS=True

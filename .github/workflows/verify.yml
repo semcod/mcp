@@ -25,8 +25,16 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: wellmanifest/docs
-          ref: fdb0fcaa7c606dc2503cabb71eff64d5f86ee659 # v0.1.0
-          path: .docs-standard
+          ref: 6f475fb223e7a259d514b5483fb0d62f0e80a46e # v0.5.0; independently merged managed-copy support
+          path: .subactor/cache/docs-standard
+          token: ${{ secrets.ORG_SYNC_PAT || github.token }}
+          persist-credentials: false
+      - name: Check out immutable governance source for managed documentation inventory
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: wellmanifest/new-project
+          ref: 2ddba8833d342b4b4201eada2d05c8b70ed4985e # v0.20.89
+          path: .subactor/cache/new-project-standard
           token: ${{ secrets.ORG_SYNC_PAT || github.token }}
           persist-credentials: false
       - name: Validate documentation placement
@@ -35,9 +43,23 @@ jobs:
           DOCS_BASE: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          args=(--root . --standard-revision fdb0fcaa7c606dc2503cabb71eff64d5f86ee659)
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          source = Path(".subactor/cache/new-project-standard")
+          package = json.loads((source / "governance/package-manifest.json").read_text())
+          inventory = {
+              entry["target"]: hashlib.sha256((source / entry["source"]).read_bytes()).hexdigest()
+              for entry in package["files"]
+              if entry["target"].startswith(".governance/docs/")
+          }
+          (source / "managed-docs-inventory.json").write_text(json.dumps(inventory))
+          PY
+          args=(--root . --standard-revision 6f475fb223e7a259d514b5483fb0d62f0e80a46e
+                --managed-copies .subactor/cache/new-project-standard/managed-docs-inventory.json)
           if [[ -n "$DOCS_BASE" ]]; then args+=(--base "$DOCS_BASE"); fi
-          python .docs-standard/docs/standard/check.py "${args[@]}"
+          python .subactor/cache/docs-standard/docs/standard/check.py "${args[@]}"
       - name: Install test dependencies
         run: python -m pip install --disable-pip-version-check -e '.[dev]'
       - name: Run unit tests

@@ -28,4 +28,10 @@ semcod-mcp = "semcod_mcp.cli:main"
 packages = ["semcod_mcp"]
 
 [tool.pytest.ini_options]
+addopts = "-p wellmanifest_governance"
 testpaths = ["tests"]
+
+[tool.wellmanifest]
+standard = "0.20.89"
+revision = "2ddba8833d342b4b4201eada2d05c8b70ed4985e"
+gate = "project/governance-check.sh"
