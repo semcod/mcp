@@ -104,8 +104,9 @@ def test_explicit_control_url_skips_discovery(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("override", ["untrusted:latest", "redis:7-alpine"])
 def test_image_override_preserves_authenticated_boundary(override: str) -> None:
-    if shutil.which("docker") is None:
-        pytest.skip("Docker Compose is required to render the security boundary")
+    assert shutil.which("docker") is not None, (
+        "Docker Compose is required to render the security boundary"
+    )
     env = os.environ.copy()
     env["OPENWEBUI_IMAGE"] = override
     result = subprocess.run(

@@ -16,8 +16,10 @@ SESSION_EXECUTION_AUTHORIZATION: preserve and complete the handed MCP ticket-013
 
 Canonical result: [native governance adoption](../../docs/information/native-governance-adoption.md).
 
-Local validation: native gate passes with zero findings; all 12 MCP tests pass, including two failing-before/fixed-after mutable-image regressions. Required protected profile migration and exact-head independent publication remain pending.
+Local validation: native gate passes with zero findings; all 12 MCP tests pass, including two failing-before/fixed-after mutable-image regressions. Protected profile migration is independently merged in Validator PR #623; exact-head independent MCP publication remains pending.
 
 Discovered prerequisite: Docs 0.1.0 rejects native managed manuals. The accepted final scope adds the Docs adoption and retained verify workflow pins, using independently merged Docs 0.5.0; class L stays within the unchanged policy cap.
 
-Validation receipt: `receipt:mcp014-complete-local-checks-oct7`. Native governance and documentation pass with zero findings; all twelve tests and the retained Compose security script pass. Deliberately mismatched managed-copy digest is rejected. Protected Validator registry coverage and independent exact-head merge remain pending.
+Validation receipt: `receipt:mcp014-complete-local-checks-oct7`. Native governance and documentation pass with zero findings; all twelve tests and the retained Compose security script pass. Deliberately mismatched managed-copy digest is rejected. Protected Validator registry coverage is independently merged in PR #623. Independent exact-head MCP merge remains pending.
+
+Independent review remediation: the initial review rejected the optional Docker test skip. The security regression now requires Docker Compose and fails when its dependency is absent. The existing accepted test and documentation scope covers this correction; required checks and protected policy remain unchanged.
