@@ -21,6 +21,15 @@ console = Console()
 @click.group()
 @click.version_option(__version__, prog_name="semcod-mcp")
 def main() -> None:
+    try:
+        from .autoupdate import check_for_updates
+        check_for_updates("semcod_mcp")
+    except Exception:
+        try:
+            from semcod_mcp.autoupdate import check_for_updates
+            check_for_updates("semcod_mcp")
+        except Exception:
+            pass
     """semcod MCP — init IDE configs, doctor, validate, analyze."""
 
 
