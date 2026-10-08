@@ -12,3 +12,5 @@ Before writing information, reports or plans, follow the [repository documentati
 - [SEMCOD_MCP_CLI](SEMCOD_MCP_CLI.md)
 - [USAGE](USAGE.md)
 - [USE_CASES](USE_CASES.md)
+
+- [Native governance adoption and immutable Compose boundary](information/native-governance-adoption.md)
