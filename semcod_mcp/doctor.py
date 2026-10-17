@@ -85,14 +85,18 @@ def run_doctor(project_dir: Path | None = None) -> DoctorReport:
 
     gw = gateway_url(stack)
     api_key = default_api_key()
-    ok, detail = _http_ok(gw.replace("/v1", "") + "/health" if gw.endswith("/v1") else gw + "/health")
+    ok, detail = _http_ok(
+        gw.replace("/v1", "") + "/health" if gw.endswith("/v1") else gw + "/health",
+        headers=None,
+        timeout=5.0,
+    )
     # gateway health is at /health without /v1
     health_url = gw.rstrip("/").removesuffix("/v1") + "/health"
-    ok, detail = _http_ok(health_url)
+    ok, detail = _http_ok(health_url, headers=None, timeout=5.0)
     report.add("required:gateway-health", ok, f"{health_url} — {detail}")
 
     models_url = gw.rstrip("/") + "/models"
-    ok, detail = _http_ok(models_url, headers={"Authorization": f"Bearer {api_key}"})
+    ok, detail = _http_ok(models_url, headers={"Authorization": f"Bearer {api_key}"}, timeout=5.0)
     report.add("required:gateway-models", ok, f"{models_url} — {detail}")
 
     # Local IDE configs

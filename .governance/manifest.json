@@ -43,6 +43,7 @@
     "project/TICKETS.md",
     "project/ticket-*/**",
     ".governance/standard-adoption.json",
+    ".governance/manifest.json",
     "config/artifact-registry.json"
   ],
   "trustedApprovalSources": [
@@ -115,7 +116,12 @@
           "lib/**",
           "packages/**",
           "test/**",
-          "tests/**"
+          "tests/**",
+          "docker-compose.yml",
+          "semcod_mcp/**",
+          "gh2mcp/**",
+          "git2mcp/**",
+          "mcp-gateway/**"
         ]
       },
       "interfaces": {

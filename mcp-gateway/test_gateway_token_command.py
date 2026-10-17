@@ -279,6 +279,7 @@ def test_resolve_repo_id_template_auto_recovers_on_auth_error(monkeypatch):
     call_log: list[str] = []
 
     async def fake_last_pushed(owner=None, limit=100):
+        _ = (owner, limit)
         call_log.append("last_pushed")
         if call_log.count("last_pushed") == 1:
             return {"success": False, "error": "HTTP 401: Requires authentication", "repo": None}
@@ -310,6 +311,7 @@ def test_resolve_repo_id_template_auth_error_with_failed_recovery_raises_helpful
     """Auth error + sync fails → ValueError with three-option recovery message."""
 
     async def fake_last_pushed(owner=None, limit=100):
+        _ = (owner, limit)
         return {"success": False, "error": "HTTP 401: Requires authentication", "repo": None}
 
     async def fake_sync():
@@ -335,6 +337,7 @@ def test_resolve_repo_id_template_non_auth_error_does_not_trigger_recovery(monke
     sync_calls = []
 
     async def fake_last_pushed(owner=None, limit=100):
+        _ = (owner, limit)
         return {"success": False, "error": "No repositories found for owner", "repo": None}
 
     async def fake_sync():

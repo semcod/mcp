@@ -37,6 +37,7 @@ def test_run_github_qa_missing_openrouter_key(monkeypatch):
         return {"success": True, "configured": True, "user": "tom"}
 
     async def fake_recent(limit=10, owner=None, include_orgs=True):
+        _ = (limit, owner, include_orgs)
         return {"success": True, "count": 1, "repos": [{"nameWithOwner": "tom/repo"}]}
 
     monkeypatch.setattr(gateway, "_gh2mcp_status_via_gh2mcp", fake_status)
@@ -51,6 +52,7 @@ def test_run_github_qa_missing_openrouter_key(monkeypatch):
 
 def test_chat_completions_github_qa_model(monkeypatch):
     async def fake_run_github_qa(user_request: str, repo_id=None, repo_url=None):
+        _ = (repo_id, repo_url)
         return {
             "skill": "github_qa",
             "ok": True,

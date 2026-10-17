@@ -273,23 +273,26 @@ class GitHubTokenSyncService:
         candidates: list[dict] = []
         errors: list[str] = []
 
+        def _fetch_owner_repos(owner_str: str) -> subprocess.CompletedProcess:
+            return subprocess.run(
+                [
+                    "gh",
+                    "repo",
+                    "list",
+                    owner_str,
+                    "-L",
+                    str(safe_limit),
+                    "--json",
+                    "nameWithOwner,pushedAt,url,isPrivate",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+
         for owner_name in owners:
             try:
-                proc = subprocess.run(
-                    [
-                        "gh",
-                        "repo",
-                        "list",
-                        owner_name,
-                        "-L",
-                        str(safe_limit),
-                        "--json",
-                        "nameWithOwner,pushedAt,url,isPrivate",
-                    ],
-                    capture_output=True,
-                    text=True,
-                    timeout=30,
-                )
+                proc = _fetch_owner_repos(owner_name)
             except Exception as exc:
                 errors.append(f"{owner_name}: {exc}")
                 continue
