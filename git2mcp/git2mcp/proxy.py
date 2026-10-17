@@ -90,13 +90,16 @@ class GitProxyManager:
         if path.is_dir() and (path / ".git").exists():
             safe_paths.add(path / ".git")
 
-        for safe_path in safe_paths:
+        def _add_safe_directory(target_path: Path) -> None:
             subprocess.run(
-                ["git", "config", "--global", "--add", "safe.directory", str(safe_path)],
+                ["git", "config", "--global", "--add", "safe.directory", str(target_path)],
                 check=False,
                 capture_output=True,
                 text=True,
             )
+
+        for safe_path in safe_paths:
+            _add_safe_directory(safe_path)
 
     @staticmethod
     def redact_url_credentials(repo_url: str | None) -> str | None:

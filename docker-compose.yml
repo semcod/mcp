@@ -5,9 +5,10 @@ services:
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      interval: 15s
       timeout: 3s
       retries: 10
+      start_period: 15s
     networks:
       - mcp-internal
     restart: unless-stopped
@@ -32,10 +33,11 @@ services:
     ports:
       - "${GIT_PROXY_BIND_HOST:-127.0.0.1}:${PORT_GIT_PROXY:-8081}:8080"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
-      interval: 20s
+      test: ["CMD", "curl", "-fsS", "--max-time", "3", "http://127.0.0.1:8080/health"]
+      interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 15s
     restart: unless-stopped
     networks:
       - mcp-internal
@@ -60,10 +62,11 @@ services:
     ports:
       - "${GH2MCP_BIND_HOST:-127.0.0.1}:${PORT_GH2MCP:-8079}:8079"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8079/health', timeout=3)"]
-      interval: 20s
+      test: ["CMD", "curl", "-fsS", "--max-time", "3", "http://127.0.0.1:8079/health"]
+      interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 15s
     networks:
       - mcp-internal
     restart: unless-stopped
@@ -93,10 +96,11 @@ services:
       - skills-cache:/skills-cache
       - ./mcp-skills/server.py:/app/server.py:ro
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=3)"]
-      interval: 30s
+      test: ["CMD", "curl", "-fsS", "--max-time", "3", "http://127.0.0.1:8080/health"]
+      interval: 15s
       timeout: 10s
       retries: 3
+      start_period: 15s
     restart: unless-stopped
     depends_on:
       mcp-git-proxy:
@@ -158,10 +162,11 @@ services:
     ports:
       - "${MCP_GATEWAY_BIND_HOST:-127.0.0.1}:${PORT_GATEWAY:-9000}:9000"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9000/health', timeout=3)"]
-      interval: 20s
+      test: ["CMD", "curl", "-fsS", "--max-time", "3", "http://127.0.0.1:9000/health"]
+      interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 15s
     depends_on:
       redis:
         condition: service_healthy
@@ -255,10 +260,11 @@ services:
     ports:
       - "${PORT_DOCS:-8093}:8090"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=3)"]
-      interval: 20s
+      test: ["CMD", "curl", "-fsS", "--max-time", "3", "http://127.0.0.1:8090/health"]
+      interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 15s
     networks:
       - mcp-public
     restart: unless-stopped

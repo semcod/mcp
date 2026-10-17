@@ -17,6 +17,7 @@ import os
 import re
 import time
 import uuid
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -72,13 +73,19 @@ REPO_USAGE_TTL_SECONDS = 604800  # 7 dni - TTL dla historii użycia repozytorió
 MAX_REPO_HISTORY = 20  # Maksymalna liczba repozytoriów w historii
 
 
+@lru_cache(maxsize=64)
+def _load_tenant_yaml_cached(path_str: str, mtime_ns: int) -> dict[str, Any]:
+    _ = mtime_ns
+    with open(path_str, encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
 def load_tenants() -> dict[str, dict]:
     tenants: dict[str, dict] = {}
     if not TENANTS_DIR.exists():
         return tenants
     for path in TENANTS_DIR.glob("*.yaml"):
-        with open(path, encoding="utf-8") as f:
-            data = yaml.safe_load(f) or {}
+        data = dict(_load_tenant_yaml_cached(str(path), path.stat().st_mtime_ns))
         tenant_id = data.get("tenant_id") or path.stem
         tenants[tenant_id] = data
     return tenants
@@ -2378,6 +2385,7 @@ async def chat_completions(req: ChatCompletionRequest, tenant: dict = Depends(au
                     repo_url=tool_repo_url,
                     subcommand=tool_intent.get("subcommand"),
                     args=tool_intent.get("args") or [],
+                    timeout=900.0,
                 )
             except Exception as exc:
                 tool_result = {
@@ -2679,7 +2687,13 @@ async def dispatch_skill(
         )
 
         if skill == "analyze":
-            analysis = await _run_skills_analysis(client, repo_id, execute=False, user_request=user_request)
+            analysis = await _run_skills_analysis(
+                client,
+                repo_id,
+                execute=False,
+                user_request=user_request,
+                max_actions=10,
+            )
             return {
                 "skill": "analyze",
                 "tenant": tenant_id,
@@ -2705,7 +2719,13 @@ async def dispatch_skill(
                 "checkpoint create",
             )
 
-            analysis = await _run_skills_analysis(client, repo_id, execute=execute_commit, user_request=user_request)
+            analysis = await _run_skills_analysis(
+                client,
+                repo_id,
+                execute=execute_commit,
+                user_request=user_request,
+                max_actions=10,
+            )
             base_branch = branch
             working_branch = branch
             plan_payload: dict[str, Any] = {
