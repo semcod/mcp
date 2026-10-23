@@ -2,7 +2,7 @@
 
 - **ID**: ticket-016
 - **Owner**: agent:antigravity
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: EDIT
 - **Created**: 2026-10-18
 
@@ -21,3 +21,7 @@ and raw command logs are not required delivery output.
 
 ## Execution Authorization
 - SESSION_EXECUTION_AUTHORIZATION: Authorized by user for governed release and PyPI publication via Willman.
+
+## Completion
+
+Retired 2026-10-23 with landing evidence: VERSION is 0.1.7 (release published). Governance reservation released; the delivered work is verifiably present on main.

@@ -1,6 +1,6 @@
 # ticket-012: Remove pfix auto-repair from the project
 
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: EDIT
 
 SESSION_EXECUTION_AUTHORIZATION: on 2026-09-13 the user requested that pfix be
@@ -17,3 +17,7 @@ AC-04: Source code, tests and generated documentation projections are unchanged.
 Canonical fleet evidence:
 `subactor/docs/architecture/analysis/semcod-library-quality.md`.
 This ticket does not establish full new-project adoption.
+
+## Completion
+
+Retired 2026-10-23 with landing evidence: no pfix references remain in any subproject pyproject.toml. Governance reservation released; the delivered work is verifiably present on main.

@@ -1,6 +1,6 @@
 # ticket-014: Complete MCP native governance adoption
 
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: PUBLICATION
 - **Owner**: agent:codex
 
@@ -23,3 +23,7 @@ Discovered prerequisite: Docs 0.1.0 rejects native managed manuals. The accepted
 Validation receipt: `receipt:mcp014-complete-local-checks-oct7`. Native governance and documentation pass with zero findings; all twelve tests and the retained Compose security script pass. Deliberately mismatched managed-copy digest is rejected. Protected Validator registry coverage is independently merged in PR #623. Independent exact-head MCP merge remains pending.
 
 Independent review remediation: the initial review rejected the optional Docker test skip. The security regression now requires Docker Compose and fails when its dependency is absent. The existing accepted test and documentation scope covers this correction; required checks and protected policy remain unchanged.
+
+## Completion
+
+Retired 2026-10-23 with landing evidence: native governance lock installed at 2ddba883 (manifest.lock.json 108 managed files); workflows present. Governance reservation released; the delivered work is verifiably present on main.

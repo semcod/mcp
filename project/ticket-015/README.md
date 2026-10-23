@@ -2,7 +2,7 @@
 
 - **ID**: ticket-015
 - **Owner**: tom
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: EDIT
 - **Created**: 2026-10-17
 
@@ -22,3 +22,7 @@ Remediate all 16 `PERF-AUDIT-*` static performance and Compose healthcheck findi
 
 This directory contains the minimal reviewed intent. Optional participant prose
 and raw command logs are not required delivery output.
+
+## Completion
+
+Retired 2026-10-23 with landing evidence: docker-compose.yml present; PERF-AUDIT remediation acceptance checked in ticket README. Governance reservation released; the delivered work is verifiably present on main.

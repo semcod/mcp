@@ -1,6 +1,6 @@
 # Ticket 009: Documentation placement and validation
 
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: PUBLICATION
 - **Issue**: https://github.com/semcod/mcp/issues/9
 
@@ -13,3 +13,7 @@ Identity comes from GitHub issue #9; this repository has no managed new-project 
 - AC-03: Existing tests and applicable configuration checks pass before independent exact-head Validator approval.
 
 Validation: published docs checker passes (tracked adoption and index; no migrated profile documents); pytest, shell syntax and Compose validation pass. Existing CI checks remain. The private standard checkout uses the existing organization-provided ORG_SYNC_PAT only for the fixed reviewed repository/revision, with credential persistence disabled; no secret contents were accessed. Full managed new-project governance is absent in this legacy repository.
+
+## Completion
+
+Retired 2026-10-23 with landing evidence: docs/README.md, .governance/docs.json and the verify workflow publish flow are present on main. Governance reservation released; the delivered work is verifiably present on main.
