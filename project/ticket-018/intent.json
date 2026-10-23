@@ -1,0 +1,30 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-018",
+  "summary": "Governance repair: subproject ownership, manifest lock sync, retire landed tickets",
+  "workstream": "governance",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-018/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "project/ticket-009/**",
+    "project/ticket-011/**",
+    "project/ticket-012/**",
+    "project/ticket-013/**",
+    "project/ticket-014/**",
+    "project/ticket-015/**",
+    "project/ticket-016/**"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null
+}

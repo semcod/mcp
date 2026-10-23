@@ -1,6 +1,6 @@
 # ticket-011: Local CI publication policy
 
-- **Status**: IN_PROGRESS
+- **Status**: DONE
 - **Workflow state**: EDIT
 
 SESSION_EXECUTION_AUTHORIZATION: user requested implementation and publication across Semcod and Subactor.
@@ -9,3 +9,7 @@ AC-01: Pin published policy while preserving custom requirements.
 AC-02: Validate bounded diff and publish through independent protected review.
 
 Allocation: https://github.com/semcod/mcp/issues/11. Canonical fleet evidence: `subactor/docs/architecture/analysis/local-ci-adoption.md`. This ticket does not establish full new-project adoption.
+
+## Completion
+
+Retired 2026-10-23 with landing evidence: AGENTS.md carries the immutable local CI publication instructions. Governance reservation released; the delivered work is verifiably present on main.
