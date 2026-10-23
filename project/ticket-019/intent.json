@@ -14,7 +14,8 @@
     "project/TICKETS.md",
     ".gitattributes",
     "project.bat",
-    ".governance/manifest.json"
+    ".governance/manifest.json",
+    "docs/dependency-ownership.md"
   ],
   "forbiddenPaths": [
     "project/ticket-*/user-*.md"
