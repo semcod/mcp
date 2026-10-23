@@ -13,7 +13,11 @@
     "TODO.md",
     "project/TICKETS.md",
     "llm-agent/requirements.txt",
-    "mcp-skills/requirements.txt"
+    "mcp-skills/requirements.txt",
+    "mcp-docs/requirements.txt",
+    "mcp-gateway/requirements.txt",
+    "mcp-git-proxy/requirements.txt",
+    "mcp-webui/requirements.txt"
   ],
   "forbiddenPaths": [
     "project/ticket-*/user-*.md"

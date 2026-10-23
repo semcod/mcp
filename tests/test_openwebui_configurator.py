@@ -130,3 +130,22 @@ def test_image_override_preserves_authenticated_boundary(override: str) -> None:
         for volume in webui["volumes"]
     )
     assert "@sha256:" in services["redis"]["image"]
+
+
+def test_application_workstream_owns_every_subproject_requirement_manifest():
+    """Governance contract (ticket-019/ticket-021): the application workstream
+    owns all subproject requirement manifests, and ticket-021 resolves
+    automated dependency updates for them to exactly one active ticket."""
+    import json
+
+    manifest = json.loads((ROOT / ".governance" / "manifest.json").read_text(encoding="utf-8"))
+    owned = manifest["coordination"]["workstreams"]["application"]["ownedPaths"]
+    subprojects = ("llm-agent", "mcp-docs", "mcp-gateway", "mcp-git-proxy", "mcp-skills", "mcp-webui")
+    for name in subprojects:
+        assert f"{name}/**" in owned, f"application workstream must own {name}/**"
+
+    intent = json.loads((ROOT / "project" / "ticket-021" / "intent.json").read_text(encoding="utf-8"))
+    allowed = set(intent["allowedPaths"])
+    assert intent["workstream"] == "application"
+    for name in subprojects:
+        assert f"{name}/requirements.txt" in allowed, f"ticket-021 must own {name}/requirements.txt"

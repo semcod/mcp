@@ -15,7 +15,7 @@
     ".gitattributes",
     "project.bat",
     ".governance/manifest.json",
-    "docs/dependency-ownership.md"
+    "tests/test_openwebui_configurator.py"
   ],
   "forbiddenPaths": [
     "project/ticket-*/user-*.md"
