@@ -1,0 +1,29 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-021",
+  "summary": "Dependency maintenance: llm-agent and mcp-skills requirement manifests",
+  "workstream": "application",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-021/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "llm-agent/requirements.txt",
+    "mcp-skills/requirements.txt",
+    "mcp-docs/requirements.txt",
+    "mcp-gateway/requirements.txt",
+    "mcp-git-proxy/requirements.txt",
+    "mcp-webui/requirements.txt"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null
+}

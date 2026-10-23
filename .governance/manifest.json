@@ -53,7 +53,10 @@
           "git2mcp/**",
           "mcp-gateway/**",
           "mcp-docs/**",
-          "mcp-webui/**"
+          "mcp-webui/**",
+          "llm-agent/**",
+          "mcp-git-proxy/**",
+          "mcp-skills/**"
         ]
       },
       "governance": {

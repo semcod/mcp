@@ -14,7 +14,8 @@
     "project/TICKETS.md",
     ".gitattributes",
     "project.bat",
-    ".governance/manifest.json"
+    ".governance/manifest.json",
+    "tests/test_openwebui_configurator.py"
   ],
   "forbiddenPaths": [
     "project/ticket-*/user-*.md"
