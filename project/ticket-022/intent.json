@@ -1,0 +1,27 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-022",
+  "summary": "adopt dependabot bump pydantic 2.14.1 to 2.14.2 through a governed ticket",
+  "workstream": "application",
+  "classification": {
+    "kind": "SERVICE",
+    "priority": "P2",
+    "origin": "health"
+  },
+  "allowedPaths": [
+    "project/ticket-022/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    "llm-agent/requirements.txt",
+    "mcp-gateway/requirements.txt",
+    "mcp-git-proxy/requirements.txt",
+    "mcp-skills/requirements.txt"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null
+}
