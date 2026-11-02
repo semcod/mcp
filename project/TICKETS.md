@@ -13,6 +13,7 @@ This file indexes governance tickets without taking ownership of
 | **ticket-014** | [`README.md`](./ticket-014/README.md) | - | - | - | - | - |
 | **ticket-015** | [`README.md`](./ticket-015/README.md) | - | - | - | - | - |
 | **ticket-016** | [`README.md`](./ticket-016/README.md) | - | - | - | - | - |
+| **ticket-018** | [`README.md`](./ticket-018/README.md) | - | - | - | - | - |
 | **ticket-019** | [`README.md`](./ticket-019/README.md) | - | - | - | - | - |
 | **ticket-020** | [`README.md`](./ticket-020/README.md) | - | - | - | - | - |
 | **ticket-021** | [`README.md`](./ticket-021/README.md) | - | - | - | - | - |
