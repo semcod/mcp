@@ -1,5 +1,5 @@
 mcp>=2.3.0
 pydantic>=2.14.2
-openai>=3.19.2
+openai>=3.46.0
 httpx>=0.24.0
 python-dotenv>=1.0.0
