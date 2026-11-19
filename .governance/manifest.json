@@ -50,6 +50,7 @@
           "docker-compose.yml",
           "semcod_mcp/**",
           "gh2mcp/**",
+          "env2mcp/**",
           "git2mcp/**",
           "mcp-gateway/**",
           "mcp-docs/**",
