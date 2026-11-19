@@ -14,7 +14,7 @@ def _version(path: Path, pattern: re.Pattern) -> str:
 
 
 def test_subpackage_versions_match_their_pyproject() -> None:
-    for package in ("gh2mcp",):
+    for package in ("env2mcp", "gh2mcp"):
         assert _version(ROOT / package / package / "__init__.py", VERSION_RE) == _version(
             ROOT / package / "pyproject.toml", PROJECT_RE
         )

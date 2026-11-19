@@ -19,7 +19,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "1e1f98ea4ec6d2926a2d9c4d219a1f487238c0ceec39abbf89c77a75e116570c"
+          "sha256": "935e180733d7aac5eb3cf95ca9294de51bb5f3c1040781116dff97157702920a"
         }
       ],
       "evidence": [
@@ -54,7 +54,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "1e1f98ea4ec6d2926a2d9c4d219a1f487238c0ceec39abbf89c77a75e116570c"
+          "sha256": "935e180733d7aac5eb3cf95ca9294de51bb5f3c1040781116dff97157702920a"
         }
       ],
       "evidence": [
@@ -94,7 +94,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "1e1f98ea4ec6d2926a2d9c4d219a1f487238c0ceec39abbf89c77a75e116570c"
+          "sha256": "935e180733d7aac5eb3cf95ca9294de51bb5f3c1040781116dff97157702920a"
         }
       ],
       "evidence": [
@@ -129,7 +129,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "1e1f98ea4ec6d2926a2d9c4d219a1f487238c0ceec39abbf89c77a75e116570c"
+          "sha256": "935e180733d7aac5eb3cf95ca9294de51bb5f3c1040781116dff97157702920a"
         }
       ],
       "evidence": [
@@ -169,7 +169,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "1e1f98ea4ec6d2926a2d9c4d219a1f487238c0ceec39abbf89c77a75e116570c"
+          "sha256": "935e180733d7aac5eb3cf95ca9294de51bb5f3c1040781116dff97157702920a"
         }
       ],
       "evidence": [
@@ -209,7 +209,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "1e1f98ea4ec6d2926a2d9c4d219a1f487238c0ceec39abbf89c77a75e116570c"
+          "sha256": "935e180733d7aac5eb3cf95ca9294de51bb5f3c1040781116dff97157702920a"
         }
       ],
       "evidence": [
@@ -244,7 +244,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "1e1f98ea4ec6d2926a2d9c4d219a1f487238c0ceec39abbf89c77a75e116570c"
+          "sha256": "935e180733d7aac5eb3cf95ca9294de51bb5f3c1040781116dff97157702920a"
         }
       ],
       "evidence": [
@@ -284,7 +284,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "1e1f98ea4ec6d2926a2d9c4d219a1f487238c0ceec39abbf89c77a75e116570c"
+          "sha256": "935e180733d7aac5eb3cf95ca9294de51bb5f3c1040781116dff97157702920a"
         }
       ],
       "evidence": [
