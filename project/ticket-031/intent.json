@@ -213,7 +213,8 @@
             "AGENTS.md",
             "pyproject.toml",
             "scripts/install-agent-hosts.sh",
-            "wellmanifest_governance.py"
+            "wellmanifest_governance.py",
+            ".governance/docs.json"
           ]
         }
       ],
