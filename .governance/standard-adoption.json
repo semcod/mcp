@@ -13,30 +13,30 @@
     {
       "id": "wellmanifest/docs",
       "version": "0.20.89",
-      "revision": "6f475fb223e7a259d514b5483fb0d62f0e80a46e",
+      "revision": "0714f71462202788e6b775ed145e9e61a7d5c366",
       "model": "local-conformance",
       "level": "S2",
       "artifacts": [
         {
           "target": ".governance/docs.json",
-          "sha256": "3c3b22824f38a3adf9155387dfc398479af64368ce7331e0ac3f7aa28406c644"
+          "sha256": "6d94278daee7bc7c45212a46d4fb8ca722395bf1432911ea14116835fed959cf"
         }
       ],
       "evidence": [
         {
           "level": "S0",
-          "uri": "https://github.com/wellmanifest/docs/blob/6f475fb223e7a259d514b5483fb0d62f0e80a46e/docs/standard/policy.json",
-          "sha256": "af5fde2d52e1c292e569cd47a4068f0e42181a8f8fb9fc21737a569bee9a206f"
+          "uri": "https://github.com/wellmanifest/docs/blob/0714f71462202788e6b775ed145e9e61a7d5c366/docs/standard/policy.json",
+          "sha256": "fac05e720ec49370ba393e817a4a03b895d7ed33828e09b3420f9fcfb09264b0"
         },
         {
           "level": "S1",
-          "uri": "https://github.com/wellmanifest/docs/blob/6f475fb223e7a259d514b5483fb0d62f0e80a46e/docs/standard/check.py",
-          "sha256": "69217f1fa83bff0d2796ec22d662986dc178e2c8a6fa72fa169669f827a4a4f5"
+          "uri": "https://github.com/wellmanifest/docs/blob/0714f71462202788e6b775ed145e9e61a7d5c366/docs/standard/check.py",
+          "sha256": "b7a23ee84e66d3c58a27646abdc6e130962c985da37f83c1b08a7897a40f7e31"
         },
         {
           "level": "S2",
           "uri": ".governance/docs.json",
-          "sha256": "3c3b22824f38a3adf9155387dfc398479af64368ce7331e0ac3f7aa28406c644"
+          "sha256": "6d94278daee7bc7c45212a46d4fb8ca722395bf1432911ea14116835fed959cf"
         }
       ]
     },
@@ -49,7 +49,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "d09060b174cdb476a7ff7a10e2e609f4daf141fd64f6f022d93e253bd8ac70d2"
+          "sha256": "7f8f4c4a60334327e329f3fb92c4fdb89ba20663dee205e1bca5ba12ee00cd4f"
         },
         {
           "target": ".governance/standard-packs.json",
@@ -103,7 +103,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "d09060b174cdb476a7ff7a10e2e609f4daf141fd64f6f022d93e253bd8ac70d2"
+          "sha256": "7f8f4c4a60334327e329f3fb92c4fdb89ba20663dee205e1bca5ba12ee00cd4f"
         },
         {
           "target": ".governance/standard-packs.json",
@@ -142,7 +142,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "d09060b174cdb476a7ff7a10e2e609f4daf141fd64f6f022d93e253bd8ac70d2"
+          "sha256": "7f8f4c4a60334327e329f3fb92c4fdb89ba20663dee205e1bca5ba12ee00cd4f"
         },
         {
           "target": ".governance/standard-packs.json",
@@ -181,7 +181,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "d09060b174cdb476a7ff7a10e2e609f4daf141fd64f6f022d93e253bd8ac70d2"
+          "sha256": "7f8f4c4a60334327e329f3fb92c4fdb89ba20663dee205e1bca5ba12ee00cd4f"
         },
         {
           "target": ".governance/standard-packs.json",
@@ -220,7 +220,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "d09060b174cdb476a7ff7a10e2e609f4daf141fd64f6f022d93e253bd8ac70d2"
+          "sha256": "7f8f4c4a60334327e329f3fb92c4fdb89ba20663dee205e1bca5ba12ee00cd4f"
         },
         {
           "target": ".governance/standard-packs.json",
@@ -259,7 +259,7 @@
       "artifacts": [
         {
           "target": ".governance/manifest.json",
-          "sha256": "d09060b174cdb476a7ff7a10e2e609f4daf141fd64f6f022d93e253bd8ac70d2"
+          "sha256": "7f8f4c4a60334327e329f3fb92c4fdb89ba20663dee205e1bca5ba12ee00cd4f"
         },
         {
           "target": ".governance/standard-packs.json",
