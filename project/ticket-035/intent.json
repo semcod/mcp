@@ -1,0 +1,88 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-035",
+  "summary": "Read the adopted standard when checking managed documentation",
+  "workstream": "integration",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-035/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    ".github/workflows/verify.yml"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "e9f720e40df1e4ab1dcbf3494f425916b3634d81",
+    "targetBranch": "main",
+    "outcome": "Verify managed documentation using the published governance source revision adopted by the exact checkout.",
+    "nonGoals": [
+      "Changing the adoption lock, the documentation policy, or release configuration."
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 20,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Read the published Git commit from the tracked adoption lock, check out the fixed upstream repository at that commit, and keep exact digest validation of its managed documents.",
+      "components": [
+        {
+          "name": "verify-workflow",
+          "paths": [
+            ".github/workflows/verify.yml"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the workflow change."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "python .subactor/cache/docs-standard/docs/standard/check.py"
+        ],
+        "evidence": "Fresh negatives and positives against main, PR #60, and PR #61."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "bash -e -c <revision resolver from workflow>"
+        ],
+        "evidence": "Mutable references fail the immutable revision resolver."
+      },
+      {
+        "criterion": "AC-03",
+        "commands": [
+          "python -m pytest -q",
+          "docker compose --profile openwebui config -q"
+        ],
+        "evidence": "15 tests pass and the exact compose security assertions are true."
+      }
+    ]
+  }
+}
