@@ -1,0 +1,80 @@
+{
+  "schema": "new-project.intent/v3",
+  "ticket": "ticket-036",
+  "summary": "Pass the push base to the governance test gate",
+  "workstream": "integration",
+  "classification": {
+    "kind": "BUG",
+    "priority": "P1",
+    "origin": "regression"
+  },
+  "allowedPaths": [
+    "project/ticket-036/**",
+    "TODO.md",
+    "project/TICKETS.md",
+    ".github/workflows/verify.yml"
+  ],
+  "forbiddenPaths": [
+    "project/ticket-*/user-*.md"
+  ],
+  "stacks": [
+    "python"
+  ],
+  "dependsOn": [],
+  "conflictsWith": [],
+  "integrationTicket": null,
+  "delivery": {
+    "acceptedBaseSha": "f7ce6a979b086ec2a5862e2a0c4ad98160c08eec",
+    "targetBranch": "main",
+    "outcome": "Validate the exact push range during the existing pytest governance hook.",
+    "nonGoals": [
+      "Changing protected checks, ticket ancestry policy, or any existing ticket branch."
+    ],
+    "complexity": "S",
+    "estimatedMinutes": 12,
+    "budgets": {
+      "maxImplementationFiles": 1,
+      "maxAffectedComponents": 1,
+      "maxPublicInterfaceChanges": 0,
+      "maxRuntimeDependencies": 0
+    },
+    "architecture": {
+      "status": "accepted",
+      "decision": "Bind the pytest step to the GitHub push event before SHA. Keep the PR event base path intact.",
+      "components": [
+        {
+          "name": "verify-workflow",
+          "paths": [
+            ".github/workflows/verify.yml"
+          ]
+        }
+      ],
+      "responsibilityChanges": false,
+      "interfaceChanges": [],
+      "dataChanges": [],
+      "ui": {
+        "impact": "none",
+        "states": [],
+        "evidence": []
+      },
+      "rollback": "Revert the workflow change."
+    },
+    "runtimeDependencies": [],
+    "validation": [
+      {
+        "criterion": "AC-01",
+        "commands": [
+          "python -m pytest -q"
+        ],
+        "evidence": "Remote clone reproduced the hosted failure, then passed unchanged product tests with the exact event before SHA."
+      },
+      {
+        "criterion": "AC-02",
+        "commands": [
+          "python -m pytest -q"
+        ],
+        "evidence": "Parsed the actual workflow step, used the push fixture, and observed governance pass and 15 passing tests."
+      }
+    ]
+  }
+}

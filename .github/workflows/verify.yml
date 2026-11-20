@@ -82,6 +82,8 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install --disable-pip-version-check -e '.[dev]'
       - name: Run unit tests
+        env:
+          WELLMANIFEST_BASE_SHA: ${{ github.event.before }}
         run: python -m pytest -q
       - name: Validate secure OpenWebUI boundary
         shell: bash
