@@ -29,11 +29,30 @@ jobs:
           path: .subactor/cache/docs-standard
           token: ${{ secrets.ORG_SYNC_PAT || github.token }}
           persist-credentials: false
+      - name: Resolve the adopted governance revision
+        id: governance-standard
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          standard = json.loads(Path(".governance/manifest.lock.json").read_text())["standard"]
+          revision = standard.get("sourceRevision")
+          if (standard.get("sourceRepository") != "wellmanifest/new-project"
+                  or standard.get("publicationStatus") != "published"
+                  or not isinstance(revision, str)
+                  or not re.fullmatch(r"[0-9a-f]{40}", revision)):
+              raise SystemExit("Expected a published wellmanifest/new-project commit in the adoption lock")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"revision={revision}\n")
+          PY
       - name: Check out immutable governance source for managed documentation inventory
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: wellmanifest/new-project
-          ref: 2ddba8833d342b4b4201eada2d05c8b70ed4985e # v0.20.89
+          ref: ${{ steps.governance-standard.outputs.revision }}
           path: .subactor/cache/new-project-standard
           token: ${{ secrets.ORG_SYNC_PAT || github.token }}
           persist-credentials: false
